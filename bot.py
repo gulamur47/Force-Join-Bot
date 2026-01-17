@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
-    ContextTypes, MessageHandler, filters
+    MessageHandler, filters, ContextTypes
 )
 
 # ================== HEALTH CHECK ==================
@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS channels(
     link TEXT
 )
 """)
-
 cur.execute("""
 CREATE TABLE IF NOT EXISTS users(
     user_id INTEGER PRIMARY KEY,
@@ -88,6 +87,8 @@ BROADCAST_MODE = {}
 # ================== START ==================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    if update.message is None:  # ensure message exists
+        return
     uid = user.id
 
     # Stylish name
@@ -133,10 +134,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode=ParseMode.HTML
         )
-        # Reminder after 2 minutes
         context.job_queue.run_once(reminder, 120, data=uid)
 
-# ================== CHECK JOIN ==================
+# ================== CHECK COMMAND ==================
+async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    stylish_name = f"<b>{update.effective_user.first_name}</b>"
+
+    not_joined = await check_all_joined(uid, context.bot)
+
+    if not not_joined:
+        cur.execute("UPDATE users SET unlocked=1 WHERE user_id=?",(uid,))
+        db.commit()
+        await update.message.reply_text(
+            f"🎉 স্বাগতম 👤 {stylish_name}\n✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+            ),
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        await update.message.reply_text("❌ এখনও সব Channel Join হয়নি!")
+
+# ================== CALLBACK BUTTON ==================
 async def check_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     uid = query.from_user.id
@@ -175,6 +195,9 @@ async def reminder(context):
 # ================== ADMIN COMMANDS ==================
 async def addchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
+    if len(context.args)<3:
+        await update.message.reply_text("Usage: /addchannel @username https://link \"Button Name\"")
+        return
     cid = context.args[0]
     link = context.args[1]
     name = " ".join(context.args[2:]).strip('"')
@@ -184,6 +207,9 @@ async def addchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def removechannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
+    if len(context.args)<1:
+        await update.message.reply_text("Usage: /removechannel @username")
+        return
     cur.execute("DELETE FROM channels WHERE id=?",(context.args[0],))
     db.commit()
     await update.message.reply_text("❌ Channel Removed")
@@ -200,18 +226,12 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     BROADCAST_MODE[update.effective_user.id] = True
     await update.message.reply_text(
-        "📢 Broadcast Mode ON\n"
-        "➡️ Text or Photo পাঠান\n"
-        "➡️ Caption এ লিখুন:\n"
-        "ButtonText | https://button-link.com\n"
-        "❌ Cancel করতে /cancel"
+        "📢 Broadcast Mode ON\n➡️ Text or Photo পাঠান\n➡️ Caption: ButtonText | URL\n❌ Cancel: /cancel"
     )
 
-async def handle_broadcast_content(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
-    if not BROADCAST_MODE.get(uid):
-        return
-
+    if not BROADCAST_MODE.get(uid): return
     BROADCAST_MODE.pop(uid)
 
     button = None
@@ -224,25 +244,20 @@ async def handle_broadcast_content(update: Update, context: ContextTypes.DEFAULT
 
     users = cur.execute("SELECT user_id FROM users").fetchall()
     sent = 0
-
     for (user_id,) in users:
         try:
             if update.message.photo:
-                await context.bot.send_photo(
-                    chat_id=user_id,
-                    photo=update.message.photo[-1].file_id,
-                    caption=text,
-                    reply_markup=button,
-                    parse_mode=ParseMode.HTML
-                )
+                await context.bot.send_photo(chat_id=user_id,
+                                             photo=update.message.photo[-1].file_id,
+                                             caption=text,
+                                             reply_markup=button,
+                                             parse_mode=ParseMode.HTML)
             else:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=text,
-                    reply_markup=button,
-                    parse_mode=ParseMode.HTML
-                )
-            sent += 1
+                await context.bot.send_message(chat_id=user_id,
+                                               text=text,
+                                               reply_markup=button,
+                                               parse_mode=ParseMode.HTML)
+            sent+=1
             await asyncio.sleep(0.05)
         except:
             pass
@@ -256,14 +271,20 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================== RUN BOT ==================
 app = Application.builder().token(TOKEN).build()
 
+# User commands
 app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(check_callback, "check"))
+app.add_handler(CommandHandler("check", check))
+app.add_handler(CallbackQueryHandler(check_callback, pattern="check"))
+
+# Admin commands
 app.add_handler(CommandHandler("addchannel", addchannel))
 app.add_handler(CommandHandler("removechannel", removechannel))
 app.add_handler(CommandHandler("listchannels", listchannels))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("cancel", cancel))
-app.add_handler(MessageHandler(filters.ALL, handle_broadcast_content))
 
-print("🔥 FORCE JOIN BOT with Broadcast running...")
+# Broadcast handler
+app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_broadcast))
+
+print("🔥 FULL FORCE JOIN BOT RUNNING...")
 app.run_polling()
