@@ -33,11 +33,19 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 # ================= DATABASE =================
 DB = sqlite3.connect("bot.db", check_same_thread=False)
 CURSOR = DB.cursor()
-CURSOR.execute("CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY)")
-CURSOR.execute("CREATE TABLE IF NOT EXISTS channels (username TEXT PRIMARY KEY, button TEXT, link TEXT)")
+CURSOR.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY)""")
+CURSOR.execute("""CREATE TABLE IF NOT EXISTS channels (username TEXT PRIMARY KEY, button TEXT, link TEXT)""")
+CURSOR.execute("""CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    photo_file_id TEXT,
+    force_join_channels TEXT,
+    target_channels TEXT,
+    url TEXT
+)""")
 DB.commit()
 
-# ================= CHANNELS DATA =================
+# ================= CHANNELS =================
 CHANNELS_DATA = [
     {"id": "@virallink259", "name": "ভাইরাল ভিদিও লিংক এক্সপ্রেস ২০২৬🔥❤️", "link": "https://t.me/virallink259"},
     {"id": -1002279183424, "name": "Primium App Zone", "link": "https://t.me/+5PNLgcRBC0IxYjll"},
@@ -60,20 +68,96 @@ async def save_user(user_id):
     CURSOR.execute("INSERT OR IGNORE INTO users VALUES (?)", (user_id,))
     DB.commit()
 
-# ================= COMMANDS =================
+async def check_all_joined(user_id, context):
+    not_joined = []
+    for channel in CHANNELS_DATA:
+        try:
+            member = await context.bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
+            if member.status not in ['member', 'administrator', 'creator']:
+                not_joined.append(channel)
+        except:
+            not_joined.append(channel)
+    return not_joined
+
+# ================= START / CHECK =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     await save_user(user.id)
-    await update.message.reply_text(f"👋 Hello {user.first_name}!\nUse /newpost to start creating a post.")
+    stylish_name = f"👤 <b>{user.first_name}</b>"
+    not_joined_list = await check_all_joined(user.id, context)
+
+    if not not_joined_list:
+        success_text = (
+            f"🎉 স্বাগতম {stylish_name}\n"
+            f"✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️\n"
+            f"▶️ ভিডিও দেখতে এখনই <b>[Watch Now]</b> বাটনে ক্লিক করুন 🎬✨"
+        )
+        watch_kb = [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+        await update.message.reply_text(success_text, reply_markup=InlineKeyboardMarkup(watch_kb), parse_mode=ParseMode.HTML)
+    else:
+        buttons = [[InlineKeyboardButton(f"Join {c['name']}", url=c['link'])] for c in not_joined_list]
+        buttons.append([InlineKeyboardButton("Check Joined ✅", callback_data="check_status")])
+        caption = (
+            f"Hello {stylish_name},\n\n"
+            "🚨 <b>Attention Please!</b>\n\n"
+            "Viral ভিডিও দেখার আগে আমাদের নিচের Channel গুলোতে Join করা বাধ্যতামূলক।\n"
+            "সবগুলো চ্যানেল Join না করলে ভিডিও লিঙ্ক কাজ করবে না ❌\n\n"
+            "Join শেষ হলে <b>Check Joined</b> ক্লিক করুন ✅"
+        )
+        await update.message.reply_text(caption, reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML)
+
+# ================= BUTTON CALLBACK =================
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user = query.from_user
+    if query.data == "check_status":
+        not_joined_list = await check_all_joined(user.id, context)
+        if not not_joined_list:
+            watch_kb = [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+            await query.edit_message_text(
+                f"🎉 ধন্যবাদ {user.first_name}! সব চ্যানেল join করা আছে।\n▶️ ভিডিও দেখতে এখনই [Watch Now]",
+                reply_markup=InlineKeyboardMarkup(watch_kb),
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await query.answer("❌ এখনো সব চ্যানেলে join করা হয়নি!", show_alert=True)
+
+# ================= CHANNEL MANAGEMENT =================
+async def addchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    try:
+        username, link = context.args[0], context.args[1]
+        button_name = " ".join(context.args[2:])
+        CURSOR.execute("INSERT OR REPLACE INTO channels VALUES (?,?,?)", (username, button_name, link))
+        DB.commit()
+        await update.message.reply_text(f"✅ Channel {username} Added!")
+    except:
+        await update.message.reply_text("❌ Format: /addchannel @username link Button Name")
+
+async def removechannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    try:
+        username = context.args[0]
+        CURSOR.execute("DELETE FROM channels WHERE username=?", (username,))
+        DB.commit()
+        await update.message.reply_text(f"✅ Channel {username} Removed!")
+    except:
+        await update.message.reply_text("❌ Format: /removechannel @username")
+
+async def listchannels(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    CURSOR.execute("SELECT * FROM channels")
+    rows = CURSOR.fetchall()
+    text = "\n".join([f"{r[0]} | {r[1]}" for r in rows])
+    await update.message.reply_text(text or "No channels found.")
 
 # ================= NEWPOST WIZARD =================
-POST_TITLE, POST_PHOTO, POST_FORCE_JOIN, POST_TARGET, POST_URL, CONFIRM_SEND = range(6)
+POST_TITLE, POST_PHOTO, POST_FJ, POST_TARGET, POST_URL, CONFIRM_SEND = range(6)
 
 async def newpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_admin(update.effective_user.id):
-        return ConversationHandler.END
+    if not is_admin(update.effective_user.id): return ConversationHandler.END
     context.user_data['post_data'] = {'fj': [], 'target': [], 'photo': None, 'url': None}
-    await update.message.reply_text("✨ **Step 1:** Post Title pathan:")
+    await update.message.reply_text("✨ **Step 1:** Post Title likhun:")
     return POST_TITLE
 
 async def post_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -95,31 +179,20 @@ async def show_fj_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         status = "✅" if c['id'] in selected else "❌"
         buttons.append([InlineKeyboardButton(f"{status} {c['name']}", callback_data=f"selfj_{c['id']}")])
     buttons.append([InlineKeyboardButton("Done ➡️", callback_data="fj_done")])
-    
     text = "🔒 **Step 3:** Force Join Channels select korun:"
-    if update.callback_query:
-        await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
-    else:
-        await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
-    return POST_FORCE_JOIN
+    if update.callback_query: await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    else: await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    return POST_FJ
 
 async def fj_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
-    if data == "fj_done":
-        return await show_target_menu(update, context)
-    
-    cid = data.replace("selfj_", "")
+    if query.data == "fj_done": return await show_target_menu(update, context)
+    cid = query.data.replace("selfj_", "")
     try: cid = int(cid)
     except: pass
-    
-    if cid in context.user_data['post_data']['fj']:
-        context.user_data['post_data']['fj'].remove(cid)
-    else:
-        context.user_data['post_data']['fj'].append(cid)
-    
-    await show_fj_menu(update, context)
-    return POST_FORCE_JOIN
+    if cid in context.user_data['post_data']['fj']: context.user_data['post_data']['fj'].remove(cid)
+    else: context.user_data['post_data']['fj'].append(cid)
+    return await show_fj_menu(update, context)
 
 async def show_target_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected = context.user_data['post_data']['target']
@@ -128,28 +201,20 @@ async def show_target_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         status = "✅" if c['id'] in selected else "❌"
         buttons.append([InlineKeyboardButton(f"{status} {c['name']}", callback_data=f"seltg_{c['id']}")])
     buttons.append([InlineKeyboardButton("Done ➡️", callback_data="tg_done")])
-    
     await update.callback_query.edit_message_text("🎯 **Step 4:** Target Channels select korun:", reply_markup=InlineKeyboardMarkup(buttons))
     return POST_TARGET
 
 async def target_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
-    if data == "tg_done":
-        await query.message.reply_text("🔗 **Step 5:** Post URL pathan ba /skip likhun:")
+    if query.data == "tg_done":
+        await query.message.reply_text("🔗 **Step 5:** URL pathan ba /skip likhun:")
         return POST_URL
-    
-    cid = data.replace("seltg_", "")
+    cid = query.data.replace("seltg_", "")
     try: cid = int(cid)
     except: pass
-    
-    if cid in context.user_data['post_data']['target']:
-        context.user_data['post_data']['target'].remove(cid)
-    else:
-        context.user_data['post_data']['target'].append(cid)
-    
-    await show_target_menu(update, context)
-    return POST_TARGET
+    if cid in context.user_data['post_data']['target']: context.user_data['post_data']['target'].remove(cid)
+    else: context.user_data['post_data']['target'].append(cid)
+    return await show_target_menu(update, context)
 
 async def post_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['post_data']['url'] = update.message.text
@@ -160,69 +225,74 @@ async def skip_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     d = context.user_data['post_data']
-    summary = (
-        "📊 **Post Summary:**\n\n"
-        f"📝 **Title:** {d['title']}\n"
-        f"🖼 **Photo:** {'Setted ✅' if d['photo'] else 'Skipped ❌'}\n"
-        f"🔒 **FJ Channels:** {len(d['fj'])}\n"
-        f"🎯 **Targets:** {len(d['target'])}\n"
-        f"🔗 **URL:** {d['url'] if d['url'] else 'Default'}\n\n"
-        "Confirm send?"
-    )
-    kb = [[InlineKeyboardButton("✅ Confirm Send", callback_data="conf_send"), 
-           InlineKeyboardButton("❌ Cancel", callback_data="conf_cancel")]]
-    await update.message.reply_text(summary, reply_markup=InlineKeyboardMarkup(kb), parse_mode=ParseMode.MARKDOWN)
+    summary = f"📊 **Post Summary:**\n\n📝 Title: {d['title']}\n🖼 Photo: {'Setted' if d['photo'] else 'No'}\n🔒 FJ Channels: {len(d['fj'])}\n🎯 Targets: {len(d['target'])}\n🔗 URL: {d['url'] or 'Default'}"
+    kb = [[InlineKeyboardButton("✅ Confirm Send", callback_data="conf_send"), InlineKeyboardButton("❌ Cancel", callback_data="conf_cancel")]]
+    await update.message.reply_text(summary, reply_markup=InlineKeyboardMarkup(kb))
     return CONFIRM_SEND
 
 async def confirm_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if query.data == "conf_cancel":
-        await query.edit_message_text("❌ Wizard aborted.")
+        await query.edit_message_text("❌ Cancelled.")
         return ConversationHandler.END
     
     d = context.user_data['post_data']
     final_url = d['url'] if d['url'] else WATCH_NOW_URL
     kb = InlineKeyboardMarkup([[InlineKeyboardButton("Watch Now 🎬", url=final_url)]])
     
-    await query.edit_message_text("🚀 Sending post...")
-    
-    for target in d['target']:
+    for tid in d['target']:
         try:
-            if d['photo']:
-                await context.bot.send_photo(chat_id=target, photo=d['photo'], caption=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
-            else:
-                await context.bot.send_message(chat_id=target, text=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
-        except Exception as e:
-            logging.error(f"Failed to send to {target}: {e}")
-            
-    await query.message.reply_text("✅ Post successfully sent to all targets!")
+            if d['photo']: await context.bot.send_photo(chat_id=tid, photo=d['photo'], caption=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
+            else: await context.bot.send_message(chat_id=tid, text=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
+        except: pass
+    await query.edit_message_text("✅ Post Sent!")
+    return ConversationHandler.END
+
+# ================= BROADCAST =================
+BROADCAST_MODE = 7
+async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    await update.message.reply_text("📢 Broadcast mode active. Send message/photo/video to all users:")
+    return BROADCAST_MODE
+
+async def broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    CURSOR.execute("SELECT user_id FROM users")
+    users = CURSOR.fetchall()
+    count = 0
+    for user in users:
+        try:
+            await update.message.copy(chat_id=user[0])
+            count += 1
+        except: pass
+    await update.message.reply_text(f"✅ Sent to {count} users.")
     return ConversationHandler.END
 
 async def postcancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-    await update.message.reply_text("🚫 Wizard cancelled.")
+    await update.message.reply_text("🚫 Wizard Cancelled.")
     return ConversationHandler.END
 
 # ================= MAIN =================
 if __name__ == "__main__":
     app = Application.builder().token(TOKEN).build()
-    
-    # Newpost Wizard
-    newpost_conv = ConversationHandler(
-        entry_points=[CommandHandler("newpost", newpost)],
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("addchannel", addchannel))
+    app.add_handler(CommandHandler("removechannel", removechannel))
+    app.add_handler(CommandHandler("listchannels", listchannels))
+    app.add_handler(CallbackQueryHandler(button_callback, pattern="^check_status$"))
+
+    conv = ConversationHandler(
+        entry_points=[CommandHandler("newpost", newpost), CommandHandler("broadcast", broadcast)],
         states={
             POST_TITLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_title)],
             POST_PHOTO: [MessageHandler(filters.PHOTO, post_photo), CommandHandler("skip", skip_photo)],
-            POST_FORCE_JOIN: [CallbackQueryHandler(fj_callback, pattern="^selfj_|^fj_done$")],
+            POST_FJ: [CallbackQueryHandler(fj_callback, pattern="^selfj_|^fj_done$")],
             POST_TARGET: [CallbackQueryHandler(target_callback, pattern="^seltg_|^tg_done$")],
             POST_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_url), CommandHandler("skip", skip_url)],
             CONFIRM_SEND: [CallbackQueryHandler(confirm_handler, pattern="^conf_")],
+            BROADCAST_MODE: [MessageHandler(filters.ALL & ~filters.COMMAND, broadcast_send)],
         },
         fallbacks=[CommandHandler("postcancel", postcancel)],
     )
-    
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(newpost_conv)
-    
-    print("Bot is active and wizard is ready...")
+    app.add_handler(conv)
     app.run_polling()
