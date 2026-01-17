@@ -1,7 +1,4 @@
-import logging
-import os
-import threading
-import sqlite3
+import logging, os, threading, sqlite3
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
@@ -17,11 +14,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Bot is running!")
 
-def run_health_check_server():
-    port = int(os.environ.get("PORT", 8000))
-    HTTPServer(("0.0.0.0", port), HealthCheckHandler).serve_forever()
-
-threading.Thread(target=run_health_check_server, daemon=True).start()
+threading.Thread(target=lambda: HTTPServer(("0.0.0.0", int(os.environ.get("PORT",8000))), HealthCheckHandler).serve_forever(), daemon=True).start()
 
 # ================= CONFIG =================
 TOKEN = "8510787985:AAHjszZmTMwqvqTfbFMJdqC548zBw4Qh0S0"
@@ -33,8 +26,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 # ================= DATABASE =================
 DB = sqlite3.connect("bot.db", check_same_thread=False)
 CURSOR = DB.cursor()
-CURSOR.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY)""")
-CURSOR.execute("""CREATE TABLE IF NOT EXISTS channels (username TEXT PRIMARY KEY, button TEXT, link TEXT)""")
+CURSOR.execute("CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY)")
+CURSOR.execute("CREATE TABLE IF NOT EXISTS channels (username TEXT PRIMARY KEY, button TEXT, link TEXT)")
 CURSOR.execute("""CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT,
@@ -61,144 +54,181 @@ CHANNELS_DATA = [
 ]
 
 # ================= UTILS =================
-def is_admin(user_id):
-    return user_id in ADMIN_IDS
-
-async def save_user(user_id):
-    CURSOR.execute("INSERT OR IGNORE INTO users VALUES (?)", (user_id,))
-    DB.commit()
-
+def is_admin(user_id): return user_id in ADMIN_IDS
+async def save_user(user_id): CURSOR.execute("INSERT OR IGNORE INTO users VALUES (?)",(user_id,));DB.commit()
 async def check_all_joined(user_id, context):
     not_joined = []
     for channel in CHANNELS_DATA:
         try:
-            member = await context.bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
-            if member.status not in ['member', 'administrator', 'creator']:
-                not_joined.append(channel)
-        except:
-            not_joined.append(channel)
+            member = await context.bot.get_chat_member(chat_id=channel["id"],user_id=user_id)
+            if member.status not in ['member','administrator','creator']: not_joined.append(channel)
+        except: not_joined.append(channel)
     return not_joined
 
 # ================= START / CHECK =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    await save_user(user.id)
+    user = update.effective_user; await save_user(user.id)
     stylish_name = f"👤 <b>{user.first_name}</b>"
     not_joined_list = await check_all_joined(user.id, context)
-
     if not not_joined_list:
-        success_text = (
-            f"🎉 স্বাগতম {stylish_name}\n"
-            f"✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️\n"
-            f"▶️ ভিডিও দেখতে এখনই <b>[Watch Now]</b> বাটনে ক্লিক করুন 🎬✨"
-        )
-        watch_kb = InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
-        await update.message.reply_text(success_text, reply_markup=InlineKeyboardMarkup([[watch_kb]]), parse_mode=ParseMode.HTML)
+        watch_kb = InlineKeyboardButton("Watch Now 🎬",url=WATCH_NOW_URL)
+        await update.message.reply_text(f"🎉 স্বাগতম {stylish_name}\n✅ সব চ্যানেল join করা আছে ❤️\n▶️ ভিডিও দেখতে এখনই Watch Now", reply_markup=InlineKeyboardMarkup([[watch_kb]]), parse_mode=ParseMode.HTML)
     else:
-        buttons = [[InlineKeyboardButton(f"Join {c['name']}", url=c['link'])] for c in not_joined_list]
-        buttons.append([InlineKeyboardButton("Check Joined ✅", callback_data="check_status")])
-        caption = (
-            f"Hello {stylish_name},\n\n"
-            "🚨 <b>Attention Please!</b>\n\n"
-            "Viral ভিডিও দেখার আগে আমাদের নিচের Channel গুলোতে Join করা বাধ্যতামূলক।\n"
-            "সবগুলো চ্যানেল Join না করলে ভিডিও লিঙ্ক কাজ করবে না ❌\n\n"
-            "Join শেষ হলে <b>Check Joined</b> ক্লিক করুন ✅"
-        )
-        await update.message.reply_text(caption, reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML)
+        buttons = [[InlineKeyboardButton(f"Join {c['name']}",url=c['link'])] for c in not_joined_list]
+        buttons.append([InlineKeyboardButton("Check Joined ✅",callback_data="check_status")])
+        await update.message.reply_text("🚨 ভিডিও দেখার আগে সব Channel join করতে হবে❌\nJoin শেষ হলে Check Joined ক্লিক করুন✅", reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML)
 
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    not_joined_list = await check_all_joined(update.effective_user.id, context)
+    not_joined_list = await check_all_joined(update.effective_user.id,context)
     if not not_joined_list:
-        watch_kb = InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
-        await update.message.reply_text("✅ সব চ্যানেল join করা আছে!", reply_markup=InlineKeyboardMarkup([[watch_kb]]))
-    else:
-        await update.message.reply_text("❌ এখনো সব চ্যানেলে join করা হয়নি!")
+        watch_kb = InlineKeyboardButton("Watch Now 🎬",url=WATCH_NOW_URL)
+        await update.message.reply_text("✅ সব চ্যানেল join করা আছে!",reply_markup=InlineKeyboardMarkup([[watch_kb]]))
+    else: await update.message.reply_text("❌ এখনো সব চ্যানেলে join করা হয়নি!")
 
-# ================= BUTTON CALLBACK =================
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user = query.from_user
-    not_joined_list = await check_all_joined(user.id, context)
-
-    if query.data == "check_status":
-        if not not_joined_list:
-            watch_kb = InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
-            await query.edit_message_text(
-                f"🎉 ধন্যবাদ {user.first_name}! সব চ্যানেল join করা আছে।\n▶️ ভিডিও দেখতে এখনই [Watch Now]",
-                reply_markup=InlineKeyboardMarkup([[watch_kb]]),
-                parse_mode=ParseMode.HTML
-            )
-        else:
-            await query.answer("❌ এখনো সব চ্যানেলে join করা হয়নি!", show_alert=True)
-
-# ================= CHANNEL MANAGEMENT =================
-async def addchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_admin(update.effective_user.id):
-        return
-    try:
-        username = context.args[0]
-        link = context.args[1]
-        button_name = " ".join(context.args[2:])
-        CURSOR.execute("INSERT OR REPLACE INTO channels VALUES (?,?,?)", (username, button_name, link))
-        DB.commit()
-        await update.message.reply_text(f"✅ Channel {username} Added!")
-    except:
-        await update.message.reply_text("❌ Format: /addchannel @username link Button Name")
-
-async def removechannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_admin(update.effective_user.id):
-        return
-    try:
-        username = context.args[0]
-        CURSOR.execute("DELETE FROM channels WHERE username=?", (username,))
-        DB.commit()
-        await update.message.reply_text(f"✅ Channel {username} Removed!")
-    except:
-        await update.message.reply_text("❌ Format: /removechannel @username")
-
-async def listchannels(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_admin(update.effective_user.id):
-        return
-    CURSOR.execute("SELECT * FROM channels")
-    rows = CURSOR.fetchall()
-    text = "\n".join([f"{r[0]} | {r[1]}" for r in rows])
-    await update.message.reply_text(text or "No channels found.")
-
-# ================= POST / BROADCAST / POSTCANCEL =================
+# ================= POST / BROADCAST / WIZARD =================
 POST_TITLE, POST_PHOTO, POST_FORCE_JOIN, POST_TARGET, POST_URL, CONFIRM_SEND, BROADCAST_MODE = range(7)
 post_data = {}
 broadcast_mode = {}
 
-# --- full /newpost wizard, broadcast, postcancel --- (same as last full code snippet)
-# Include all steps: post_title, post_photo, skip_photo, post_force_join, post_target, post_url, skip_url, confirm_send, send_to_targets, broadcast_send
+async def newpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    await update.message.reply_text("📌 Post Title লিখুন:")
+    return POST_TITLE
+
+async def post_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    post_data['title'] = update.message.text
+    await update.message.reply_text("📸 Post Photo পাঠান / skip করতে /skip টাইপ করুন")
+    return POST_PHOTO
+
+async def post_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    post_data['photo_file_id'] = update.message.photo[-1].file_id
+    await send_force_join_selection(update, context)
+    return POST_FORCE_JOIN
+
+async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    post_data['photo_file_id'] = None
+    await send_force_join_selection(update, context)
+    return POST_FORCE_JOIN
+
+# ================= FORCE JOIN INLINE SELECTION =================
+async def send_force_join_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    force_selection[user_id] = set()
+    buttons = []
+    for c in CHANNELS_DATA:
+        buttons.append([InlineKeyboardButton(c['name'], callback_data=f"fj|{c['id']}")])
+    buttons.append([InlineKeyboardButton("Next ✅", callback_data="force_next")])
+    await update.message.reply_text("📌 Force Join Channels select করুন:", reply_markup=InlineKeyboardMarkup(buttons))
+
+async def force_join_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    data = query.data
+    if data.startswith("fj|"):
+        channel_id = data.split("|")[1]
+        if channel_id in force_selection[user_id]: force_selection[user_id].remove(channel_id)
+        else: force_selection[user_id].add(channel_id)
+        await query.answer(f"Selected: {len(force_selection[user_id])} channels")
+    elif data=="force_next":
+        post_data['force_join_channels'] = ",".join(force_selection[user_id])
+        await send_target_selection(query, context)
+    await query.edit_message_reply_markup(reply_markup=query.message.reply_markup)
+
+# ================= TARGET CHANNEL INLINE SELECTION =================
+async def send_target_selection(query, context):
+    user_id = query.from_user.id
+    target_selection[user_id] = set()
+    buttons = []
+    for c in CHANNELS_DATA:
+        buttons.append([InlineKeyboardButton(c['name'], callback_data=f"tc|{c['id']}")])
+    buttons.append([InlineKeyboardButton("Next ✅", callback_data="target_next")])
+    await query.message.reply_text("📌 Target Channels select করুন:", reply_markup=InlineKeyboardMarkup(buttons))
+    return POST_TARGET
+
+async def target_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    data = query.data
+    if data.startswith("tc|"):
+        channel_id = data.split("|")[1]
+        if channel_id in target_selection[user_id]: target_selection[user_id].remove(channel_id)
+        else: target_selection[user_id].add(channel_id)
+        await query.answer(f"Selected: {len(target_selection[user_id])} channels")
+    elif data=="target_next":
+        post_data['target_channels'] = ",".join(target_selection[user_id])
+        await query.message.reply_text("🔗 URL দিন / skip করতে /skip টাইপ করুন")
+        return POST_URL
+    await query.edit_message_reply_markup(reply_markup=query.message.reply_markup)
+
+async def post_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    post_data['url'] = update.message.text
+    await confirm_post(update, context)
+    return CONFIRM_SEND
+
+async def skip_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    post_data['url'] = None
+    await confirm_post(update, context)
+    return CONFIRM_SEND
+
+async def confirm_post(update, context):
+    text = f"✅ Confirm Post\nTitle: {post_data['title']}\nForce Join: {post_data['force_join_channels']}\nTarget: {post_data['target_channels']}\nURL: {post_data['url']}"
+    await update.message.reply_text(text+"\nType /postsend to send or /postcancel to cancel")
+
+# ================= BROADCAST & POSTSEND =================
+async def postsend(update, context):
+    if not is_admin(update.effective_user.id): return
+    for uid_row in CURSOR.execute("SELECT user_id FROM users"):
+        uid = uid_row[0]
+        try:
+            text = post_data['title']
+            if post_data['photo_file_id']:
+                await context.bot.send_photo(uid, photo=post_data['photo_file_id'], caption=text)
+            else:
+                await context.bot.send_message(uid,text)
+        except: continue
+    await update.message.reply_text("✅ Post sent to all users!")
+
+async def postcancel(update, context):
+    post_data.clear()
+    await update.message.reply_text("❌ Post cancelled")
+
+# ================= ADD/REMOVE/LIST CHANNEL =================
+async def addchannel(update, context):
+    if not is_admin(update.effective_user.id): return
+    try: username, link, *button_name = context.args; CURSOR.execute("INSERT OR REPLACE INTO channels VALUES (?,?,?)",(username," ".join(button_name),link)); DB.commit()
+    except: await update.message.reply_text("❌ /addchannel @username link Button Name")
+
+async def removechannel(update, context):
+    if not is_admin(update.effective_user.id): return
+    try: username = context.args[0]; CURSOR.execute("DELETE FROM channels WHERE username=?",(username,)); DB.commit()
+    except: await update.message.reply_text("❌ /removechannel @username")
+
+async def listchannels(update, context):
+    if not is_admin(update.effective_user.id): return
+    rows = CURSOR.execute("SELECT * FROM channels").fetchall()
+    text = "\n".join([f"{r[0]} | {r[1]}" for r in rows]) or "No channels"
+    await update.message.reply_text(text)
 
 # ================= MAIN =================
 if __name__ == "__main__":
     app = Application.builder().token(TOKEN).build()
 
-    # Basic commands
+    # Commands
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("check", check))
+    app.add_handler(CommandHandler("newpost", newpost))
+    app.add_handler(CommandHandler("postcancel", postcancel))
+    app.add_handler(CommandHandler("postsend", postsend))
     app.add_handler(CommandHandler("addchannel", addchannel))
     app.add_handler(CommandHandler("removechannel", removechannel))
     app.add_handler(CommandHandler("listchannels", listchannels))
-    app.add_handler(CallbackQueryHandler(button_callback))
 
-    # Post Wizard & Broadcast
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("newpost", newpost), CommandHandler("broadcast", broadcast)],
-        states={
-            POST_TITLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_title)],
-            POST_PHOTO: [MessageHandler(filters.PHOTO, post_photo), CommandHandler("skip", skip_photo)],
-            POST_FORCE_JOIN: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_force_join)],
-            POST_TARGET: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_target)],
-            POST_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_url), CommandHandler("skip", skip_url)],
-            CONFIRM_SEND: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_send)],
-            BROADCAST_MODE: [MessageHandler(filters.ALL & ~filters.COMMAND, broadcast_send)],
-        },
-        fallbacks=[CommandHandler("postcancel", postcancel)],
-    )
-    app.add_handler(conv_handler)
+    # Callbacks
+    app.add_handler(CallbackQueryHandler(force_join_callback, pattern="^fj\|"))
+    app.add_handler(CallbackQueryHandler(force_join_callback, pattern="^force_next$"))
+    app.add_handler(CallbackQueryHandler(target_callback, pattern="^tc\|"))
+    app.add_handler(CallbackQueryHandler(target_callback, pattern="^target_next$"))
+    app.add_handler(CallbackQueryHandler(button_callback, pattern="^check_status$"))
 
-    print("Bot is running with ALL features (Python 3 + Render ready)...")
+    print("🚀 Bot is running with ALL features!")
     app.run_polling()
