@@ -10,7 +10,7 @@ from telegram.ext import (
     ContextTypes, ConversationHandler, MessageHandler, filters
 )
 
-# ================= HEALTH CHECK =================
+# ================= HEALTH CHECK (RENDER DEPLOY FIX) =================
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -19,8 +19,10 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"Bot is running!")
 
 def run_health_check_server():
+    # Render-er dewa PORT use kora badhotamulok deploy success hoyar jonno
     port = int(os.environ.get("PORT", 8000))
-    HTTPServer(("0.0.0.0", port), HealthCheckHandler).serve_forever()
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    server.serve_forever()
 
 threading.Thread(target=run_health_check_server, daemon=True).start()
 
@@ -115,8 +117,8 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ এখনো সব চ্যানেলে join করা হয়নি!")
 
-# ================= BUTTON CALLBACK =================
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ================= CALLBACK HANDLER =================
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user = query.from_user
     
@@ -131,13 +133,13 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         else:
             await query.answer("❌ এখনো সব চ্যানেলে join করা হয়নি!", show_alert=True)
-
+            
     elif query.data.startswith("cp_"):
         fj_ids_str = query.data.replace("cp_", "")
         fj_ids = fj_ids_str.split(",") if fj_ids_str else []
-        fj_list_to_check = [c for c in CHANNELS_DATA if str(c['id']) in fj_ids]
+        fj_to_check = [c for c in CHANNELS_DATA if str(c['id']) in fj_ids]
         
-        not_joined = await check_all_joined(user.id, context, fj_list_to_check)
+        not_joined = await check_all_joined(user.id, context, fj_to_check)
         if not not_joined:
             await query.answer("✅ Verification Success!", show_alert=True)
             await query.message.reply_text(f"🎬 **Video Link:** {WATCH_NOW_URL}")
@@ -181,12 +183,12 @@ POST_TITLE, POST_PHOTO, POST_FJ, POST_TARGET, POST_URL, CONFIRM_SEND, BROADCAST_
 async def newpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return ConversationHandler.END
     context.user_data['post_data'] = {'fj': [], 'target': [], 'photo': None, 'url': None}
-    await update.message.reply_text("✨ **Step 1:** Post Title likhun:")
+    await update.message.reply_text("✨ **Step 1:** Post Title লিখুন:")
     return POST_TITLE
 
 async def post_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['post_data']['title'] = update.message.text
-    await update.message.reply_text("📸 **Step 2:** Photo pathan ba /skip likhun:")
+    await update.message.reply_text("📸 **Step 2:** Photo পাঠান বা /skip লিখুন:")
     return POST_PHOTO
 
 async def post_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -200,7 +202,7 @@ async def show_fj_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected = context.user_data['post_data']['fj']
     buttons = [[InlineKeyboardButton(f"{'✅' if str(c['id']) in selected else '❌'} {c['name']}", callback_data=f"sfj_{c['id']}")] for c in CHANNELS_DATA]
     buttons.append([InlineKeyboardButton("Done ➡️", callback_data="fj_done")])
-    text = "🔒 **Step 3:** Force Join Channels select korun:"
+    text = "🔒 **Step 3:** Force Join চ্যানেল সিলেক্ট করুন:"
     if update.callback_query: await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
     else: await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
     return POST_FJ
@@ -217,13 +219,13 @@ async def show_target_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected = context.user_data['post_data']['target']
     buttons = [[InlineKeyboardButton(f"{'✅' if str(c['id']) in selected else '❌'} {c['name']}", callback_data=f"stg_{c['id']}")] for c in CHANNELS_DATA]
     buttons.append([InlineKeyboardButton("Done ➡️", callback_data="tg_done")])
-    await update.callback_query.edit_message_text("🎯 **Step 4:** Target Channels select korun:", reply_markup=InlineKeyboardMarkup(buttons))
+    await update.callback_query.edit_message_text("🎯 **Step 4:** Target চ্যানেল সিলেক্ট করুন:", reply_markup=InlineKeyboardMarkup(buttons))
     return POST_TARGET
 
 async def target_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if query.data == "tg_done":
-        await query.message.reply_text("🔗 **Step 5:** URL pathan ba /skip likhun:")
+        await query.message.reply_text("🔗 **Step 5:** URL দিন বা /skip লিখুন:")
         return POST_URL
     cid = str(query.data.replace("stg_", ""))
     if cid in context.user_data['post_data']['target']: context.user_data['post_data']['target'].remove(cid)
@@ -257,13 +259,13 @@ async def confirm_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if d['photo']: await context.bot.send_photo(chat_id=tid, photo=d['photo'], caption=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
             else: await context.bot.send_message(chat_id=tid, text=d['title'], reply_markup=kb, parse_mode=ParseMode.HTML)
         except: pass
-    await query.edit_message_text("✅ Post Sent!")
+    await query.edit_message_text("✅ Post Sent Successfully!")
     return ConversationHandler.END
 
 # ================= BROADCAST =================
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
-    await update.message.reply_text("📢 Broadcast mode active. Send message/photo/video:")
+    await update.message.reply_text("📢 ব্রডকাস্ট মেসেজ পাঠান:")
     return BROADCAST_MODE
 
 async def broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -280,7 +282,7 @@ async def broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def postcancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-    await update.message.reply_text("🚫 Wizard Cancelled.")
+    await update.message.reply_text("🚫 ক্যানসেল করা হয়েছে।")
     return ConversationHandler.END
 
 # ================= MAIN =================
@@ -291,7 +293,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("addchannel", addchannel))
     app.add_handler(CommandHandler("removechannel", removechannel))
     app.add_handler(CommandHandler("listchannels", listchannels))
-    app.add_handler(CallbackQueryHandler(button_callback))
+    app.add_handler(CallbackQueryHandler(callback_handler))
 
     conv = ConversationHandler(
         entry_points=[CommandHandler("newpost", newpost), CommandHandler("broadcast", broadcast)],
@@ -299,7 +301,7 @@ if __name__ == "__main__":
             POST_TITLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_title)],
             POST_PHOTO: [MessageHandler(filters.PHOTO, post_photo), CommandHandler("skip", skip_photo)],
             POST_FJ: [CallbackQueryHandler(fj_callback, pattern="^sfj_|^fj_done$")],
-            POST_TARGET: [CallbackQueryHandler(tg_callback, pattern="^stg_|^tg_done$")],
+            POST_TARGET: [CallbackQueryHandler(target_callback, pattern="^stg_|^tg_done$")],
             POST_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, post_url), CommandHandler("skip", skip_url)],
             CONFIRM_SEND: [CallbackQueryHandler(confirm_handler, pattern="^csend$|^conf_cancel$")],
             BROADCAST_MODE: [MessageHandler(filters.ALL & ~filters.COMMAND, broadcast_send)],
