@@ -22,15 +22,14 @@ def run_health_check_server():
 threading.Thread(target=run_health_check_server, daemon=True).start()
 
 # --- কনফিগারেশন ---
-TOKEN = os.environ.get("BOT_TOKEN") 
-WATCH_NOW_URL = "https://mmshotbd.blogspot.com/?m=1"
+TOKEN = '8510787985:AAHjszZmTMwqvqTfbFMJdqC548zBw4Qh0S0' #
+WATCH_NOW_URL = "https://mmshotbd.blogspot.com/?m=1" #
 
-# আপনার বটের ইউজারনেম এখানে দিন (অ্যাট সাইন @ ছাড়া)
+# আপনার বটের ইউজারনেম (অ্যাট সাইন @ ছাড়া লিখুন)
 BOT_USERNAME = "Viral_Video_Link_2026_bot" 
 
-# শেয়ার করার টেক্সট এবং লিঙ্ক
+# শেয়ার করার টেক্সট এবং লিঙ্ক (এটি ফরওয়ার্ড করলে বাটনের মতো প্রিভিউ দেখাবে)
 SHARE_TEXT = "🔥 অসাধারণ সব ভাইরাল ভিডিও দেখতে নিচের বাটনে ক্লিক করুন! 🎬✨"
-# এটি এমন একটি লিঙ্ক যা গ্রুপে শেয়ার করলে সুন্দর দেখাবে
 SHARE_URL = f"https://t.me/share/url?url=https://t.me/{BOT_USERNAME}?start=viral&text={urllib.parse.quote(SHARE_TEXT)}"
 
 # ১১টি চ্যানেলের ডাটাবেস
@@ -78,15 +77,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         await update.message.reply_text(success_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.HTML)
     else:
-        # জয়েন না করা চ্যানেলের বাটন তৈরি
         buttons = []
         for channel in not_joined_list:
             buttons.append([InlineKeyboardButton(f"Join {channel['name']}", url=channel['link'])])
         
         buttons.append([InlineKeyboardButton("Check Joined ✅", callback_data="check_status")])
-        buttons.append([InlineKeyboardButton("Forward to Groups 📤", url=SHARE_URL)])
+        buttons.append([InlineKeyboardButton("Share / Forward 📤", url=SHARE_URL)])
         
         caption = (
+            f"Hello {stylish_name},\n\n"
             "🚨 <b>Attention Please!</b>\n\n"
             "Viral ভিডিও দেখার আগে আমাদের নিচের Channel গুলোতে Join করা বাধ্যতামূলক।\n"
             "সবগুলো চ্যানেল Join না করলে ভিডিও লিঙ্ক কাজ করবে না ❌\n\n"
@@ -101,10 +100,11 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     not_joined_list = await check_all_joined(user.id, context)
     
     if not not_joined_list:
-        await query.answer("ধন্যবাদ! ভেরিফাই সফল হয়েছে।", show_alert=True)
+        await query.answer("ধন্যবাদ! জয়েন ভেরিফাই হয়েছে।", show_alert=True)
         success_text = (
             f"🎉 স্বাগতম {stylish_name}\n"
-            f"✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️"
+            f"✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️\n"
+            f"▶️ ভিডিও দেখতে নিচের বাটনে ক্লিক করুন 🎬"
         )
         keyboard = [
             [InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)],
@@ -115,11 +115,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("❌ আপনি এখনও সব চ্যানেলে জয়েন করেননি!", show_alert=True)
 
 if __name__ == '__main__':
-    if not TOKEN:
-        print("Error: BOT_TOKEN not found!")
-    else:
-        app = Application.builder().token(TOKEN).build()
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(CallbackQueryHandler(button_callback))
-        print("Bot is running with Advanced Share system...")
-        app.run_polling()
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_callback))
+    print("Bot is running with Advanced Forward system...")
+    app.run_polling()
