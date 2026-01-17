@@ -89,22 +89,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if update.message is None: return
     uid = user.id
-    if user.first_name and user.last_name:
-        stylish_name = f"<b>{user.first_name} {user.last_name}</b>"
-    elif user.first_name:
-        stylish_name = f"<b>{user.first_name}</b>"
-    else:
-        stylish_name = "<b>User</b>"
+    stylish_name = f"<b>{user.first_name}</b>" if user.first_name else "<b>User</b>"
+
     cur.execute("INSERT OR IGNORE INTO users(user_id) VALUES(?)",(uid,))
     db.commit()
     not_joined = await check_all_joined(uid, context.bot)
+
     if not not_joined:
         cur.execute("UPDATE users SET unlocked=1 WHERE user_id=?",(uid,))
         db.commit()
         await update.message.reply_text(
             f"🎉 স্বাগতম 👤 {stylish_name}\n✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️",
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+                InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
             ),
             parse_mode=ParseMode.HTML
         )
@@ -125,7 +122,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         context.job_queue.run_once(reminder, 120, data=uid)
 
-# ================== CHECK COMMAND ==================
+# ================== CHECK ==================
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     stylish_name = f"<b>{update.effective_user.first_name}</b>"
@@ -136,14 +133,14 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"🎉 স্বাগতম 👤 {stylish_name}\n✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️",
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+                InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
             ),
             parse_mode=ParseMode.HTML
         )
     else:
         await update.message.reply_text("❌ এখনও সব Channel Join হয়নি!")
 
-# ================== CALLBACK BUTTON ==================
+# ================== CALLBACK ==================
 async def check_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     uid = query.from_user.id
@@ -155,7 +152,7 @@ async def check_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             f"🎉 স্বাগতম 👤 {stylish_name}\n✅ আপনি সফলভাবে সব চ্যানেলে Join করেছেন ❤️",
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)]]
+                InlineKeyboardButton("Watch Now 🎬", url=WATCH_NOW_URL)
             ),
             parse_mode=ParseMode.HTML
         )
@@ -167,7 +164,7 @@ async def reminder(context):
     uid = context.data
     cur.execute("SELECT unlocked FROM users WHERE user_id=?",(uid,))
     r = cur.fetchone()
-    if r and r[0]==0:
+    if r and r[0] == 0:
         try:
             await context.bot.send_message(uid,
                 "⏰ <b>Reminder!</b>\nভিডিও এখনও Unlock হয়নি 🔒",
@@ -220,23 +217,25 @@ async def handle_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.caption or update.message.text
     if "|" in text:
         btn_text, btn_url = text.split("|",1)
-        button = InlineKeyboardMarkup([[InlineKeyboardButton(btn_text.strip(), url=btn_url.strip())]])
+        button = InlineKeyboardMarkup(InlineKeyboardButton(btn_text.strip(), url=btn_url.strip()))
         text = text.split("|")[0].strip()
     users = cur.execute("SELECT user_id FROM users").fetchall()
     sent = 0
     for (user_id,) in users:
         try:
             if update.message.photo:
-                await context.bot.send_photo(chat_id=user_id,
-                                             photo=update.message.photo[-1].file_id,
-                                             caption=text,
-                                             reply_markup=button,
-                                             parse_mode=ParseMode.HTML)
+                await context.bot.send_photo(user_id,
+                    update.message.photo[-1].file_id,
+                    caption=text,
+                    reply_markup=button,
+                    parse_mode=ParseMode.HTML
+                )
             else:
-                await context.bot.send_message(chat_id=user_id,
-                                               text=text,
-                                               reply_markup=button,
-                                               parse_mode=ParseMode.HTML)
+                await context.bot.send_message(user_id,
+                    text=text,
+                    reply_markup=button,
+                    parse_mode=ParseMode.HTML
+                )
             sent+=1
             await asyncio.sleep(0.05)
         except: pass
@@ -246,7 +245,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     BROADCAST_MODE.pop(update.effective_user.id, None)
     await update.message.reply_text("❌ Broadcast Cancelled")
 
-# ================== NEW FEATURE: POST CREATION ==================
+# ================== POST CREATION ==================
 POST_TITLE, POST_PHOTO, POST_CHANNELS, POST_WEBSITE = range(4)
 POST_CREATION = {}
 
@@ -258,6 +257,9 @@ async def newpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def post_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
+    if not update.message or not update.message.text:
+        await update.message.reply_text("❌ Please send valid text for title.")
+        return POST_TITLE
     POST_CREATION[uid]['title'] = update.message.text
     await update.message.reply_text("📸 Now send the <b>Post Photo</b>:", parse_mode=ParseMode.HTML)
     return POST_PHOTO
@@ -268,10 +270,8 @@ async def post_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please send a valid photo.")
         return POST_PHOTO
     POST_CREATION[uid]['photo'] = update.message.photo[-1].file_id
-    # Show channels for multi-select
-    buttons=[]
-    for cid,name,link in cur.execute("SELECT * FROM channels"):
-        buttons.append([InlineKeyboardButton(name, callback_data=f"postchan|{cid}")])
+    buttons = [[InlineKeyboardButton(name, callback_data=f"postchan|{cid}")]
+               for cid,name,link in cur.execute("SELECT * FROM channels")]
     buttons.append([InlineKeyboardButton("✅ Done Selecting Channels", callback_data="postchan_done")])
     POST_CREATION[uid]['channels'] = set()
     await update.message.reply_text(
@@ -285,7 +285,7 @@ async def post_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = query.from_user.id
     data = query.data
     if data=="postchan_done":
-        await query.edit_message_text("✅ Channel selection completed. Now send the <b>Website URL</b> (or type 'skip'):", parse_mode=ParseMode.HTML)
+        await query.edit_message_text("✅ Channel selection completed. Now send the <b>Website URL</b> (or 'skip'):", parse_mode=ParseMode.HTML)
         return POST_WEBSITE
     else:
         _, cid = data.split("|",1)
@@ -296,25 +296,30 @@ async def post_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def post_website(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     text = update.message.text
-    POST_CREATION[uid]['website'] = None if text.lower()=="skip" else text
-    # Auto post to selected channels
-    channels = POST_CREATION[uid]['channels']
-    photo = POST_CREATION[uid]['photo']
+    if text.lower() != 'skip':
+        POST_CREATION[uid]['website'] = text
+    else:
+        POST_CREATION[uid]['website'] = None
+
+    # Send post to selected channels
     title = POST_CREATION[uid]['title']
+    photo = POST_CREATION[uid]['photo']
+    channels = POST_CREATION[uid]['channels']
     website = POST_CREATION[uid]['website']
-    button=None
+
+    button = None
     if website:
-        button = InlineKeyboardMarkup([[InlineKeyboardButton("Visit Website", url=website)]])
+        button = InlineKeyboardMarkup([ [InlineKeyboardButton("Visit Website 🌐", url=website)] ])
+
     for cid in channels:
         try:
-            await context.bot.send_photo(chat_id=cid,
-                                         photo=photo,
-                                         caption=title,
-                                         reply_markup=button,
-                                         parse_mode=ParseMode.HTML)
-            await asyncio.sleep(0.1)
-        except: pass
-    await update.message.reply_text("✅ Post sent to selected channels successfully!")
+            await context.bot.send_photo(
+                cid, photo, caption=title, reply_markup=button, parse_mode=ParseMode.HTML
+            )
+        except:
+            pass
+
+    await update.message.reply_text("✅ Post sent successfully!")
     POST_CREATION.pop(uid)
     return ConversationHandler.END
 
@@ -336,18 +341,18 @@ app.add_handler(CommandHandler("cancel", cancel))
 # Broadcast handler
 app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_broadcast))
 
-# --- POST CREATION HANDLER ---
+# Post Creation Conversation
 post_conv = ConversationHandler(
     entry_points=[CommandHandler("newpost", newpost)],
     states={
-        POST_TITLE: [MessageHandler(filters.TEXT & (~filters.COMMAND), post_title)],
+        POST_TITLE: [MessageHandler(filters.TEXT, post_title)],
         POST_PHOTO: [MessageHandler(filters.PHOTO, post_photo)],
         POST_CHANNELS: [CallbackQueryHandler(post_channels, pattern="^postchan")],
-        POST_WEBSITE: [MessageHandler(filters.TEXT & (~filters.COMMAND), post_website)]
+        POST_WEBSITE: [MessageHandler(filters.TEXT, post_website)]
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
 app.add_handler(post_conv)
 
-print("🔥 FULL FORCE JOIN BOT WITH POST CREATION RUNNING...")
+print("🔥 FULL FORCE JOIN BOT RUNNING...")
 app.run_polling()
