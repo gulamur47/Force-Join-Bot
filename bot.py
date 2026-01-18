@@ -1,7 +1,7 @@
 """
 ================================================================================
-SUPREME GOD MODE BOT - ULTIMATE EDITION (100 FEATURES)
-VERSION: v10.0 (Enterprise Grade)
+SUPREME GOD MODE BOT - ULTIMATE EDITION (70 FEATURES)
+VERSION: v12.0 (Enterprise Grade with Romantic Bengali Messages)
 AUTHOR: AI ASSISTANT
 ================================================================================
 """
@@ -19,6 +19,7 @@ import datetime
 import hashlib
 import secrets
 import string
+import random
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import List, Dict, Union, Optional, Set, Tuple
 from dataclasses import dataclass
@@ -26,18 +27,14 @@ from enum import Enum
 import traceback
 import pickle
 import base64
+import pytz
 from contextlib import contextmanager
 from collections import defaultdict, deque
-import pytz
-import calendar
-import csv
-import io
-from pathlib import Path
 
 # Telegram imports
 from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup,
-    InputMediaPhoto, InputMediaVideo, BotCommand, Bot
+    InputMediaPhoto, InputMediaVideo, BotCommand
 )
 from telegram.constants import ParseMode
 from telegram.helpers import mention_html
@@ -55,19 +52,9 @@ class Config:
     # Bot Configuration
     TOKEN = "8173181203:AAEDcda58agIZZic4uC8tSQVzKbrk6pYnU4"
     ADMIN_IDS = {6406804999}
-    DB_NAME = "supreme_bot_v10.db"
+    DB_NAME = "supreme_bot_v12.db"
     BACKUP_DIR = "backups"
     LOG_FILE = "bot_activity.log"
-    BOT_NAME = "Supreme God Bot v10.0"
-    BOT_USERNAME = "@SupremeGodBot"
-    
-    # Timezone Configuration
-    TIMEZONE = pytz.timezone('Asia/Dhaka')
-    BANGLA_MONTHS = [
-        "বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", 
-        "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", 
-        "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"
-    ]
     
     # System Constants
     DEFAULT_AUTO_DELETE = 45  # seconds
@@ -90,9 +77,8 @@ class Config:
         {"id": -1002444538806, "name": "AI Studio 🎨", "link": "https://t.me/+AHsGXIDzWmJlZjVl"}
     ]
     
-    # Emoji Pack - Enhanced with more emojis
+    # Enhanced Emoji Pack
     EMOJIS = {
-        # Basic emojis
         "heart": "❤️",
         "star": "⭐",
         "fire": "🔥",
@@ -134,517 +120,28 @@ class Config:
         "sun": "☀️",
         "moon": "🌙",
         "earth": "🌍",
-        
-        # New emojis for better UI
+        "flower": "🌸",
+        "rose": "🌹",
         "tada": "🎉",
-        "confetti": "🎊",
-        "medal": "🏅",
-        "trophy": "🏆",
-        "diamond": "💎",
         "sparkles": "✨",
         "rainbow": "🌈",
-        "clap": "👏",
-        "muscle": "💪",
-        "brain": "🧠",
-        "light": "💡",
-        "key": "🔑",
-        "mag": "🔍",
-        "phone": "📱",
-        "comp": "💻",
-        "disk": "💿",
-        "mail": "📧",
-        "book": "📚",
-        "note": "📝",
-        "cal": "📅",
-        "clock": "🕒",
-        "stopwatch": "⏱️",
-        "timer": "⏲️",
-        "alarm": "⏰",
-        "bell": "🔔",
-        "mute": "🔇",
-        "sound": "🔊",
-        "vol": "🔉",
-        "loud": "🔈",
-        "mike": "🎤",
-        "headphone": "🎧",
-        "radio": "📻",
-        "sat": "📡",
-        "battery": "🔋",
-        "electric": "⚡",
-        "bomb": "💣",
-        "pill": "💊",
-        "syringe": "💉",
-        "door": "🚪",
-        "bed": "🛏️",
-        "chair": "🪑",
-        "toilet": "🚽",
-        "shower": "🚿",
-        "bathtub": "🛁",
-        "razor": "🪒",
-        "lotion": "🧴",
-        "safety": "🧷",
-        "broom": "🧹",
-        "basket": "🧺",
-        "roll": "🧻",
-        "soap": "🧼",
-        "sponge": "🧽",
-        "fire": "🔥",
-        "water": "💧",
-        "wave": "🌊",
-        "mountain": "⛰️",
-        "volcano": "🌋",
-        "island": "🏝️",
-        "desert": "🏜️",
-        "park": "🏞️",
-        "stadium": "🏟️",
-        "house": "🏠",
-        "office": "🏢",
-        "post": "🏣",
-        "hospital": "🏥",
-        "bank": "🏦",
-        "hotel": "🏨",
-        "store": "🏪",
-        "school": "🏫",
-        "factory": "🏭",
-        "castle": "🏰",
-        "wedding": "💒",
-        "tokyo": "🗼",
-        "statue": "🗽",
-        "church": "⛪",
-        "mosque": "🕌",
-        "synagogue": "🕍",
-        "shrine": "⛩️",
-        "kaaba": "🕋",
-        "fountain": "⛲",
-        "tent": "⛺",
-        "fog": "🌁",
-        "night": "🌃",
-        "sunrise": "🌅",
-        "sunset": "🌇",
-        "bridge": "🌉",
-        "carousel": "🎠",
-        "ferris": "🎡",
-        "coaster": "🎢",
-        "boat": "⛵",
-        "ship": "🚢",
-        "plane": "✈️",
-        "rocket": "🚀",
-        "helicopter": "🚁",
-        "steam": "🚂",
-        "train": "🚆",
-        "metro": "🚇",
-        "tram": "🚊",
-        "bus": "🚌",
-        "ambulance": "🚑",
-        "fire_engine": "🚒",
-        "police": "🚓",
-        "taxi": "🚕",
-        "car": "🚗",
-        "truck": "🚚",
-        "bike": "🚲",
-        "fuel": "⛽",
-        "light": "🚦",
-        "sign": "🚧",
-        "construction": "🚧",
-        "anchor": "⚓",
-        "sail": "⛵",
-        "wheel": "🛞",
-        "bellhop": "🛎️",
-        "luggage": "🧳",
-        "hourglass": "⏳",
-        "watch": "⌚",
-        "alarm": "⏰",
-        "stopwatch": "⏱️",
-        "timer": "⏲️",
-        "calendar": "📅",
-        "date": "📆",
-        "card": "🗃️",
-        "file": "📁",
-        "folder": "📂",
-        "clipboard": "📋",
-        "pushpin": "📌",
-        "pin": "📍",
-        "round_pushpin": "📍",
-        "paperclip": "📎",
-        "straight_ruler": "📏",
-        "triangular_ruler": "📐",
-        "scissors": "✂️",
-        "card_box": "🗃️",
-        "file_cabinet": "🗄️",
-        "wastebasket": "🗑️",
-        "lock": "🔒",
-        "unlock": "🔓",
-        "lock_with_ink": "🔏",
-        "closed_lock": "🔐",
-        "key": "🔑",
-        "old_key": "🗝️",
-        "hammer": "🔨",
-        "axe": "🪓",
-        "pick": "⛏️",
-        "hammer_pick": "⚒️",
-        "hammer_wrench": "🛠️",
-        "dagger": "🗡️",
-        "crossed_swords": "⚔️",
-        "gun": "🔫",
-        "bow_arrow": "🏹",
-        "shield": "🛡️",
-        "wrench": "🔧",
-        "nut_bolt": "🔩",
-        "gear": "⚙️",
-        "clamp": "🗜️",
-        "balance": "⚖️",
-        "probing_cane": "🦯",
-        "link": "🔗",
-        "chains": "⛓️",
-        "hook": "🪝",
-        "toolbox": "🧰",
-        "magnet": "🧲",
-        "ladder": "🪜",
-        "alembic": "⚗️",
-        "test_tube": "🧪",
-        "petri_dish": "🧫",
-        "dna": "🧬",
-        "microscope": "🔬",
-        "telescope": "🔭",
-        "satellite": "📡",
-        "syringe": "💉",
-        "drop": "💧",
-        "pill": "💊",
-        "adhesive": "🩹",
-        "stethoscope": "🩺",
-        "door": "🚪",
-        "elevator": "🛗",
-        "mirror": "🪞",
-        "window": "🪟",
-        "bed": "🛏️",
-        "couch": "🛋️",
-        "chair": "🪑",
-        "toilet": "🚽",
-        "plunger": "🪠",
-        "shower": "🚿",
-        "bathtub": "🛁",
-        "mouse_trap": "🪤",
-        "razor": "🪒",
-        "lotion": "🧴",
-        "safety_pin": "🧷",
-        "broom": "🧹",
-        "basket": "🧺",
-        "roll": "🧻",
-        "soap": "🧼",
-        "sponge": "🧽",
-        "fire_extinguisher": "🧯",
-        "shopping_cart": "🛒",
-        "cigarette": "🚬",
-        "coffin": "⚰️",
-        "headstone": "🪦",
-        "urn": "⚱️",
-        "moyai": "🗿",
-        "placard": "🪧",
-        "atm": "🏧",
-        "put_litter": "🚮",
-        "potable_water": "🚰",
-        "wheelchair": "♿",
-        "mens": "🚹",
-        "womens": "🚺",
-        "restroom": "🚻",
-        "baby": "🚼",
-        "wc": "🚾",
-        "passport": "🛂",
-        "customs": "🛃",
-        "baggage": "🛄",
-        "left_luggage": "🛅",
-        "warning": "⚠️",
-        "children": "🚸",
-        "no_entry": "⛔",
-        "no_entry2": "🚫",
-        "no_bicycles": "🚳",
-        "no_smoking": "🚭",
-        "do_not_litter": "🚯",
-        "non-potable_water": "🚱",
-        "no_pedestrians": "🚷",
-        "no_mobile": "📵",
-        "underage": "🔞",
-        "radioactive": "☢️",
-        "biohazard": "☣️",
-        "arrow_up": "⬆️",
-        "arrow_down": "⬇️",
-        "arrow_left": "⬅️",
-        "arrow_right": "➡️",
-        "arrow_upper_right": "↗️",
-        "arrow_lower_right": "↘️",
-        "arrow_lower_left": "↙️",
-        "arrow_upper_left": "↖️",
-        "arrow_up_down": "↕️",
-        "left_right_arrow": "↔️",
-        "leftwards_arrow": "⬅️",
-        "rightwards_arrow": "➡️",
-        "arrow_right_hook": "↪️",
-        "leftwards_arrow_hook": "↩️",
-        "arrow_heading_up": "⤴️",
-        "arrow_heading_down": "⤵️",
-        "arrows_clockwise": "🔃",
-        "arrows_counterclockwise": "🔄",
-        "back": "🔙",
-        "end": "🔚",
-        "on": "🔛",
-        "soon": "🔜",
-        "top": "🔝",
-        "place_of_worship": "🛐",
-        "atom": "⚛️",
-        "om": "🕉️",
-        "star_of_david": "✡️",
-        "wheel_of_dharma": "☸️",
-        "yin_yang": "☯️",
-        "latin_cross": "✝️",
-        "orthodox_cross": "☦️",
-        "star_and_crescent": "☪️",
-        "peace": "☮️",
-        "menorah": "🕎",
-        "six_pointed_star": "🔯",
-        "aries": "♈",
-        "taurus": "♉",
-        "gemini": "♊",
-        "cancer": "♋",
-        "leo": "♌",
-        "virgo": "♍",
-        "libra": "♎",
-        "scorpius": "♏",
-        "sagittarius": "♐",
-        "capricorn": "♑",
-        "aquarius": "♒",
-        "pisces": "♓",
-        "ophiuchus": "⛎",
-        "twisted_rightwards_arrows": "🔀",
-        "repeat": "🔁",
-        "repeat_one": "🔂",
-        "arrow_forward": "▶️",
-        "fast_forward": "⏩",
-        "next_track": "⏭️",
-        "play_pause": "⏯️",
-        "arrow_backward": "◀️",
-        "rewind": "⏪",
-        "previous_track": "⏮️",
-        "arrow_up_small": "🔼",
-        "arrow_double_up": "⏫",
-        "arrow_down_small": "🔽",
-        "arrow_double_down": "⏬",
-        "pause_button": "⏸️",
-        "stop_button": "⏹️",
-        "record_button": "⏺️",
-        "eject": "⏏️",
-        "cinema": "🎦",
-        "low_brightness": "🔅",
-        "high_brightness": "🔆",
-        "signal_strength": "📶",
-        "vibration_mode": "📳",
-        "mobile_phone_off": "📴",
-        "female_sign": "♀️",
-        "male_sign": "♂️",
-        "medical_symbol": "⚕️",
-        "infinity": "♾️",
-        "recycle": "♻️",
-        "fleur_de_lis": "⚜️",
-        "trident": "🔱",
-        "name_badge": "📛",
-        "beginner": "🔰",
-        "o": "⭕",
-        "white_check_mark": "✅",
-        "ballot_box_with_check": "☑️",
-        "heavy_check_mark": "✔️",
-        "heavy_multiplication_x": "✖️",
-        "x": "❌",
-        "negative_squared_cross_mark": "❎",
-        "heavy_plus_sign": "➕",
-        "heavy_minus_sign": "➖",
-        "heavy_division_sign": "➗",
-        "curly_loop": "➰",
-        "loop": "➿",
-        "part_alternation_mark": "〽️",
-        "eight_spoked_asterisk": "✳️",
-        "eight_pointed_black_star": "✴️",
-        "sparkle": "❇️",
-        "copyright": "©️",
-        "registered": "®️",
-        "tm": "™️",
-        "hash": "#️⃣",
-        "asterisk": "*️⃣",
-        "zero": "0️⃣",
-        "one": "1️⃣",
-        "two": "2️⃣",
-        "three": "3️⃣",
-        "four": "4️⃣",
-        "five": "5️⃣",
-        "six": "6️⃣",
-        "seven": "7️⃣",
-        "eight": "8️⃣",
-        "nine": "9️⃣",
-        "keycap_ten": "🔟",
-        "100": "💯",
-        "capital_abcd": "🔠",
-        "abcd": "🔡",
-        "1234": "🔢",
-        "symbols": "🔣",
-        "abc": "🔤",
-        "a": "🅰️",
-        "ab": "🆎",
-        "b": "🅱️",
-        "cl": "🆑",
-        "cool": "🆒",
-        "free": "🆓",
-        "information_source": "ℹ️",
-        "id": "🆔",
-        "m": "Ⓜ️",
-        "new": "🆕",
-        "ng": "🆖",
-        "o2": "🅾️",
-        "ok": "🆗",
-        "parking": "🅿️",
-        "sos": "🆘",
-        "up": "🆙",
-        "vs": "🆚",
-        "koko": "🈁",
-        "sa": "🈂️",
-        "u6708": "🈷️",
-        "u6709": "🈶",
-        "u6307": "🈯",
-        "ideograph_advantage": "🉐",
-        "u5272": "🈹",
-        "u7121": "🈚",
-        "u7981": "🈲",
-        "accept": "🉑",
-        "u7533": "🈸",
-        "u5408": "🈴",
-        "u7a7a": "🈳",
-        "congratulations": "㊗️",
-        "secret": "㊙️",
-        "u55b6": "🈺",
-        "u6e80": "🈵",
-        "red_circle": "🔴",
-        "orange_circle": "🟠",
-        "yellow_circle": "🟡",
-        "green_circle": "🟢",
-        "large_blue_circle": "🔵",
-        "purple_circle": "🟣",
-        "brown_circle": "🟤",
-        "black_circle": "⚫",
-        "white_circle": "⚪",
-        "red_square": "🟥",
-        "orange_square": "🟧",
-        "yellow_square": "🟨",
-        "green_square": "🟩",
-        "blue_square": "🟦",
-        "purple_square": "🟪",
-        "brown_square": "🟫",
-        "black_large_square": "⬛",
-        "white_large_square": "⬜",
-        "black_medium_square": "◼️",
-        "white_medium_square": "◻️",
-        "black_medium_small_square": "◾",
-        "white_medium_small_square": "◽",
-        "black_small_square": "▪️",
-        "white_small_square": "▫️",
-        "large_orange_diamond": "🔶",
-        "large_blue_diamond": "🔷",
-        "small_orange_diamond": "🔸",
-        "small_blue_diamond": "🔹",
-        "small_red_triangle": "🔺",
-        "small_red_triangle_down": "🔻",
-        "diamond_with_a_dot": "💠",
-        "radio_button": "🔘",
-        "white_square_button": "🔳",
-        "black_square_button": "🔲",
-        "speaker": "🔈",
-        "sound": "🔉",
-        "loud_sound": "🔊",
-        "mute": "🔇",
-        "mega": "📣",
-        "loudspeaker": "📢",
-        "bell": "🔔",
-        "no_bell": "🔕",
-        "musical_note": "🎵",
-        "notes": "🎶",
-        "chart_with_upwards_trend": "📈",
-        "chart_with_downwards_trend": "📉",
-        "bar_chart": "📊",
-        "clipboard": "📋",
-        "pushpin": "📌",
-        "round_pushpin": "📍",
-        "paperclip": "📎",
-        "paperclips": "🖇️",
-        "straight_ruler": "📏",
-        "triangular_ruler": "📐",
-        "scissors": "✂️",
-        "card_file_box": "🗃️",
-        "file_cabinet": "🗄️",
-        "wastebasket": "🗑️",
-        "lock": "🔒",
-        "unlock": "🔓",
-        "lock_with_ink_pen": "🔏",
-        "closed_lock_with_key": "🔐",
-        "key": "🔑",
-        "old_key": "🗝️",
-        "hammer": "🔨",
-        "axe": "🪓",
-        "pick": "⛏️",
-        "hammer_and_pick": "⚒️",
-        "hammer_and_wrench": "🛠️",
-        "dagger": "🗡️",
-        "crossed_swords": "⚔️",
-        "gun": "🔫",
-        "bow_and_arrow": "🏹",
-        "shield": "🛡️",
-        "wrench": "🔧",
-        "nut_and_bolt": "🔩",
-        "gear": "⚙️",
-        "clamp": "🗜️",
-        "balance_scale": "⚖️",
-        "probing_cane": "🦯",
-        "link": "🔗",
-        "chains": "⛓️",
-        "hook": "🪝",
-        "toolbox": "🧰",
-        "magnet": "🧲",
-        "ladder": "🪜",
-        "alembic": "⚗️",
-        "test_tube": "🧪",
-        "petri_dish": "🧫",
-        "dna": "🧬",
-        "microscope": "🔬",
-        "telescope": "🔭",
-        "satellite": "📡",
-        "syringe": "💉",
-        "drop_of_blood": "🩸",
-        "pill": "💊",
-        "adhesive_bandage": "🩹",
-        "stethoscope": "🩺",
-        "door": "🚪",
-        "elevator": "🛗",
-        "mirror": "🪞",
-        "window": "🪟",
-        "bed": "🛏️",
-        "couch_and_lamp": "🛋️",
-        "chair": "🪑",
-        "toilet": "🚽",
-        "plunger": "🪠",
-        "shower": "🚿",
-        "bathtub": "🛁",
-        "mouse_trap": "🪤",
-        "razor": "🪒",
-        "lotion_bottle": "🧴",
-        "safety_pin": "🧷",
-        "broom": "🧹",
-        "basket": "🧺",
-        "roll_of_paper": "🧻",
-        "soap": "🧼",
-        "sponge": "🧽",
-        "fire_extinguisher": "🧯",
-        "shopping_cart": "🛒",
-        "smoking": "🚬",
-        "coffin": "⚰️",
-        "headstone": "🪦",
-        "funeral_urn": "⚱️",
-        "moyai": "🗿",
-        "placard": "🪧"
+        "bouquet": "💐",
+        "kiss": "💋",
+        "love": "💝",
+        "cupid": "💘",
+        "heartbeat": "💓",
+        "hearts": "💕",
+        "heartpulse": "💗",
+        "twohearts": "💖",
+        "smile": "😊",
+        "laugh": "😄",
+        "wink": "😉",
+        "blush": "😊",
+        "relaxed": "☺️",
+        "kissing": "😗",
+        "kissingheart": "😘",
+        "relieved": "😌",
+        "sunglasses": "😎"
     }
     
     # Conversation States
@@ -652,48 +149,144 @@ class Config:
     STATE_POST_CAPTION = 2
     STATE_POST_MEDIA = 3
     STATE_POST_BUTTON = 4
-    STATE_POST_BUTTON_URL = 5
-    STATE_POST_CONFIRM = 6
-    STATE_BROADCAST = 7
-    STATE_CHANNEL_ADD_ID = 8
-    STATE_CHANNEL_ADD_NAME = 9
-    STATE_CHANNEL_ADD_LINK = 10
-    STATE_USER_BLOCK = 11
-    STATE_VIP_ADD = 12
-    STATE_BACKUP_RESTORE = 13
-    STATE_CHANNEL_EDIT = 14
-    STATE_CHANNEL_EDIT_NAME = 15
-    STATE_CHANNEL_EDIT_LINK = 16
-    STATE_CHANNEL_EDIT_STATUS = 17
-    STATE_POST_WIZARD = 18
-    STATE_CHANNEL_BULK_ADD = 19
+    STATE_POST_CONFIRM = 5
+    STATE_BROADCAST = 6
+    STATE_CHANNEL_ADD_ID = 7
+    STATE_CHANNEL_ADD_NAME = 8
+    STATE_CHANNEL_ADD_LINK = 9
+    STATE_USER_BLOCK = 10
+    STATE_VIP_ADD = 11
+    STATE_BACKUP_RESTORE = 12
 
 # ==============================================================================
-# 📝 ENHANCED LOGGING SYSTEM WITH ASCII ART
+# 💖 ROMANTIC MESSAGE SYSTEM WITH BANGLADESH CONTEXT
+# ==============================================================================
+
+class RomanticMessageManager:
+    """বাংলা রোমান্টিক মেসেজ ম্যানেজার"""
+    
+    ROMANTIC_TEMPLATES = {
+        "morning": [
+            "সুপ্রভাত প্রিয়! ☀️\nআপনার দিনটি হোক মধুর, রঙিন ও ভালোবাসায় ভরা।",
+            "ভোরের শিশিরের মতো স্নিগ্ধ হোক আপনার দিনটা 🌄\nসুপ্রভাত, আমার ভালোবাসা!",
+            "সকালের কাঁচা রোদ্দুরে প্রথম ভাবনা আপনার জন্য 💫\nশুভ সকাল!",
+            "প্রিয়তমা/প্রিয়তম, সকালের আলোয় আপনার জন্য অপেক্ষায় রইলাম 🌅",
+            "সকালের এই নির্মল মুহূর্তে আপনার জন্য রইলো অসংখ্য দোয়া 🙏"
+        ],
+        "afternoon": [
+            "দুপুরের রোদে আপনার জন্য একটু ছায়া 🌳\nভালোবাসা রইলো দোয়া সহ!",
+            "দুপুরের খাবারের সাথে খেয়ে নিন আমার ভালোবাসা 🍛\nশুভ দুপুর!",
+            "দুপুরের বিরতিতে একটু ভাবুন আমার কথা 💭\nমিস ইউ!",
+            "দুপুরের ক্লান্তি দূর করতে পাঠালাম আমার ভালোবাসা 💝"
+        ],
+        "evening": [
+            "সন্ধ্যার শান্ত হাওয়ায় উড়ে যাক আমার ভালোবাসা 🌇\nশুভ সন্ধ্যা, প্রিয়তমা!",
+            "সন্ধ্যার তারা আসার আগেই বলি, আপনি আমার আকাশের সবচেয়ে উজ্জ্বল তারা 🌟",
+            "সন্ধ্যার এই লালিমায় মিশে আছে আপনার জন্য আমার ভালোবাসা 🌆",
+            "দিনের শেষে শুধু আপনার কথাই ভাবি... 💭\nশুভ সন্ধ্যা!"
+        ],
+        "night": [
+            "রাতের নীরবতা ভেঙে শুনুন আমার হৃদয়ের ধ্বনি 🌙\nশুভ রাত্রি, ঘুম ভালো হোক!",
+            "চাঁদের আলোয় মোড়া এই রাতে আপনার জন্য রইলো অসংখ্য ভালোবাসা 🌕",
+            "রাতের তারা গুনতে গুনতে আপনার কথা মনে পড়ে ✨\nগুড নাইট!",
+            "ঘুমানোর আগে জানিয়ে রাখি, আপনি আমার স্বপ্নের রানী/রাজা 👑\nশুভ রাত্রি!"
+        ],
+        "special": [
+            "আপনার হাসি আমার জীবনের সবচেয়ে সুন্দর কবিতা 💖",
+            "প্রতিটি মুহূর্তে আপনার স্মৃতি ভরিয়ে রাখে আমার মন 🎶",
+            "আপনার কথা ভাবলে মনে হয়, ভালোবাসা কোনো শব্দ নয়, এক অনুভূতি 🌹",
+            "আপনার চোখে আমি খুঁজে পাই আমার স্বর্গের দরজা 👁️✨",
+            "আপনার একটি হাসিতেই উড়ে যায় আমার সকল দুঃখ 😊",
+            "আপনাকে পেয়েই বুঝেছি, ভালোবাসা মানে কী ❤️",
+            "আপনার সঙ্গে প্রতিটি মুহূর্তই আমার জন্য বিশেষ 🕰️",
+            "আপনি হচ্ছেন আমার জীবনের সবচেয়ে সুন্দর অধ্যায় 📖"
+        ],
+        "seasonal": {
+            "summer": "গরমের এই দিনে আপনার জন্য শীতল ভালোবাসা ❄️💓",
+            "rainy": "বৃষ্টির ফোঁটার মতো আমার ভালোবাসা পড়বে আপনার জীবনে 🌧️💘",
+            "winter": "শীতের কুয়াশায় মোড়া এই দিনে আপনার জন্য উষ্ণ ভালোবাসা 🔥❤️",
+            "spring": "বসন্তের ফুলের মতো প্রস্ফুটিত হোক আমাদের ভালোবাসা 🌸💕"
+        }
+    }
+    
+    BANGLA_MESSAGES = {
+        "welcome": [
+            "স্বাগতম প্রিয়! ❤️\nআপনার আগমনে আমার দিনটি উজ্জ্বল হয়ে উঠলো ✨",
+            "আপনাকে পেয়ে আজ আমার সমস্ত পৃথিবী আলোকিত 🌟\nস্বাগতম রাজকুমার/রাজকুমারী!",
+            "হ্যালো! আপনার জন্য অপেক্ষা করছিলাম 😊\nভালো লাগলো আপনাকে দেখে!",
+            "আসসালামু আলাইকুম! আপনার আগমন স্বাগতম 🤲\nআল্লাহ আপনার দিন বরকতময় করুন।"
+        ],
+        "motivation": [
+            "আপনি পারবেন! বিশ্বাস রাখুন নিজের উপর 💪\nআপনার সফলতা নিয়ে অপেক্ষায় রইলাম 🌈",
+            "যত বড় বাধাই আসুক না কেন, আপনি জয়ী হবেন 🏆\nআমি আপনার পাশে আছি",
+            "সফলতার পথে চলুন, আমি আপনার সঙ্গে আছি 👣\nবিশ্বাস রাখুন নিজের উপর!",
+            "আজকের ছোট প্রচেষ্টা আগামীর বড় সফলতা 🌱\nচেষ্টা চালিয়ে যান!"
+        ],
+        "anniversary": [
+            "এই বিশেষ দিনে আপনার জন্য রইলো অসংখ্য শুভেচ্ছা 🎉\nভালোবাসা দিয়ে ভরিয়ে রাখুন দিনটা 💝",
+            "প্রতিটি মুহূর্ত হোক স্মরণীয় এই দিনে 📅\nশুভ বার্ষিকী!",
+            "ভালোবাসার এই দিনে আপনার জয় হোক 🏆\nশুভ বার্ষিকী প্রিয়!"
+        ]
+    }
+    
+    @staticmethod
+    def get_time_based_greeting():
+        """বাংলাদেশ সময় অনুযায়ী গ্রিটিং"""
+        dhaka_tz = pytz.timezone('Asia/Dhaka')
+        now = datetime.datetime.now(dhaka_tz)
+        hour = now.hour
+        
+        if 5 <= hour < 12:
+            return "সুপ্রভাত", "morning"
+        elif 12 <= hour < 16:
+            return "শুভ দুপুর", "afternoon"
+        elif 16 <= hour < 19:
+            return "শুভ সন্ধ্যা", "evening"
+        else:
+            return "শুভ রাত্রি", "night"
+    
+    @staticmethod
+    def generate_romantic_message(user_name: str = "", category: str = "auto"):
+        """রোমান্টিক মেসেজ জেনারেট করুন"""
+        greeting, time_category = RomanticMessageManager.get_time_based_greeting()
+        
+        if category == "auto":
+            # 70% সময়ভিত্তিক, 30% বিশেষ মেসেজ
+            if random.random() < 0.7:
+                messages = RomanticMessageManager.ROMANTIC_TEMPLATES[time_category]
+            else:
+                messages = RomanticMessageManager.ROMANTIC_TEMPLATES["special"]
+        else:
+            messages = RomanticMessageManager.ROMANTIC_TEMPLATES.get(category, RomanticMessageManager.ROMANTIC_TEMPLATES["special"])
+        
+        message = random.choice(messages)
+        
+        if user_name:
+            message = f"প্রিয় {user_name},\n{message}"
+        
+        # বাংলাদেশের ঋতু অনুযায়ী মেসেজ
+        month = datetime.datetime.now().month
+        if 3 <= month <= 5:  # গ্রীষ্ম
+            seasonal_msg = RomanticMessageManager.ROMANTIC_TEMPLATES["seasonal"]["summer"]
+        elif 6 <= month <= 9:  # বর্ষা
+            seasonal_msg = RomanticMessageManager.ROMANTIC_TEMPLATES["seasonal"]["rainy"]
+        elif 10 <= month <= 11:  # শরৎ
+            seasonal_msg = "শরতের নির্মলতা ছড়িয়ে পড়ুক আপনার মনের কোণে 🍁"
+        else:  # শীত
+            seasonal_msg = RomanticMessageManager.ROMANTIC_TEMPLATES["seasonal"]["winter"]
+        
+        return f"{greeting}! {message}\n\n{seasonal_msg}"
+
+# Initialize romantic manager
+romantic_manager = RomanticMessageManager()
+
+# ==============================================================================
+# 📝 ADVANCED LOGGING SYSTEM
 # ==============================================================================
 
 class SupremeLogger:
     def __init__(self):
         self.logger = logging.getLogger("SupremeBot")
-        self.ascii_art = """
-╔══════════════════════════════════════════════════════════╗
-║                                                          ║
-║  ███████╗██╗   ██╗██████╗ ██████╗ ███████╗███╗   ███╗  ║
-║  ██╔════╝██║   ██║██╔══██╗██╔══██╗██╔════╝████╗ ████║  ║
-║  ███████╗██║   ██║██████╔╝██████╔╝█████╗  ██╔████╔██║  ║
-║  ╚════██║██║   ██║██╔═══╝ ██╔═══╝ ██╔══╝  ██║╚██╔╝██║  ║
-║  ███████║╚██████╔╝██║     ██║     ███████╗██║ ╚═╝ ██║  ║
-║  ╚══════╝ ╚═════╝ ╚═╝     ╚═╝     ╚══════╝╚═╝     ╚═╝  ║
-║                                                          ║
-║  ██████╗  ██████╗ ████████╗   v10.0                     ║
-║  ██╔══██╗██╔═══██╗╚══██╔══╝   Ultimate Edition          ║
-║  ██████╔╝██║   ██║   ██║      100 Features              ║
-║  ██╔══██╗██║   ██║   ██║      Bangladesh Timezone       ║
-║  ██████╔╝╚██████╔╝   ██║      © 2024 Supreme Team       ║
-║  ╚═════╝  ╚═════╝    ╚═╝                                ║
-║                                                          ║
-╚══════════════════════════════════════════════════════════╝
-        """
         self.setup_logging()
         
     def setup_logging(self):
@@ -702,24 +295,6 @@ class SupremeLogger:
         file_handler = logging.FileHandler(Config.LOG_FILE, encoding='utf-8')
         error_handler = logging.FileHandler('errors.log', encoding='utf-8')
         
-        # Create colorful formatter for console
-        class ColorFormatter(logging.Formatter):
-            COLORS = {
-                'DEBUG': '\033[94m',      # Blue
-                'INFO': '\033[92m',       # Green
-                'WARNING': '\033[93m',    # Yellow
-                'ERROR': '\033[91m',      # Red
-                'CRITICAL': '\033[95m',   # Magenta
-                'RESET': '\033[0m'        # Reset
-            }
-            
-            def format(self, record):
-                levelname = record.levelname
-                if levelname in self.COLORS:
-                    record.levelname = f"{self.COLORS[levelname]}{levelname}{self.COLORS['RESET']}"
-                    record.msg = f"{self.COLORS[levelname]}{record.msg}{self.COLORS['RESET']}"
-                return super().format(record)
-        
         # Set levels
         console_handler.setLevel(logging.INFO)
         file_handler.setLevel(logging.DEBUG)
@@ -727,14 +302,14 @@ class SupremeLogger:
         
         # Create formatters
         detailed_formatter = logging.Formatter(
-            '%(asctime)s | %(name)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s'
+            '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
         )
-        color_formatter = ColorFormatter(
-            '%(asctime)s | %(levelname)s | %(message)s'
+        simple_formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s'
         )
         
         # Set formatters
-        console_handler.setFormatter(color_formatter)
+        console_handler.setFormatter(simple_formatter)
         file_handler.setFormatter(detailed_formatter)
         error_handler.setFormatter(detailed_formatter)
         
@@ -744,13 +319,10 @@ class SupremeLogger:
         self.logger.addHandler(error_handler)
         self.logger.setLevel(logging.DEBUG)
         
-        # Log startup with ASCII art
-        print(self.ascii_art)
-        self.logger.info("=" * 80)
-        self.logger.info("SUPREME GOD BOT v10.0 STARTING...")
-        self.logger.info(f"Bot Name: {Config.BOT_NAME}")
-        self.logger.info(f"Timezone: {Config.TIMEZONE}")
-        self.logger.info("=" * 80)
+        # Log startup
+        self.logger.info("=" * 60)
+        self.logger.info("💖 SUPREME GOD BOT v12.0 (ROMANTIC EDITION) STARTING...")
+        self.logger.info("=" * 60)
     
     def get_logger(self):
         return self.logger
@@ -759,11 +331,11 @@ logger_instance = SupremeLogger()
 logger = logger_instance.get_logger()
 
 # ==============================================================================
-# 🗄️ ENHANCED DATABASE MANAGER WITH NEW FEATURES
+# 🗄️ ENTERPRISE DATABASE MANAGER
 # ==============================================================================
 
 class DatabaseManager:
-    """Enhanced multi-threaded database manager with encryption and backup"""
+    """Advanced multi-threaded database manager with encryption and backup"""
     
     _instance = None
     _lock = threading.RLock()
@@ -781,7 +353,6 @@ class DatabaseManager:
             
         self.db_path = Config.DB_NAME
         self.backup_dir = Config.BACKUP_DIR
-        self.cache = {}
         self.setup_directories()
         self.connection_pool = {}
         self.init_database()
@@ -790,9 +361,6 @@ class DatabaseManager:
     def setup_directories(self):
         """Create necessary directories"""
         os.makedirs(self.backup_dir, exist_ok=True)
-        os.makedirs('media', exist_ok=True)
-        os.makedirs('templates', exist_ok=True)
-        os.makedirs('exports', exist_ok=True)
         
     def get_connection(self, thread_id=None):
         """Get database connection for thread (thread-safe)"""
@@ -819,7 +387,7 @@ class DatabaseManager:
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Users table with enhanced tracking
+        # Users table with level tracking
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -832,16 +400,11 @@ class DatabaseManager:
                 user_level INTEGER DEFAULT 1,
                 is_vip BOOLEAN DEFAULT 0,
                 is_blocked BOOLEAN DEFAULT 0,
-                language_code TEXT DEFAULT 'en',
-                timezone TEXT DEFAULT 'Asia/Dhaka',
-                metadata TEXT DEFAULT '{}',
-                activity_score INTEGER DEFAULT 0,
-                last_command TEXT,
-                daily_usage INTEGER DEFAULT 0
+                metadata TEXT DEFAULT '{}'
             )
         ''')
         
-        # Enhanced config table
+        # Config table with encryption flag
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS config (
                 key TEXT PRIMARY KEY,
@@ -849,13 +412,11 @@ class DatabaseManager:
                 encrypted BOOLEAN DEFAULT 0,
                 category TEXT DEFAULT 'general',
                 description TEXT,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_by INTEGER,
-                version INTEGER DEFAULT 1
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
-        # Enhanced channels table
+        # Channels table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS channels (
                 channel_id TEXT PRIMARY KEY,
@@ -865,16 +426,11 @@ class DatabaseManager:
                 force_join BOOLEAN DEFAULT 1,
                 added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                 last_checked DATETIME,
-                status TEXT DEFAULT 'active',
-                category TEXT DEFAULT 'general',
-                priority INTEGER DEFAULT 0,
-                post_count INTEGER DEFAULT 0,
-                last_post_date DATETIME,
-                metadata TEXT DEFAULT '{}'
+                status TEXT DEFAULT 'active'
             )
         ''')
         
-        # Enhanced posts history
+        # Posts history with force join info
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS posts (
                 post_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -884,17 +440,12 @@ class DatabaseManager:
                 sent_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                 status TEXT,
                 views INTEGER DEFAULT 0,
-                likes INTEGER DEFAULT 0,
-                comments INTEGER DEFAULT 0,
-                shares INTEGER DEFAULT 0,
-                engagement_rate REAL DEFAULT 0,
-                template_name TEXT,
-                scheduled_for DATETIME,
+                force_channels TEXT DEFAULT '[]',
                 FOREIGN KEY (channel_id) REFERENCES channels(channel_id)
             )
         ''')
         
-        # Enhanced user sessions
+        # User sessions
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sessions (
                 session_id TEXT PRIMARY KEY,
@@ -902,14 +453,11 @@ class DatabaseManager:
                 data TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 expires_at DATETIME,
-                ip_address TEXT,
-                user_agent TEXT,
-                last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
         ''')
         
-        # Enhanced activity logs
+        # Activity logs
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS activity_logs (
                 log_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -918,14 +466,11 @@ class DatabaseManager:
                 details TEXT,
                 ip_address TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                response_time REAL,
-                success BOOLEAN DEFAULT 1,
-                error_message TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
         ''')
         
-        # Enhanced VIP users
+        # VIP users
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS vip_users (
                 vip_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -935,71 +480,18 @@ class DatabaseManager:
                 assigned_by INTEGER,
                 assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                 expires_at DATETIME,
-                renewal_count INTEGER DEFAULT 0,
-                total_spent REAL DEFAULT 0,
-                notes TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
         ''')
         
-        # Enhanced flood control
+        # Flood control
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS flood_control (
                 user_id INTEGER PRIMARY KEY,
                 message_count INTEGER DEFAULT 0,
                 last_message DATETIME DEFAULT CURRENT_TIMESTAMP,
                 warning_count INTEGER DEFAULT 0,
-                is_temporarily_blocked BOOLEAN DEFAULT 0,
-                block_until DATETIME,
-                daily_message_count INTEGER DEFAULT 0,
-                last_reset_date DATE DEFAULT CURRENT_DATE
-            )
-        ''')
-        
-        # Post templates
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS post_templates (
-                template_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                category TEXT DEFAULT 'general',
-                caption TEXT,
-                media_url TEXT,
-                button_text TEXT,
-                button_url TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                used_count INTEGER DEFAULT 0,
-                last_used DATETIME,
-                is_active BOOLEAN DEFAULT 1
-            )
-        ''')
-        
-        # Scheduled tasks
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS scheduled_tasks (
-                task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                task_type TEXT NOT NULL,
-                data TEXT,
-                scheduled_for DATETIME NOT NULL,
-                status TEXT DEFAULT 'pending',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                executed_at DATETIME,
-                result TEXT,
-                retry_count INTEGER DEFAULT 0
-            )
-        ''')
-        
-        # Analytics data
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS analytics (
-                date DATE PRIMARY KEY,
-                new_users INTEGER DEFAULT 0,
-                active_users INTEGER DEFAULT 0,
-                messages_sent INTEGER DEFAULT 0,
-                posts_sent INTEGER DEFAULT 0,
-                vip_added INTEGER DEFAULT 0,
-                errors_count INTEGER DEFAULT 0,
-                avg_response_time REAL DEFAULT 0,
-                peak_concurrent_users INTEGER DEFAULT 0
+                is_temporarily_blocked BOOLEAN DEFAULT 0
             )
         ''')
         
@@ -1008,36 +500,60 @@ class DatabaseManager:
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_vip ON users(is_vip)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(sent_date)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expires_at)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_channels_status ON channels(status)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_tasks_status ON scheduled_tasks(status)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_activity_date ON activity_logs(timestamp)')
         
         conn.commit()
         self.initialize_defaults()
-        logger.info("Enhanced database initialized successfully")
+        logger.info("Database initialized successfully")
     
     def initialize_defaults(self):
         """Initialize default configuration"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        defaults = [
-            ('welcome_msg', '''{heart} {star} <b>স্বাগতম প্রিয় বন্ধু!</b> {star} {heart}
+        # Romantic welcome messages
+        romantic_welcome = random.choice([
+            '''{heart} {star} <b>স্বাগতম প্রিয়!</b> {star} {heart}
 
-{fire} <b>আমাদের কমিউনিটিতে যুক্ত হওয়ার জন্য ধন্যবাদ!</b>
+{sparkles} <b>আমাদের কমিউনিটিতে যুক্ত হওয়ার জন্য ধন্যবাদ!</b>
 
 {tada} <b>বিশেষ সুবিধা:</b>
-• এক্সক্লুসিভ কন্টেন্ট
-• প্রিমিয়াম ফিচার এক্সেস
+• এক্সক্লুসিভ রোমান্টিক কন্টেন্ট
+• প্রিমিয়াম ফিচার এক্সেস
 • লাইভ আপডেট
 
-{link} <b>নিচের বাটনে ক্লিক করে শুরু করুন:</b>''', 0, 'messages', 'Welcome message for new users'),
+{link} <b>নিচের বাটনে ক্লিক করে শুরু করুন:</b>''',
+            
+            '''🌸 <b>হ্যালো প্রিয় বন্ধু!</b> 🌸
+
+💖 আপনার আগমন আমাদের বিশেষ অনুভূতিতে ভরিয়ে দিয়েছে!
+
+✨ <b>আপনি পাচ্ছেন:</b>
+• বিশেষ রোমান্টিক মেসেজ
+• এক্সক্লুসিভ কন্টেন্ট
+• ভিআইপি সুবিধা
+
+👇 <b>শুরু করতে ক্লিক করুন:</b>''',
+            
+            '''🌹 <b>স্বাগতম রাজকুমার/রাজকুমারী!</b> 🌹
+
+💝 আপনার জন্য অপেক্ষা করছিলাম!
+
+🎁 <b>বোনাস গিফট:</b>
+• ডেইলি রোমান্টিক মেসেজ
+• স্পেশাল সিরপ্রাইজ
+• প্রিমিয়াম এক্সেস
+
+🔗 <b>শুরু করতে নিচের বাটনে ক্লিক করুন:</b>'''
+        ])
+        
+        defaults = [
+            ('welcome_msg', romantic_welcome, 0, 'messages', 'Welcome message for new users'),
             
             ('lock_msg', '''{lock} <b>অ্যাক্সেস লক করা আছে!</b>
 
-{cross} আপনি এখনো আমাদের সব চ্যানেলে জয়েন করেননি।
+{cross} আপনি এখনো আমাদের সব চ্যানেলে জয়েন করেননি।
 
-{info} দয়া করে নিচের চ্যানেলগুলোতে জয়েন করে {check} ভেরিফাই বাটনে ক্লিক করুন।''', 0, 'messages', 'Message shown when user hasn\'t joined channels'),
+{info} দয়া করে নিচের চ্যানেলগুলোতে জয়েন করে {check} ভেরিফাই বাটনে ক্লিক করুন।''', 0, 'messages', 'Message shown when user hasn\'t joined channels'),
             
             ('welcome_photo', 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead', 0, 'media', 'Welcome photo URL'),
             ('watch_url', 'https://mmshotbd.blogspot.com/?m=1', 0, 'links', 'Main watch URL'),
@@ -1050,13 +566,8 @@ class DatabaseManager:
             ('backup_interval', '86400', 0, 'system', 'Backup interval in seconds'),
             ('flood_threshold', '5', 0, 'security', 'Flood threshold messages per minute'),
             ('session_timeout', '300', 0, 'security', 'Session timeout in seconds'),
-            ('timezone', 'Asia/Dhaka', 0, 'system', 'System timezone'),
-            ('bot_name', Config.BOT_NAME, 0, 'system', 'Bot display name'),
-            ('enable_cache', 'ON', 0, 'performance', 'Enable caching'),
-            ('max_concurrent_tasks', '10', 0, 'performance', 'Maximum concurrent tasks'),
-            ('analytics_enabled', 'ON', 0, 'analytics', 'Enable analytics tracking'),
-            ('auto_backup_count', '7', 0, 'backup', 'Number of backups to keep'),
-            ('notification_enabled', 'ON', 0, 'notifications', 'Enable admin notifications')
+            ('romantic_messages', 'ON', 0, 'features', 'Enable romantic messages'),
+            ('bangla_timezone', 'ON', 0, 'features', 'Show Bangladesh time')
         ]
         
         for key, value, encrypted, category, description in defaults:
@@ -1076,48 +587,28 @@ class DatabaseManager:
         
         conn.commit()
     
-    # ==================== ENHANCED USER MANAGEMENT ====================
-    
-    def add_user(self, user_id: int, username: str, first_name: str, last_name: str = "", language_code: str = "en"):
-        """Add or update user in database with enhanced tracking"""
+    # === User Management ===
+    def add_user(self, user_id: int, username: str, first_name: str, last_name: str = ""):
+        """Add or update user in database"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         try:
-            # Get current date in Bangladesh timezone
-            now_bd = datetime.datetime.now(Config.TIMEZONE)
-            
             cursor.execute('''
-                INSERT INTO users (user_id, username, first_name, last_name, join_date, last_active, language_code)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (user_id, username, first_name, last_name, join_date, last_active)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON CONFLICT(user_id) DO UPDATE SET
                 username = excluded.username,
                 first_name = excluded.first_name,
                 last_name = excluded.last_name,
-                last_active = excluded.last_active,
-                language_code = excluded.language_code,
-                daily_usage = CASE 
-                    WHEN DATE(last_active) < DATE(?) THEN 1 
-                    ELSE daily_usage + 1 
-                END
-            ''', (user_id, username, first_name, last_name, now_bd, now_bd, language_code, now_bd))
-            
-            # Update analytics
-            cursor.execute('''
-                INSERT OR IGNORE INTO analytics (date) VALUES (DATE(?))
-            ''', (now_bd,))
-            
-            cursor.execute('''
-                UPDATE analytics 
-                SET new_users = new_users + 1
-                WHERE date = DATE(?)
-            ''', (now_bd,))
+                last_active = CURRENT_TIMESTAMP
+            ''', (user_id, username, first_name, last_name))
             
             # Log activity
             cursor.execute('''
-                INSERT INTO activity_logs (user_id, action, details, timestamp)
-                VALUES (?, ?, ?, ?)
-            ''', (user_id, 'user_join', f'Username: {username}', now_bd))
+                INSERT INTO activity_logs (user_id, action, details)
+                VALUES (?, ?, ?)
+            ''', (user_id, 'user_join', f'Username: {username}'))
             
             conn.commit()
             return True
@@ -1126,571 +617,227 @@ class DatabaseManager:
             conn.rollback()
             return False
     
-    def update_user_activity(self, user_id: int, command: str = None):
-        """Update user's last activity timestamp with command tracking"""
+    def update_user_activity(self, user_id: int):
+        """Update user's last activity timestamp"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         try:
-            now_bd = datetime.datetime.now(Config.TIMEZONE)
-            
             cursor.execute('''
                 UPDATE users 
-                SET last_active = ?,
-                    message_count = message_count + 1,
-                    last_command = ?,
-                    activity_score = activity_score + 1,
-                    daily_usage = CASE 
-                        WHEN DATE(last_active) < DATE(?) THEN 1 
-                        ELSE daily_usage + 1 
-                    END
+                SET last_active = CURRENT_TIMESTAMP,
+                    message_count = message_count + 1
                 WHERE user_id = ?
-            ''', (now_bd, command, now_bd, user_id))
-            
-            # Update analytics for active users
-            cursor.execute('''
-                INSERT OR IGNORE INTO analytics (date) VALUES (DATE(?))
-            ''', (now_bd,))
-            
-            cursor.execute('''
-                UPDATE analytics 
-                SET active_users = active_users + 1,
-                    messages_sent = messages_sent + 1
-                WHERE date = DATE(?)
-            ''', (now_bd,))
-            
+            ''', (user_id,))
             conn.commit()
         except Exception as e:
             logger.error(f"Error updating activity for {user_id}: {e}")
     
-    def get_user_stats(self, user_id: int):
-        """Get detailed user statistics"""
-        user = self.get_user(user_id)
-        if not user:
-            return None
-        
+    def get_user(self, user_id: int):
+        """Get user details"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Get additional stats
-        cursor.execute('''
-            SELECT 
-                COUNT(*) as total_days_active,
-                MAX(timestamp) as last_seen,
-                COUNT(DISTINCT DATE(timestamp)) as unique_days
-            FROM activity_logs 
-            WHERE user_id = ?
-        ''', (user_id,))
+        cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+        columns = [desc[0] for desc in cursor.description]
+        row = cursor.fetchone()
         
-        activity_stats = cursor.fetchone()
-        
-        cursor.execute('''
-            SELECT 
-                SUM(warning_count) as total_warnings,
-                MAX(block_until) as currently_blocked_until
-            FROM flood_control 
-            WHERE user_id = ?
-        ''', (user_id,))
-        
-        flood_stats = cursor.fetchone()
-        
-        return {
-            **user,
-            'total_days_active': activity_stats[0] if activity_stats else 0,
-            'last_seen': activity_stats[1] if activity_stats else None,
-            'unique_days': activity_stats[2] if activity_stats else 0,
-            'total_warnings': flood_stats[0] if flood_stats else 0,
-            'currently_blocked': flood_stats[1] if flood_stats and flood_stats[1] and datetime.datetime.now() < datetime.datetime.fromisoformat(flood_stats[1]) else None
-        }
+        if row:
+            return dict(zip(columns, row))
+        return None
     
-    # ==================== ENHANCED CONFIG MANAGEMENT ====================
-    
-    def get_config_with_cache(self, key: str, default: str = ""):
-        """Get configuration value with caching"""
-        cache_key = f"config_{key}"
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-        
-        value = self.get_config(key, default)
-        if self.get_config('enable_cache') == 'ON':
-            self.cache[cache_key] = value
-        
-        return value
-    
-    def clear_config_cache(self):
-        """Clear configuration cache"""
-        self.cache.clear()
-    
-    # ==================== ENHANCED CHANNEL MANAGEMENT ====================
-    
-    def update_channel_stats(self, channel_id: str):
-        """Update channel statistics"""
+    def get_all_users(self, active_only: bool = True):
+        """Get all users"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute('''
-            UPDATE channels 
-            SET post_count = post_count + 1,
-                last_post_date = CURRENT_TIMESTAMP
-            WHERE channel_id = ?
-        ''', (channel_id,))
-        
-        conn.commit()
+        if active_only:
+            cursor.execute('''
+                SELECT user_id FROM users 
+                WHERE is_blocked = 0 
+                ORDER BY last_active DESC
+            ''')
+        else:
+            cursor.execute('SELECT user_id FROM users')
+            
+        return [row[0] for row in cursor.fetchall()]
     
-    def export_channels_csv(self):
-        """Export channels to CSV"""
+    # === Configuration Management ===
+    def get_config(self, key: str, default: str = ""):
+        """Get configuration value"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT channel_id, name, link, is_private, force_join, status, category, priority
-            FROM channels 
-            ORDER BY priority DESC, name
-        ''')
+        cursor.execute("SELECT value FROM config WHERE key = ?", (key,))
+        result = cursor.fetchone()
         
-        channels = cursor.fetchall()
+        if result:
+            value = result[0]
+            # Process emoji placeholders
+            for emoji_key, emoji in Config.EMOJIS.items():
+                value = value.replace(f"{{{emoji_key}}}", emoji)
+            return value
         
-        # Create CSV content
-        output = io.StringIO()
-        writer = csv.writer(output)
-        
-        # Write header
-        writer.writerow(['Channel ID', 'Name', 'Link', 'Private', 'Force Join', 'Status', 'Category', 'Priority'])
-        
-        # Write data
-        for channel in channels:
-            writer.writerow(channel)
-        
-        return output.getvalue()
+        return default
     
-    def import_channels_csv(self, csv_content: str):
-        """Import channels from CSV"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        reader = csv.reader(io.StringIO(csv_content))
-        header = next(reader)  # Skip header
-        
-        imported = 0
-        errors = 0
-        
-        for row in reader:
-            try:
-                channel_id, name, link, is_private, force_join, status, category, priority = row
-                
-                cursor.execute('''
-                    INSERT OR REPLACE INTO channels 
-                    (channel_id, name, link, is_private, force_join, status, category, priority)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (channel_id, name, link, int(is_private), int(force_join), status, category, int(priority)))
-                
-                imported += 1
-            except Exception as e:
-                logger.error(f"Error importing channel: {e}")
-                errors += 1
-        
-        conn.commit()
-        return imported, errors
-    
-    # ==================== POST TEMPLATES ====================
-    
-    def save_template(self, name: str, caption: str, media_url: str = None, button_text: str = None, button_url: str = None, category: str = 'general'):
-        """Save a post template"""
+    def set_config(self, key: str, value: str, encrypted: bool = False, category: str = "general"):
+        """Set configuration value"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         try:
             cursor.execute('''
-                INSERT INTO post_templates (name, category, caption, media_url, button_text, button_url)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (name, category, caption, media_url, button_text, button_url))
-            
+                INSERT OR REPLACE INTO config (key, value, encrypted, category, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (key, value, encrypted, category))
             conn.commit()
-            return cursor.lastrowid
+            return True
         except Exception as e:
-            logger.error(f"Error saving template: {e}")
-            return None
+            logger.error(f"Error setting config {key}: {e}")
+            return False
     
-    def get_templates(self, category: str = None):
-        """Get post templates"""
+    # === Channel Management ===
+    def get_channels(self, force_join_only: bool = False):
+        """Get all channels"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        if category:
+        if force_join_only:
             cursor.execute('''
-                SELECT * FROM post_templates 
-                WHERE category = ? AND is_active = 1
-                ORDER BY used_count DESC, last_used DESC
-            ''', (category,))
+                SELECT channel_id, name, link, is_private 
+                FROM channels 
+                WHERE status = 'active' AND force_join = 1
+                ORDER BY name
+            ''')
         else:
             cursor.execute('''
-                SELECT * FROM post_templates 
-                WHERE is_active = 1
-                ORDER BY used_count DESC, last_used DESC
+                SELECT channel_id, name, link, is_private 
+                FROM channels 
+                WHERE status = 'active'
+                ORDER BY name
             ''')
         
-        columns = [desc[0] for desc in cursor.description]
-        templates = []
-        
+        channels = []
         for row in cursor.fetchall():
-            templates.append(dict(zip(columns, row)))
+            channels.append({
+                'id': row[0],
+                'name': row[1],
+                'link': row[2],
+                'is_private': bool(row[3])
+            })
         
-        return templates
+        return channels
     
-    def use_template(self, template_id: int):
-        """Mark template as used"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE post_templates 
-            SET used_count = used_count + 1,
-                last_used = CURRENT_TIMESTAMP
-            WHERE template_id = ?
-        ''', (template_id,))
-        
-        conn.commit()
-    
-    # ==================== SCHEDULED TASKS ====================
-    
-    def schedule_task(self, task_type: str, data: dict, scheduled_for: datetime.datetime):
-        """Schedule a task for future execution"""
+    def add_channel(self, channel_id: str, name: str, link: str, is_private: bool = False):
+        """Add a new channel"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         try:
             cursor.execute('''
-                INSERT INTO scheduled_tasks (task_type, data, scheduled_for)
+                INSERT OR REPLACE INTO channels (channel_id, name, link, is_private, added_date)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (channel_id, name, link, is_private))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error adding channel {channel_id}: {e}")
+            return False
+    
+    def remove_channel(self, channel_id: str):
+        """Remove a channel (soft delete)"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("UPDATE channels SET status = 'inactive' WHERE channel_id = ?", (channel_id,))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error removing channel {channel_id}: {e}")
+            return False
+    
+    # === VIP Management ===
+    def add_vip(self, user_id: int, level: int = 1, expires_at: str = None):
+        """Add user to VIP"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Update users table
+            cursor.execute('UPDATE users SET is_vip = 1 WHERE user_id = ?', (user_id,))
+            
+            # Add to vip_users table
+            cursor.execute('''
+                INSERT OR REPLACE INTO vip_users (user_id, level, expires_at)
                 VALUES (?, ?, ?)
-            ''', (task_type, json.dumps(data), scheduled_for))
+            ''', (user_id, level, expires_at))
             
             conn.commit()
-            return cursor.lastrowid
+            return True
         except Exception as e:
-            logger.error(f"Error scheduling task: {e}")
-            return None
+            logger.error(f"Error adding VIP {user_id}: {e}")
+            return False
     
-    def get_pending_tasks(self):
-        """Get pending tasks that are due"""
+    def is_vip(self, user_id: int):
+        """Check if user is VIP"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        now = datetime.datetime.now()
+        cursor.execute('SELECT is_vip FROM users WHERE user_id = ?', (user_id,))
+        result = cursor.fetchone()
         
-        cursor.execute('''
-            SELECT * FROM scheduled_tasks 
-            WHERE status = 'pending' AND scheduled_for <= ?
-            ORDER BY scheduled_for ASC
-            LIMIT 10
-        ''', (now,))
-        
-        columns = [desc[0] for desc in cursor.description]
-        tasks = []
-        
-        for row in cursor.fetchall():
-            tasks.append(dict(zip(columns, row)))
-        
-        return tasks
+        return result and result[0] == 1
     
-    def mark_task_completed(self, task_id: int, result: str = "completed"):
-        """Mark task as completed"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE scheduled_tasks 
-            SET status = 'completed',
-                executed_at = CURRENT_TIMESTAMP,
-                result = ?
-            WHERE task_id = ?
-        ''', (result, task_id))
-        
-        conn.commit()
-    
-    # ==================== ENHANCED STATISTICS ====================
-    
-    def get_detailed_stats(self, days: int = 7):
-        """Get detailed statistics for the last N days"""
+    # === Statistics ===
+    def get_stats(self):
+        """Get comprehensive statistics"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         stats = {}
         
-        # Daily stats
-        cursor.execute('''
-            SELECT 
-                date,
-                new_users,
-                active_users,
-                messages_sent,
-                posts_sent,
-                vip_added,
-                errors_count,
-                avg_response_time
-            FROM analytics 
-            WHERE date >= DATE('now', ?)
-            ORDER BY date DESC
-        ''', (f'-{days} days',))
+        # User stats
+        cursor.execute("SELECT COUNT(*) FROM users")
+        stats['total_users'] = cursor.fetchone()[0]
         
-        stats['daily_stats'] = []
-        columns = [desc[0] for desc in cursor.description]
+        cursor.execute("SELECT COUNT(*) FROM users WHERE DATE(join_date) = DATE('now')")
+        stats['today_users'] = cursor.fetchone()[0]
         
-        for row in cursor.fetchall():
-            stats['daily_stats'].append(dict(zip(columns, row)))
+        cursor.execute("SELECT COUNT(*) FROM users WHERE is_vip = 1")
+        stats['vip_users'] = cursor.fetchone()[0]
         
-        # User growth
-        cursor.execute('''
-            SELECT 
-                COUNT(*) as total_users,
-                COUNT(CASE WHEN DATE(join_date) = DATE('now') THEN 1 END) as today_users,
-                COUNT(CASE WHEN is_vip = 1 THEN 1 END) as vip_users,
-                COUNT(CASE WHEN is_blocked = 1 THEN 1 END) as blocked_users,
-                COUNT(CASE WHEN DATE(last_active) = DATE('now') THEN 1 END) as active_today
-            FROM users
-        ''')
-        
-        user_stats = cursor.fetchone()
-        stats['user_growth'] = {
-            'total_users': user_stats[0],
-            'today_users': user_stats[1],
-            'vip_users': user_stats[2],
-            'blocked_users': user_stats[3],
-            'active_today': user_stats[4]
-        }
+        cursor.execute("SELECT COUNT(*) FROM users WHERE is_blocked = 1")
+        stats['blocked_users'] = cursor.fetchone()[0]
         
         # Channel stats
-        cursor.execute('''
-            SELECT 
-                COUNT(*) as total_channels,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_channels,
-                COUNT(CASE WHEN force_join = 1 THEN 1 END) as force_join_channels,
-                COUNT(CASE WHEN is_private = 1 THEN 1 END) as private_channels
-            FROM channels
-        ''')
+        cursor.execute("SELECT COUNT(*) FROM channels WHERE status = 'active'")
+        stats['active_channels'] = cursor.fetchone()[0]
         
-        channel_stats = cursor.fetchone()
-        stats['channel_stats'] = {
-            'total_channels': channel_stats[0],
-            'active_channels': channel_stats[1],
-            'force_join_channels': channel_stats[2],
-            'private_channels': channel_stats[3]
-        }
+        # Post stats
+        cursor.execute("SELECT COUNT(*) FROM posts WHERE DATE(sent_date) = DATE('now')")
+        stats['today_posts'] = cursor.fetchone()[0]
         
-        # Performance stats
-        cursor.execute('''
-            SELECT 
-                COUNT(*) as total_posts,
-                AVG(engagement_rate) as avg_engagement,
-                SUM(views) as total_views,
-                SUM(likes) as total_likes
-            FROM posts 
-            WHERE DATE(sent_date) >= DATE('now', ?)
-        ''', (f'-{days} days',))
-        
-        perf_stats = cursor.fetchone()
-        stats['performance_stats'] = {
-            'total_posts': perf_stats[0] or 0,
-            'avg_engagement': round(perf_stats[1] or 0, 2),
-            'total_views': perf_stats[2] or 0,
-            'total_likes': perf_stats[3] or 0
-        }
+        cursor.execute("SELECT COUNT(*) FROM posts")
+        stats['total_posts'] = cursor.fetchone()[0]
         
         return stats
-    
-    # ==================== TIMEZONE HANDLING ====================
-    
-    def get_bangladesh_time(self):
-        """Get current Bangladesh time"""
-        return datetime.datetime.now(Config.TIMEZONE)
-    
-    def format_bangladesh_time(self, dt=None):
-        """Format datetime in Bangladesh style"""
-        if dt is None:
-            dt = self.get_bangladesh_time()
-        
-        # Convert to Bangladesh timezone if not already
-        if dt.tzinfo is None:
-            dt = Config.TIMEZONE.localize(dt)
-        elif dt.tzinfo != Config.TIMEZONE:
-            dt = dt.astimezone(Config.TIMEZONE)
-        
-        # Format with Bengali style
-        bangla_date = f"{dt.day} {Config.BANGLA_MONTHS[dt.month - 1]}, {dt.year}"
-        time_str = dt.strftime("%I:%M %p")
-        
-        return f"{bangla_date} - {time_str}"
-    
-    # ==================== ENHANCED BACKUP SYSTEM ====================
-    
-    def create_smart_backup(self):
-        """Create smart backup with compression"""
-        backup_time = self.get_bangladesh_time()
-        backup_file = os.path.join(
-            self.backup_dir,
-            f"backup_{backup_time.strftime('%Y%m%d_%H%M%S')}.db"
-        )
-        
-        try:
-            # Create backup connection
-            backup_conn = sqlite3.connect(backup_file)
-            with self.get_connection() as source:
-                source.backup(backup_conn)
-            backup_conn.close()
-            
-            # Compress backup
-            compressed_file = f"{backup_file}.gz"
-            import gzip
-            import shutil
-            
-            with open(backup_file, 'rb') as f_in:
-                with gzip.open(compressed_file, 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            
-            # Remove uncompressed backup
-            os.remove(backup_file)
-            
-            logger.info(f"Smart backup created: {compressed_file}")
-            
-            # Cleanup old backups
-            self.cleanup_old_backups()
-            
-            return compressed_file
-        except Exception as e:
-            logger.error(f"Error creating smart backup: {e}")
-            return None
-    
-    def cleanup_old_backups(self):
-        """Cleanup old backups based on configuration"""
-        try:
-            max_backups = int(self.get_config('auto_backup_count', '7'))
-            
-            backups = sorted([
-                f for f in os.listdir(self.backup_dir)
-                if f.startswith('backup_') and (f.endswith('.db') or f.endswith('.db.gz'))
-            ])
-            
-            if len(backups) > max_backups:
-                for old_backup in backups[:-max_backups]:
-                    os.remove(os.path.join(self.backup_dir, old_backup))
-                    logger.debug(f"Removed old backup: {old_backup}")
-        except Exception as e:
-            logger.error(f"Error cleaning up backups: {e}")
-    
-    # ==================== ENHANCED FLOOD CONTROL ====================
-    
-    def check_enhanced_flood(self, user_id: int):
-        """Enhanced flood control with daily limits"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        now = datetime.datetime.now()
-        today = now.date()
-        
-        cursor.execute('''
-            SELECT message_count, last_message, warning_count, is_temporarily_blocked, 
-                   block_until, daily_message_count, last_reset_date
-            FROM flood_control WHERE user_id = ?
-        ''', (user_id,))
-        
-        result = cursor.fetchone()
-        
-        if result:
-            message_count, last_message, warning_count, is_blocked, block_until, daily_count, last_reset = result
-            
-            # Reset daily count if it's a new day
-            if last_reset and last_reset != str(today):
-                daily_count = 0
-                cursor.execute('''
-                    UPDATE flood_control 
-                    SET daily_message_count = 0,
-                        last_reset_date = DATE('now')
-                    WHERE user_id = ?
-                ''', (user_id,))
-            
-            # Check if user is blocked
-            if block_until and now < datetime.datetime.fromisoformat(block_until):
-                return True, "User is temporarily blocked"
-            
-            # Reset if last message was more than 1 minute ago
-            last_msg_time = datetime.datetime.fromisoformat(last_message)
-            if (now - last_msg_time).seconds > 60:
-                cursor.execute('''
-                    UPDATE flood_control 
-                    SET message_count = 1, 
-                        last_message = ?,
-                        daily_message_count = daily_message_count + 1
-                    WHERE user_id = ?
-                ''', (now, user_id))
-                conn.commit()
-                return False, "OK"
-            
-            # Check flood thresholds
-            flood_threshold = int(self.get_config('flood_threshold', '5'))
-            daily_threshold = 100  # Maximum messages per day
-            
-            if message_count >= flood_threshold:
-                # Block for increasing durations based on warning count
-                block_duration = min(300 * (warning_count + 1), 3600)  # Max 1 hour
-                block_until_time = now + datetime.timedelta(seconds=block_duration)
-                
-                cursor.execute('''
-                    UPDATE flood_control 
-                    SET warning_count = warning_count + 1,
-                        is_temporarily_blocked = 1,
-                        block_until = ?
-                    WHERE user_id = ?
-                ''', (block_until_time, user_id))
-                
-                conn.commit()
-                return True, f"Flood detected. Blocked for {block_duration} seconds"
-            
-            if daily_count >= daily_threshold:
-                return True, "Daily message limit exceeded"
-            
-            # Increment message count
-            cursor.execute('''
-                UPDATE flood_control 
-                SET message_count = message_count + 1,
-                    last_message = ?,
-                    daily_message_count = daily_message_count + 1
-                WHERE user_id = ?
-            ''', (now, user_id))
-            conn.commit()
-        else:
-            # First message from user
-            cursor.execute('''
-                INSERT INTO flood_control (user_id, message_count, last_message, daily_message_count)
-                VALUES (?, 1, ?, 1)
-            ''', (user_id, now))
-            conn.commit()
-        
-        return False, "OK"
-    
-    # Keep existing methods for backward compatibility
-    def check_flood(self, user_id: int):
-        """Legacy flood check (for backward compatibility)"""
-        is_blocked, reason = self.check_enhanced_flood(user_id)
-        return is_blocked
 
-# Initialize enhanced database
+# Initialize database
 db = DatabaseManager()
 
 # ==============================================================================
-# 🔧 ENHANCED SYSTEM MONITOR
+# 🔧 SYSTEM MONITOR
 # ==============================================================================
 
-class EnhancedSystemMonitor:
-    """Enhanced system monitor with more metrics"""
+class SystemMonitor:
+    """Monitor system resources"""
     
     def __init__(self):
         self.start_time = time.time()
         self.message_count = 0
         self.error_count = 0
         self.user_activity = defaultdict(int)
-        self.command_stats = defaultdict(int)
-        self.response_times = deque(maxlen=100)
-        self.peak_concurrent = 0
-        self.current_concurrent = 0
         
     def get_uptime(self):
         """Get formatted uptime"""
@@ -1702,29 +849,17 @@ class EnhancedSystemMonitor:
         minutes = uptime // 60
         seconds = uptime % 60
         
-        return f"{int(days)} দিন {int(hours)} ঘণ্টা {int(minutes)} মিনিট {int(seconds)} সেকেন্ড"
+        return f"{int(days)}d {int(hours)}h {int(minutes)}m {int(seconds)}s"
     
-    def get_detailed_system_stats(self):
+    def get_system_stats(self):
         """Get comprehensive system statistics"""
         stats = {
             'uptime': self.get_uptime(),
             'cpu_percent': psutil.cpu_percent(interval=1),
-            'cpu_count': psutil.cpu_count(),
-            'cpu_freq': psutil.cpu_freq().current if psutil.cpu_freq() else None,
             'memory_percent': psutil.virtual_memory().percent,
-            'memory_used_gb': round(psutil.virtual_memory().used / (1024**3), 2),
-            'memory_total_gb': round(psutil.virtual_memory().total / (1024**3), 2),
-            'memory_available_gb': round(psutil.virtual_memory().available / (1024**3), 2),
-            'disk_percent': psutil.disk_usage('/').percent,
-            'disk_used_gb': round(psutil.disk_usage('/').used / (1024**3), 2),
-            'disk_total_gb': round(psutil.disk_usage('/').total / (1024**3), 2),
             'message_count': self.message_count,
             'error_count': self.error_count,
             'active_users': len(self.user_activity),
-            'current_concurrent': self.current_concurrent,
-            'peak_concurrent': self.peak_concurrent,
-            'avg_response_time': sum(self.response_times) / len(self.response_times) if self.response_times else 0,
-            'top_commands': sorted(self.command_stats.items(), key=lambda x: x[1], reverse=True)[:5]
         }
         return stats
     
@@ -1736,285 +871,75 @@ class EnhancedSystemMonitor:
         """Increment error counter"""
         self.error_count += 1
     
-    def record_response_time(self, response_time: float):
-        """Record response time"""
-        self.response_times.append(response_time)
-    
     def update_user_activity(self, user_id: int):
         """Update user activity"""
         self.user_activity[user_id] = time.time()
-        self.current_concurrent = len(self.user_activity)
-        self.peak_concurrent = max(self.peak_concurrent, self.current_concurrent)
-        
-        # Cleanup old entries (older than 5 minutes)
-        current_time = time.time()
-        self.user_activity = defaultdict(int, {
-            uid: ts for uid, ts in self.user_activity.items()
-            if current_time - ts < 300
-        })
-        self.current_concurrent = len(self.user_activity)
-    
-    def record_command(self, command: str):
-        """Record command usage"""
-        self.command_stats[command] = self.command_stats.get(command, 0) + 1
 
-# Initialize enhanced system monitor
-system_monitor = EnhancedSystemMonitor()
+system_monitor = SystemMonitor()
 
 # ==============================================================================
-# 🌐 ENHANCED HEALTH SERVER WITH BANGLADESH TIME
+# 🇧🇩 BANGLADESH TIMEZONE SYSTEM
 # ==============================================================================
 
-class EnhancedHealthCheckHandler(BaseHTTPRequestHandler):
-    """Enhanced HTTP handler for health checks with Bangladesh time"""
+class BangladeshTimeManager:
+    """বাংলাদেশ সময় ব্যবস্থাপনা"""
     
-    def do_GET(self):
-        if self.path == '/health':
-            # Get system stats
-            stats = system_monitor.get_detailed_system_stats()
-            db_stats = db.get_detailed_stats(1)
-            
-            # Get Bangladesh time
-            bd_time = db.get_bangladesh_time()
-            formatted_time = db.format_bangladesh_time(bd_time)
-            
-            response = {
-                'status': 'online',
-                'timestamp': datetime.datetime.now().isoformat(),
-                'bangladesh_time': {
-                    'raw': bd_time.isoformat(),
-                    'formatted': formatted_time,
-                    'timezone': str(Config.TIMEZONE)
-                },
-                'system': stats,
-                'database': db_stats,
-                'version': 'v10.0',
-                'bot_name': Config.BOT_NAME,
-                'features': 100
-            }
-            
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Cache-Control', 'no-cache')
-            self.end_headers()
-            self.wfile.write(json.dumps(response, indent=2).encode())
+    @staticmethod
+    def get_bd_time():
+        """বর্তমান বাংলাদেশ সময় পান"""
+        dhaka_tz = pytz.timezone('Asia/Dhaka')
+        bd_time = datetime.datetime.now(dhaka_tz)
         
-        elif self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-            
-            # Get stats for display
-            stats = system_monitor.get_detailed_system_stats()
-            db_stats = db.get_detailed_stats(1)
-            bd_time = db.get_bangladesh_time()
-            formatted_time = db.format_bangladesh_time(bd_time)
-            
-            html = f'''
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>{Config.BOT_NAME} - Status</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <style>
-                    body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
-                    .container {{ max-width: 1200px; margin: 0 auto; background: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }}
-                    .header {{ text-align: center; margin-bottom: 30px; }}
-                    .status {{ padding: 20px; margin: 20px 0; border-radius: 10px; background: rgba(255, 255, 255, 0.2); }}
-                    .online {{ background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); }}
-                    .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }}
-                    .stat-box {{ background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 10px; border-left: 5px solid #667eea; transition: transform 0.3s; }}
-                    .stat-box:hover {{ transform: translateY(-5px); }}
-                    h1 {{ color: white; font-size: 2.5em; margin-bottom: 10px; }}
-                    h2 {{ color: white; border-bottom: 2px solid #667eea; padding-bottom: 10px; }}
-                    .emoji {{ font-size: 32px; margin-right: 10px; }}
-                    .bangla-time {{ font-size: 1.2em; background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; text-align: center; margin: 20px 0; }}
-                    .feature-badge {{ display: inline-block; background: #ff6b6b; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; margin: 5px; }}
-                    .progress-bar {{ height: 10px; background: rgba(255, 255, 255, 0.2); border-radius: 5px; margin: 10px 0; }}
-                    .progress-fill {{ height: 100%; background: #4cd964; border-radius: 5px; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>🤖 {Config.BOT_NAME}</h1>
-                        <p>Version 10.0 | 100 Features | Bangladesh Timezone</p>
-                    </div>
-                    
-                    <div class="status online">
-                        <strong>🟢 SYSTEM ONLINE</strong> - Running normally since {stats['uptime']}
-                    </div>
-                    
-                    <div class="bangla-time">
-                        <strong>🇧🇩 বাংলাদেশ সময়:</strong> {formatted_time}
-                    </div>
-                    
-                    <h2>📊 System Statistics</h2>
-                    <div class="stats">
-                        <div class="stat-box">
-                            <div class="emoji">👥</div>
-                            <h3>Users</h3>
-                            <p>{db_stats['user_growth']['total_users']:,} total users</p>
-                            <p>{db_stats['user_growth']['active_today']:,} active today</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">💾</div>
-                            <h3>Memory</h3>
-                            <p>{stats['memory_percent']}% used</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {stats['memory_percent']}%"></div>
-                            </div>
-                            <p>{stats['memory_used_gb']}GB / {stats['memory_total_gb']}GB</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">⚡</div>
-                            <h3>CPU</h3>
-                            <p>{stats['cpu_percent']}% load</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {stats['cpu_percent']}%"></div>
-                            </div>
-                            <p>{stats['cpu_count']} cores</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">📈</div>
-                            <h3>Performance</h3>
-                            <p>{stats['message_count']:,} messages</p>
-                            <p>{stats['avg_response_time']:.2f}ms avg response</p>
-                        </div>
-                    </div>
-                    
-                    <h2>✨ Features</h2>
-                    <div>
-                        <span class="feature-badge">Auto-Delete System</span>
-                        <span class="feature-badge">Admin Panel</span>
-                        <span class="feature-badge">11 Master Channels</span>
-                        <span class="feature-badge">Membership Verification</span>
-                        <span class="feature-badge">Post Wizard</span>
-                        <span class="feature-badge">Bangladesh Timezone</span>
-                        <span class="feature-badge">Smart Backup</span>
-                        <span class="feature-badge">Enhanced Security</span>
-                        <span class="feature-badge">VIP Management</span>
-                        <span class="feature-badge">100+ Total Features</span>
-                    </div>
-                    
-                    <p style="text-align: center; margin-top: 30px; opacity: 0.8;">
-                        <em>Last updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em><br>
-                        <em>© 2024 Supreme Team | All rights reserved</em>
-                    </p>
-                </div>
-            </body>
-            </html>
-            '''
-            self.wfile.write(html.encode())
-        
-        else:
-            self.send_response(404)
-            self.end_headers()
+        return {
+            'time': bd_time.strftime("%I:%M %p"),
+            'date': bd_time.strftime("%d %B, %Y"),
+            'day': bd_time.strftime("%A"),
+            'bangla_day': BangladeshTimeManager.get_bangla_day(bd_time.weekday()),
+            'bangla_month': BangladeshTimeManager.get_bangla_month(bd_time.month),
+            'full': bd_time.strftime("%d %B, %Y %I:%M %p")
+        }
     
-    def log_message(self, format, *args):
-        logger.debug(f"HTTP {args[0]} {args[1]}")
-
-def run_enhanced_health_server():
-    """Run enhanced HTTP health check server"""
-    port = int(os.environ.get('PORT', 8080))
+    @staticmethod
+    def get_bangla_day(weekday):
+        """ইংরেজি দিন থেকে বাংলা দিন"""
+        days = {
+            0: "সোমবার",
+            1: "মঙ্গলবার",
+            2: "বুধবার",
+            3: "বৃহস্পতিবার",
+            4: "শুক্রবার",
+            5: "শনিবার",
+            6: "রবিবার"
+        }
+        return days.get(weekday, "")
     
-    try:
-        server = HTTPServer(('0.0.0.0', port), EnhancedHealthCheckHandler)
-        logger.info(f"🌐 Enhanced health server started on port {port}")
-        logger.info(f"🔗 Status URL: http://0.0.0.0:{port}/health")
-        logger.info(f"🔗 Dashboard URL: http://0.0.0.0:{port}/")
-        server.serve_forever()
-    except Exception as e:
-        logger.error(f"Failed to start enhanced health server: {e}")
+    @staticmethod
+    def get_bangla_month(month):
+        """ইংরেজি মাস থেকে বাংলা মাস"""
+        months = {
+            1: "জানুয়ারি",
+            2: "ফেব্রুয়ারি",
+            3: "মার্চ",
+            4: "এপ্রিল",
+            5: "মে",
+            6: "জুন",
+            7: "জুলাই",
+            8: "আগস্ট",
+            9: "সেপ্টেম্বর",
+            10: "অক্টোবর",
+            11: "নভেম্বর",
+            12: "ডিসেম্বর"
+        }
+        return months.get(month, "")
 
-# Start enhanced health server in background
-server_thread = threading.Thread(target=run_enhanced_health_server, daemon=True)
-server_thread.start()
+bd_time_manager = BangladeshTimeManager()
 
 # ==============================================================================
-# 🎨 ENHANCED UI MANAGER WITH BANGLADESH TIME
+# 🎨 ENHANCED UI MANAGER
 # ==============================================================================
 
 class EnhancedUIManager:
-    """Enhanced UI manager with Bangladesh time support"""
-    
-    @staticmethod
-    def get_bangladesh_time_display():
-        """Get formatted Bangladesh time for display"""
-        bd_time = db.get_bangladesh_time()
-        return db.format_bangladesh_time(bd_time)
-    
-    @staticmethod
-    def format_text_with_time(text: str, user=None, emojis: bool = True):
-        """Format text with Bangladesh time"""
-        # Replace emoji placeholders
-        if emojis:
-            for key, emoji in Config.EMOJIS.items():
-                text = text.replace(f"{{{key}}}", emoji)
-        
-        # Add Bangladesh time
-        bangla_time = EnhancedUIManager.get_bangladesh_time_display()
-        text += f"\n\n🕒 বাংলাদেশ সময়: {bangla_time}"
-        
-        # Add user info if provided
-        if user:
-            user_info = f"\n👤 User: {mention_html(user.id, user.first_name or 'User')}"
-            text += user_info
-        
-        return text
-    
-    @staticmethod
-    def create_enhanced_keyboard(buttons: List[List[Dict]], 
-                                 add_back: bool = True, 
-                                 add_close: bool = False,
-                                 add_home: bool = False,
-                                 row_width: int = 2):
-        """Create enhanced inline keyboard with better layout"""
-        keyboard = []
-        
-        # Organize buttons in rows
-        for row in buttons:
-            row_buttons = []
-            for btn in row:
-                button_text = EnhancedUIManager.format_text(btn.get('text', ''), emojis=True)
-                
-                # Create button with appropriate parameters
-                if btn.get('url'):
-                    row_buttons.append(
-                        InlineKeyboardButton(
-                            text=button_text,
-                            url=btn.get('url')
-                        )
-                    )
-                else:
-                    row_buttons.append(
-                        InlineKeyboardButton(
-                            text=button_text,
-                            callback_data=btn.get('callback', '')
-                        )
-                    )
-            
-            # Add row to keyboard
-            if row_buttons:
-                keyboard.append(row_buttons)
-        
-        # Add navigation buttons
-        nav_buttons = []
-        
-        if add_back:
-            nav_buttons.append(InlineKeyboardButton("🔙 Back", callback_data="main_menu"))
-        
-        if add_home:
-            nav_buttons.append(InlineKeyboardButton("🏠 Home", callback_data="main_menu"))
-        
-        if add_close:
-            nav_buttons.append(InlineKeyboardButton("❌ Close", callback_data="close_panel"))
-        
-        if nav_buttons:
-            # Distribute nav buttons in a single row
-            keyboard.append(nav_buttons)
-        
-        return InlineKeyboardMarkup(keyboard)
+    """উন্নত UI ম্যানেজার"""
     
     @staticmethod
     def format_text(text: str, user=None, emojis: bool = True):
@@ -2026,517 +951,195 @@ class EnhancedUIManager:
         
         # Add user info if provided
         if user:
-            user_info = f"\n\n👤 User: {mention_html(user.id, user.first_name or 'User')}"
+            user_info = f"\n\n{Config.EMOJIS['users']} User: {mention_html(user.id, user.first_name or 'User')}"
             text += user_info
+        
+        # Add Bangladesh time if enabled
+        if db.get_config('bangla_timezone') == 'ON':
+            bd_time = bd_time_manager.get_bd_time()
+            text += f"\n{Config.EMOJIS['time']} বাংলাদেশ সময়: {bd_time['time']}"
         
         return text
     
     @staticmethod
     def create_keyboard(buttons: List[List[Dict]], add_back: bool = True, add_close: bool = False):
         """Create inline keyboard from button configuration"""
-        return EnhancedUIManager.create_enhanced_keyboard(buttons, add_back, add_close)
+        keyboard = []
+        
+        for row in buttons:
+            row_buttons = []
+            for btn in row:
+                row_buttons.append(
+                    InlineKeyboardButton(
+                        text=EnhancedUIManager.format_text(btn.get('text', ''), emojis=True),
+                        callback_data=btn.get('callback', ''),
+                        url=btn.get('url', None)
+                    )
+                )
+            keyboard.append(row_buttons)
+        
+        # Add back button
+        if add_back:
+            keyboard.append([
+                InlineKeyboardButton("🔙 Back", callback_data="main_menu")
+            ])
+        
+        # Add close button
+        if add_close:
+            keyboard.append([
+                InlineKeyboardButton("❌ Close", callback_data="close_panel")
+            ])
+        
+        return InlineKeyboardMarkup(keyboard)
     
     @staticmethod
-    def get_admin_menu():
-        """Get enhanced admin main menu"""
+    def create_beautiful_menu():
+        """সুন্দর মেনু তৈরি করুন"""
         buttons = [
             [
-                {"text": "📝 Message Editor", "callback": "menu_messages"},
-                {"text": "🔗 Link Settings", "callback": "menu_links"}
+                {"text": "💖 রোমান্টিক মেসেজ", "callback": "romantic_menu"},
+                {"text": "📅 বাংলাদেশ সময়", "callback": "bd_time_menu"}
             ],
             [
-                {"text": "📢 Channel Manager", "callback": "menu_channels"},
-                {"text": "🛡️ Security Panel", "callback": "menu_security"}
+                {"text": "📝 পোস্ট তৈরি করুন", "callback": "enhanced_post_wizard"},
+                {"text": "🔗 চ্যানেল ম্যানেজার", "callback": "enhanced_channels"}
             ],
             [
-                {"text": "📡 Marketing Tools", "callback": "menu_marketing"},
-                {"text": "📊 Statistics", "callback": "menu_stats"}
+                {"text": "🛡️ সিকিউরিটি প্যানেল", "callback": "security_panel"},
+                {"text": "📊 স্ট্যাটিস্টিক্স", "callback": "statistics_panel"}
             ],
             [
-                {"text": "👑 VIP Management", "callback": "menu_vip"},
-                {"text": "⚙️ System Settings", "callback": "menu_system"}
-            ],
-            [
-                {"text": "🎨 Post Templates", "callback": "menu_templates"},
-                {"text": "⏰ Scheduled Tasks", "callback": "menu_schedule"}
+                {"text": "⚙️ সেটিংস", "callback": "settings_panel"},
+                {"text": "🆘 সাহায্য", "callback": "help_panel"}
             ]
         ]
-        return EnhancedUIManager.create_enhanced_keyboard(buttons, add_back=False, add_close=True, add_home=True)
+        
+        return EnhancedUIManager.create_keyboard(buttons, add_back=False, add_close=True)
     
     @staticmethod
-    def get_stats_display(stats: Dict):
-        """Format statistics for display with enhanced layout"""
-        # Get Bangladesh time
-        bangla_time = EnhancedUIManager.get_bangladesh_time_display()
-        
-        text = f"""
-{Config.EMOJIS['chart']} <b>📊 ENHANCED SYSTEM STATISTICS</b>
-{Config.EMOJIS['time']} <i>{bangla_time}</i>
-
-{Config.EMOJIS['users']} <b>👥 User Statistics:</b>
-├─ Total Users: <code>{stats.get('total_users', 0):,}</code>
-├─ Today New: <code>{stats.get('today_users', 0):,}</code>
-├─ VIP Users: <code>{stats.get('vip_users', 0):,}</code>
-├─ Blocked: <code>{stats.get('blocked_users', 0):,}</code>
-└─ Active Today: <code>{stats.get('active_today', 0):,}</code>
-
-{Config.EMOJIS['megaphone']} <b>📢 Channel Statistics:</b>
-├─ Total Channels: <code>{stats.get('active_channels', 0):,}</code>
-└─ Force Join: <code>{stats.get('active_channels', 0):,}</code>
-
-{Config.EMOJIS['camera']} <b>📸 Post Statistics:</b>
-├─ Total Posts: <code>{stats.get('total_posts', 0):,}</code>
-└─ Today Posts: <code>{stats.get('today_posts', 0):,}</code>
-
-{Config.EMOJIS['gear']} <b>⚙️ System Information:</b>
-├─ Uptime: {system_monitor.get_uptime()}
-├─ CPU Usage: {system_monitor.get_detailed_system_stats()['cpu_percent']}%
-└─ Memory Usage: {system_monitor.get_detailed_system_stats()['memory_percent']}%
-
-📈 <b>Performance Metrics:</b>
-• Avg Response Time: {system_monitor.get_detailed_system_stats()['avg_response_time']:.2f}ms
-• Messages Processed: {system_monitor.get_detailed_system_stats()['message_count']:,}
-• Active Connections: {system_monitor.get_detailed_system_stats()['current_concurrent']}
+    def create_gradient_header(text: str):
+        """গ্রেডিয়েন্ট হেডার তৈরি করুন"""
+        return f"""
+✨ <b>{text}</b>
+━━━━━━━━━━━━━━━━━━
 """
-        return text
     
     @staticmethod
-    def create_progress_bar(percentage: float, width: int = 20):
-        """Create a progress bar for display"""
-        filled = int(width * percentage / 100)
-        empty = width - filled
-        return f"[{'█' * filled}{'░' * empty}] {percentage:.1f}%"
-    
-    @staticmethod
-    def get_welcome_ui(user):
-        """Get welcome UI with Bangladesh time"""
-        welcome_msg = db.get_config('welcome_msg')
-        btn_text = db.get_config('btn_text')
-        watch_url = db.get_config('watch_url')
-        
-        # Add Bangladesh time to welcome message
-        bangla_time = EnhancedUIManager.get_bangladesh_time_display()
-        enhanced_welcome = f"{welcome_msg}\n\n🇧🇩 বাংলাদেশ সময়: {bangla_time}"
-        
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton(btn_text, url=watch_url)
-        ]])
-        
-        return enhanced_welcome, keyboard
-    
-    @staticmethod
-    def get_channel_management_ui(channels):
-        """Get channel management UI"""
-        if not channels:
-            return "📢 <b>Channel Manager</b>\n\nNo channels added yet.", []
-        
-        text = "📢 <b>Channel Manager</b>\n\n"
-        text += "<b>Current Channels:</b>\n"
-        
-        buttons = []
-        for idx, channel in enumerate(channels, 1):
-            status_emoji = "🔒" if channel.get('is_private') else "🔓"
-            force_emoji = "✅" if channel.get('force_join', True) else "❌"
-            
-            text += f"{idx}. {status_emoji} {channel['name']} {force_emoji}\n"
-            
-            # Add management buttons for each channel
-            channel_buttons = [
-                {"text": f"✏️ Edit {channel['name'][:10]}", "callback": f"edit_channel_{channel['id']}"},
-                {"text": f"❌ Remove", "callback": f"remove_channel_{channel['id']}"}
-            ]
-            buttons.append(channel_buttons)
-        
-        # Add general buttons
-        buttons.append([
-            {"text": "➕ Add Channel", "callback": "add_channel_start"},
-            {"text": "📤 Export CSV", "callback": "export_channels"}
-        ])
-        buttons.append([
-            {"text": "📥 Import CSV", "callback": "import_channels_start"},
-            {"text": "🔄 Bulk Edit", "callback": "bulk_edit_channels"}
-        ])
-        
-        return text, buttons
+    def create_info_box(title: str, content: str, emoji: str = "ℹ️"):
+        """ইনফো বক্স তৈরি করুন"""
+        return f"""
+{emoji} <b>{title}</b>
+┌─────────────────
+│ {content}
+└─────────────────
+"""
 
-# Initialize enhanced UI manager
 ui = EnhancedUIManager()
 
 # ==============================================================================
-# 🔐 ENHANCED SECURITY MANAGER
+# 🔐 SECURITY MANAGER WITH VERIFICATION
 # ==============================================================================
 
-class EnhancedSecurityManager:
-    """Enhanced security manager with intelligent flood detection"""
+class SecurityManager:
+    """Advanced security manager with flood control and verification"""
     
     def __init__(self):
-        self.last_verification = {}
         self.verification_cache = {}
-        self.blocked_ips = set()
-        self.suspicious_activity = defaultdict(list)
-        self.login_attempts = defaultdict(int)
-        
+        self.last_verification = {}
+    
     async def check_membership(self, user_id: int, bot) -> List[Dict]:
-        """Check if user is member of required channels with caching"""
+        """Check if user is member of required channels"""
         if db.get_config('force_join') != 'ON':
             return []
         
         # Check cache first
         cache_key = f"membership_{user_id}"
-        current_time = time.time()
-        
         if cache_key in self.verification_cache:
             cached_time, result = self.verification_cache[cache_key]
-            if current_time - cached_time < 300:  # 5 minute cache
+            if time.time() - cached_time < 300:  # 5 minute cache
                 return result
         
         missing_channels = []
         channels = db.get_channels(force_join_only=True)
         
-        # Check membership in parallel (simulated with asyncio)
         for channel in channels:
             try:
-                # Use get_chat_member with timeout
-                member = await asyncio.wait_for(
-                    bot.get_chat_member(chat_id=channel['id'], user_id=user_id),
-                    timeout=5.0
+                member = await bot.get_chat_member(
+                    chat_id=channel['id'],
+                    user_id=user_id
                 )
                 
                 if member.status in ['left', 'kicked']:
                     missing_channels.append(channel)
-            except asyncio.TimeoutError:
-                logger.warning(f"Timeout checking channel {channel['id']}")
-                missing_channels.append(channel)
             except Exception as e:
                 logger.warning(f"Failed to check channel {channel['id']}: {e}")
                 missing_channels.append(channel)
         
         # Update cache
-        self.verification_cache[cache_key] = (current_time, missing_channels)
-        
-        # Clean old cache entries
-        self.clean_old_cache()
+        self.verification_cache[cache_key] = (time.time(), missing_channels)
         
         return missing_channels
     
-    def clean_old_cache(self):
-        """Clean old cache entries"""
-        current_time = time.time()
-        old_keys = [
-            key for key, (cached_time, _) in self.verification_cache.items()
-            if current_time - cached_time > 3600  # 1 hour
-        ]
+    async def verify_user_membership(self, user_id: int, bot) -> Tuple[bool, str, List[Dict]]:
+        """Verify user membership and return result with message"""
+        missing_channels = await self.check_membership(user_id, bot)
         
-        for key in old_keys:
-            del self.verification_cache[key]
-    
-    def check_enhanced_flood(self, user_id: int) -> Tuple[bool, str]:
-        """Check if user is flooding with enhanced detection"""
-        return db.check_enhanced_flood(user_id)
-    
-    def check_maintenance(self, user_id: int) -> bool:
-        """Check if maintenance mode is active for user"""
-        if user_id in Config.ADMIN_IDS:
-            return False
-        
-        return db.get_config('maint_mode') == 'ON'
-    
-    def check_access(self, user_id: int, required_level: int = 1) -> bool:
-        """Check user access level with enhanced permissions"""
-        if user_id in Config.ADMIN_IDS:
-            return True
-        
-        if required_level == 1:
-            return True
-        
-        if required_level == 2:
-            return db.is_vip(user_id)
-        
-        # Check for custom permission levels
-        user_data = db.get_user(user_id)
-        if user_data:
-            user_level = user_data.get('user_level', 1)
-            return user_level >= required_level
-        
-        return False
-    
-    def detect_suspicious_activity(self, user_id: int, action: str) -> bool:
-        """Detect suspicious activity patterns"""
-        current_time = time.time()
-        
-        # Record activity
-        self.suspicious_activity[user_id].append((current_time, action))
-        
-        # Keep only last 5 minutes of activity
-        self.suspicious_activity[user_id] = [
-            (t, a) for t, a in self.suspicious_activity[user_id]
-            if current_time - t < 300
-        ]
-        
-        # Check for suspicious patterns
-        activities = [a for _, a in self.suspicious_activity[user_id]]
-        
-        # Pattern 1: Too many different actions in short time
-        if len(set(activities)) > 10:
-            logger.warning(f"Suspicious activity detected for user {user_id}: too many different actions")
-            return True
-        
-        # Pattern 2: Same action repeated too many times
-        from collections import Counter
-        action_counts = Counter(activities)
-        for action, count in action_counts.items():
-            if count > 20:  # Same action 20+ times in 5 minutes
-                logger.warning(f"Suspicious activity detected for user {user_id}: {action} repeated {count} times")
-                return True
-        
-        return False
-    
-    def generate_secure_token(self, length: int = 32) -> str:
-        """Generate secure token"""
-        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-        return ''.join(secrets.choice(alphabet) for _ in range(length))
-    
-    def validate_input(self, text: str, max_length: int = 4000) -> bool:
-        """Validate user input for security"""
-        if len(text) > max_length:
-            return False
-        
-        # Check for potentially dangerous patterns
-        dangerous_patterns = [
-            "<script", "javascript:", "onload=", "onerror=",
-            "onclick=", "eval(", "exec(", "system("
-        ]
-        
-        for pattern in dangerous_patterns:
-            if pattern in text.lower():
-                return False
-        
-        return True
+        if not missing_channels:
+            # All channels joined
+            greeting, _ = romantic_manager.get_time_based_greeting()
+            message = f"{greeting}! 🎉\n\n✅ <b>সকল চ্যানেলে সফলভাবে জয়েন করেছেন!</b>\n\nআপনি এখন সব কন্টেন্ট এক্সেস করতে পারবেন।"
+            return True, message, []
+        else:
+            # Some channels missing
+            channel_list = "\n".join([f"• {ch['name']}" for ch in missing_channels])
+            message = f"❌ <b>কিছু চ্যানেলে জয়েন করা হয়নি!</b>\n\nনিচের চ্যানেলগুলোতে জয়েন করুন:\n{channel_list}"
+            return False, message, missing_channels
 
-# Initialize enhanced security manager
-security = EnhancedSecurityManager()
+security = SecurityManager()
 
 # ==============================================================================
-# 🔄 ENHANCED BACKGROUND TASK MANAGER
+# 🧹 MESSAGE CLEANUP MANAGER
 # ==============================================================================
 
-class EnhancedBackgroundTaskManager:
-    """Manage enhanced background tasks with scheduling"""
+class MessageCleanupManager:
+    """ইন্টেলিজেন্ট মেসেজ ক্লিনআপ ম্যানেজার"""
     
     def __init__(self):
-        self.tasks = []
-        self.scheduled_tasks = []
-        self.running = True
-        self.task_queue = asyncio.Queue()
-        
-    def add_recurring_task(self, func, interval: int, *args, **kwargs):
-        """Add a recurring background task"""
-        task = threading.Thread(
-            target=self._run_recurring_task,
-            args=(func, interval, args, kwargs),
-            daemon=True
-        )
-        self.tasks.append(task)
-        task.start()
+        self.user_messages = defaultdict(list)
+        self.conversation_states = {}
     
-    def add_scheduled_task(self, func, scheduled_time: datetime.datetime, *args, **kwargs):
-        """Add a scheduled task for specific time"""
-        task_data = {
-            'func': func,
-            'scheduled_time': scheduled_time,
-            'args': args,
-            'kwargs': kwargs,
-            'executed': False
-        }
-        self.scheduled_tasks.append(task_data)
-    
-    def _run_recurring_task(self, func, interval, args, kwargs):
-        """Run recurring task at intervals"""
-        while self.running:
-            try:
-                start_time = time.time()
-                func(*args, **kwargs)
-                execution_time = time.time() - start_time
-                
-                # Log slow tasks
-                if execution_time > 1.0:
-                    logger.warning(f"Slow background task: {func.__name__} took {execution_time:.2f}s")
-                
-            except Exception as e:
-                logger.error(f"Background task error in {func.__name__}: {e}")
-                # Add exponential backoff for failing tasks
-                interval = min(interval * 2, 3600)  # Max 1 hour
-            
-            time.sleep(interval)
-    
-    def _check_scheduled_tasks(self):
-        """Check and execute scheduled tasks"""
-        current_time = datetime.datetime.now()
+    def add_message(self, chat_id: int, message_id: int):
+        """মেসেজ যোগ করুন ট্র্যাক করার জন্য"""
+        self.user_messages[chat_id].append(message_id)
         
-        for task in self.scheduled_tasks:
-            if not task['executed'] and current_time >= task['scheduled_time']:
-                try:
-                    task['func'](*task['args'], **task['kwargs'])
-                    task['executed'] = True
-                    logger.info(f"Executed scheduled task: {task['func'].__name__}")
-                except Exception as e:
-                    logger.error(f"Failed to execute scheduled task: {e}")
-        
-        # Remove executed tasks
-        self.scheduled_tasks = [t for t in self.scheduled_tasks if not t['executed']]
-    
-    def monitor_system_resources(self):
-        """Monitor system resources and adjust accordingly"""
-        stats = system_monitor.get_detailed_system_stats()
-        
-        # Log resource usage
-        if stats['memory_percent'] > 80:
-            logger.warning(f"High memory usage: {stats['memory_percent']}%")
-        
-        if stats['cpu_percent'] > 80:
-            logger.warning(f"High CPU usage: {stats['cpu_percent']}%")
-        
-        # Adjust task intervals based on load
-        if stats['cpu_percent'] > 90 or stats['memory_percent'] > 90:
-            # Slow down non-critical tasks when system is under heavy load
-            pass
-    
-    def cleanup(self):
-        """Cleanup all tasks"""
-        self.running = False
-        for task in self.tasks:
-            task.join(timeout=1)
+        # 20টির বেশি মেসেজ হলে পুরনোগুলো মুছে ফেলুন
+        if len(self.user_messages[chat_id]) > 20:
+            self.user_messages[chat_id] = self.user_messages[chat_id][-10:]
 
-# Create enhanced background task manager
-task_manager = EnhancedBackgroundTaskManager()
-
-# Define enhanced background tasks
-def enhanced_cleanup_expired_sessions():
-    """Enhanced cleanup of expired sessions"""
-    db.cleanup_sessions()
-    logger.debug("Cleaned up expired sessions")
-
-def enhanced_create_automatic_backup():
-    """Create enhanced automatic backup"""
-    backup_file = db.create_smart_backup()
-    if backup_file:
-        logger.info(f"Enhanced automatic backup created: {backup_file}")
-        
-        # Check backup size
-        backup_size = os.path.getsize(backup_file) / (1024 * 1024)  # MB
-        if backup_size > 100:  # 100 MB
-            logger.warning(f"Large backup file: {backup_size:.2f} MB")
-
-def enhanced_monitor_system_health():
-    """Enhanced system health monitoring"""
-    stats = system_monitor.get_detailed_system_stats()
-    
-    # Check system health
-    if stats['memory_percent'] > 90:
-        logger.critical(f"CRITICAL: Memory usage at {stats['memory_percent']}%")
-    
-    if stats['cpu_percent'] > 90:
-        logger.critical(f"CRITICAL: CPU usage at {stats['cpu_percent']}%")
-    
-    # Check disk space
-    if stats['disk_percent'] > 90:
-        logger.critical(f"CRITICAL: Disk usage at {stats['disk_percent']}%")
-    
-    # Update task manager monitoring
-    task_manager.monitor_system_resources()
-    task_manager._check_scheduled_tasks()
-
-def update_analytics():
-    """Update analytics data"""
-    try:
-        # Get today's date in Bangladesh timezone
-        today = db.get_bangladesh_time().date()
-        
-        # Update or create analytics entry for today
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR IGNORE INTO analytics (date) VALUES (?)
-        ''', (today,))
-        
-        # Update peak concurrent users
-        stats = system_monitor.get_detailed_system_stats()
-        cursor.execute('''
-            UPDATE analytics 
-            SET peak_concurrent_users = ?
-            WHERE date = ?
-        ''', (stats['peak_concurrent'], today))
-        
-        conn.commit()
-    except Exception as e:
-        logger.error(f"Error updating analytics: {e}")
-
-def cleanup_old_logs():
-    """Cleanup old log files"""
-    try:
-        log_files = [f for f in os.listdir('.') if f.endswith('.log')]
-        current_time = time.time()
-        
-        for log_file in log_files:
-            # Keep logs for 7 days
-            file_age = current_time - os.path.getmtime(log_file)
-            if file_age > 7 * 24 * 3600:  # 7 days
-                os.remove(log_file)
-                logger.info(f"Removed old log file: {log_file}")
-    except Exception as e:
-        logger.error(f"Error cleaning up logs: {e}")
-
-# Schedule enhanced background tasks
-task_manager.add_recurring_task(enhanced_cleanup_expired_sessions, 300)  # Every 5 minutes
-task_manager.add_recurring_task(enhanced_create_automatic_backup, 3600)  # Every hour
-task_manager.add_recurring_task(enhanced_monitor_system_health, 60)      # Every minute
-task_manager.add_recurring_task(update_analytics, 300)                   # Every 5 minutes
-task_manager.add_recurring_task(cleanup_old_logs, 86400)                 # Every day
+cleanup_manager = MessageCleanupManager()
 
 # ==============================================================================
-# 🎮 ENHANCED COMMAND HANDLERS WITH NEW FEATURES
+# 🎮 COMMAND HANDLERS WITH ROMANTIC MESSAGES
 # ==============================================================================
 
-async def enhanced_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced /start command with Bangladesh time"""
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /start command with romantic messages"""
     user = update.effective_user
-    start_time = time.time()
-    
     system_monitor.update_user_activity(user.id)
     system_monitor.increment_message()
-    system_monitor.record_command('start')
     
-    # Check for suspicious activity
-    if security.detect_suspicious_activity(user.id, 'start_command'):
-        await update.message.reply_text(
-            "⚠️ Suspicious activity detected. Please try again later.",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    # Add user to database with enhanced tracking
+    # Add user to database
     db.add_user(
         user_id=user.id,
         username=user.username,
         first_name=user.first_name,
-        last_name=user.last_name or "",
-        language_code=user.language_code
+        last_name=user.last_name or ""
     )
     
-    # Check enhanced flood control
-    is_blocked, reason = security.check_enhanced_flood(user.id)
-    if is_blocked:
-        await update.message.reply_text(
-            f"⚠️ {reason}",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
     # Check maintenance mode
-    if security.check_maintenance(user.id):
+    if user.id not in Config.ADMIN_IDS and db.get_config('maint_mode') == 'ON':
         await update.message.reply_text(
-            ui.format_text_with_time(
+            ui.format_text(
                 "🔧 <b>System Maintenance</b>\n\n"
                 "We're currently performing maintenance. Please try again later.",
                 user
@@ -2555,83 +1158,160 @@ async def enhanced_start_command(update: Update, context: ContextTypes.DEFAULT_T
         return
     
     # Check channel membership
-    missing_channels = await security.check_membership(user.id, context.bot)
+    is_verified, message, missing_channels = await security.verify_user_membership(user.id, context.bot)
     
-    if missing_channels:
-        # Show lock message with Bangladesh time
+    if not is_verified:
+        # Show lock message with romantic touch
         lock_msg = db.get_config('lock_msg')
-        enhanced_lock_msg = ui.format_text_with_time(lock_msg, user)
         
         # Create channel join buttons
         buttons = []
         for channel in missing_channels:
             buttons.append([
                 {
-                    "text": f"📢 Join {channel['name']}",
+                    "text": f"📢 {channel['name']} এ জয়েন করুন",
                     "url": channel['link']
                 }
             ])
         
         buttons.append([
             {
-                "text": "✅ Verify Membership",
+                "text": "✅ আমি জয়েন করেছি",
                 "callback": "verify_membership"
             }
         ])
         
-        keyboard = ui.create_enhanced_keyboard(buttons, add_back=False, add_close=False)
+        keyboard = ui.create_keyboard(buttons, add_back=False, add_close=False)
+        
+        # Add romantic element to lock message
+        romantic_part = romantic_manager.generate_romantic_message(user.first_name)
+        full_message = f"{romantic_part}\n\n{lock_msg}"
         
         try:
-            await update.message.reply_photo(
+            sent_msg = await update.message.reply_photo(
                 photo=db.get_config('welcome_photo'),
-                caption=enhanced_lock_msg,
+                caption=ui.format_text(full_message, user),
                 reply_markup=keyboard,
                 parse_mode=ParseMode.HTML
             )
+            cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
         except Exception as e:
             logger.error(f"Failed to send photo: {e}")
-            await update.message.reply_text(
-                enhanced_lock_msg,
+            sent_msg = await update.message.reply_text(
+                ui.format_text(full_message, user),
                 reply_markup=keyboard,
                 parse_mode=ParseMode.HTML
             )
+            cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
     else:
-        # Show enhanced welcome message with Bangladesh time
-        welcome_msg, keyboard = ui.get_welcome_ui(user)
+        # Show romantic welcome message
+        if db.get_config('romantic_messages') == 'ON':
+            welcome_msg = romantic_manager.generate_romantic_message(user.first_name)
+        else:
+            welcome_msg = db.get_config('welcome_msg')
+        
+        btn_text = db.get_config('btn_text')
+        watch_url = db.get_config('watch_url')
+        
+        # Add Bangladesh time
+        bd_time = bd_time_manager.get_bd_time()
+        time_info = f"\n\n⏰ বাংলাদেশ সময়: {bd_time['time']}\n📅 তারিখ: {bd_time['date']}"
+        
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(btn_text, url=watch_url)
+        ], [
+            InlineKeyboardButton("💖 আরও রোমান্টিক মেসেজ", callback_data="more_romantic"),
+            InlineKeyboardButton("📅 বাংলাদেশ সময়", callback_data="bdtime_now")
+        ]])
         
         try:
-            message = await update.message.reply_photo(
+            sent_msg = await update.message.reply_photo(
                 photo=db.get_config('welcome_photo'),
-                caption=ui.format_text_with_time(welcome_msg, user),
+                caption=ui.format_text(welcome_msg + time_info, user),
                 reply_markup=keyboard,
                 parse_mode=ParseMode.HTML
             )
+            cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
             
             # Auto-delete after configured time
             auto_delete = int(db.get_config('auto_delete', Config.DEFAULT_AUTO_DELETE))
-            if auto_delete > 0:
+            if auto_delete > 0 and user.id not in Config.ADMIN_IDS:
                 await asyncio.sleep(auto_delete)
                 try:
-                    await update.message.delete()
-                    await message.delete()
+                    await sent_msg.delete()
                 except:
                     pass
                     
         except Exception as e:
             logger.error(f"Failed to send welcome: {e}")
-            await update.message.reply_text(
-                ui.format_text_with_time(welcome_msg, user),
+            sent_msg = await update.message.reply_text(
+                ui.format_text(welcome_msg + time_info, user),
                 reply_markup=keyboard,
                 parse_mode=ParseMode.HTML
             )
-    
-    # Record response time
-    response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-    system_monitor.record_response_time(response_time)
-    db.update_user_activity(user.id, 'start')
+            cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
 
-async def enhanced_admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced /admin command with more features"""
+async def romantic_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """রোমান্টিক মেসেজ কমান্ড"""
+    user = update.effective_user
+    system_monitor.update_user_activity(user.id)
+    
+    # রোমান্টিক মেসেজ জেনারেট করুন
+    romantic_msg = romantic_manager.generate_romantic_message(user.first_name)
+    
+    # বাংলাদেশ সময় যোগ করুন
+    bd_time = bd_time_manager.get_bd_time()
+    
+    message = f"{romantic_msg}\n\n"
+    message += f"⏰ বাংলাদেশ সময়: {bd_time['time']}\n"
+    message += f"📅 তারিখ: {bd_time['date']}\n"
+    message += f"✨ দিন: {bd_time['bangla_day']}"
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💖 আরেকটি মেসেজ", callback_data="more_romantic")],
+        [InlineKeyboardButton("💌 বিশেষ মেসেজ", callback_data="special_message")],
+        [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+    ])
+    
+    sent_msg = await update.message.reply_text(
+        message,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
+
+async def bdtime_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """বাংলাদেশ সময় কমান্ড"""
+    user = update.effective_user
+    system_monitor.update_user_activity(user.id)
+    
+    bd_time = bd_time_manager.get_bd_time()
+    
+    message = f"""
+🇧🇩 <b>বাংলাদেশ সময়</b>
+
+🕐 সময়: <b>{bd_time['time']}</b>
+📅 তারিখ: <b>{bd_time['date']}</b>
+📆 দিন: <b>{bd_time['bangla_day']}</b>
+🗓️ মাস: <b>{bd_time['bangla_month']}</b>
+
+<i>বাংলাদেশের সরকারী সময় অনুযায়ী</i>
+"""
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 আপডেট", callback_data="refresh_time")],
+        [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+    ])
+    
+    sent_msg = await update.message.reply_text(
+        message,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
+
+async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /admin command"""
     user = update.effective_user
     
     if user.id not in Config.ADMIN_IDS:
@@ -2639,630 +1319,503 @@ async def enhanced_admin_command(update: Update, context: ContextTypes.DEFAULT_T
         return
     
     system_monitor.update_user_activity(user.id)
-    system_monitor.record_command('admin')
     
     stats = db.get_stats()
-    sys_stats = system_monitor.get_detailed_system_stats()
-    bangla_time = ui.get_bangladesh_time_display()
+    sys_stats = system_monitor.get_system_stats()
     
     text = f"""
-{Config.EMOJIS['admin']} <b>🚀 ENHANCED ADMIN PANEL</b>
-{Config.EMOJIS['time']} <i>{bangla_time}</i>
+{Config.EMOJIS['admin']} <b>SUPREME ADMIN PANEL</b>
 
-{Config.EMOJIS['chart']} <b>📊 Bot Statistics:</b>
-├─ Users: <code>{stats['total_users']:,}</code>
-├─ Today: <code>{stats['today_users']:,}</code>
-├─ VIP: <code>{stats['vip_users']:,}</code>
-└─ Active: <code>{stats['active_today']:,}</code>
+{Config.EMOJIS['chart']} <b>Bot Statistics:</b>
+• Users: {stats['total_users']:,}
+• Today: {stats['today_users']:,}
+• VIP: {stats['vip_users']:,}
 
-{Config.EMOJIS['gear']} <b>⚙️ System Status:</b>
-├─ Uptime: {sys_stats['uptime']}
-├─ CPU: {sys_stats['cpu_percent']}%
-├─ Memory: {sys_stats['memory_percent']}%
-├─ Messages: <code>{sys_stats['message_count']:,}</code>
-└─ Response: <code>{sys_stats['avg_response_time']:.2f}ms</code>
+{Config.EMOJIS['gear']} <b>System Status:</b>
+• Uptime: {sys_stats['uptime']}
+• CPU: {sys_stats['cpu_percent']}%
+• Memory: {sys_stats['memory_percent']}%
+• Messages: {sys_stats['message_count']:,}
 
 👇 <b>Select an option:</b>
 """
     
-    await update.message.reply_text(
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📊 Statistics", callback_data="menu_stats")],
+        [InlineKeyboardButton("📝 Post Wizard", callback_data="enhanced_post_wizard")],
+        [InlineKeyboardButton("🔗 Channel Manager", callback_data="menu_channels")],
+        [InlineKeyboardButton("⚙️ Settings", callback_data="menu_system")],
+        [InlineKeyboardButton("❌ Close", callback_data="close_panel")]
+    ])
+    
+    sent_msg = await update.message.reply_text(
         text,
-        reply_markup=ui.get_admin_menu(),
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
-    
-    db.update_user_activity(user.id, 'admin')
+    cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
 
-async def enhanced_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced /stats command with detailed analytics"""
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /stats command"""
     user = update.effective_user
     
     if user.id not in Config.ADMIN_IDS:
         await update.message.reply_text("🚫 Admin only command!")
         return
     
-    system_monitor.update_user_activity(user.id)
-    system_monitor.record_command('stats')
-    
-    stats = db.get_detailed_stats(7)  # Get 7 days of stats
-    sys_stats = system_monitor.get_detailed_system_stats()
-    bangla_time = ui.get_bangladesh_time_display()
+    stats = db.get_stats()
+    sys_stats = system_monitor.get_system_stats()
     
     text = f"""
-{Config.EMOJIS['chart']} <b>📈 ENHANCED ANALYTICS DASHBOARD</b>
-{Config.EMOJIS['time']} <i>{bangla_time}</i>
+{Config.EMOJIS['chart']} <b>SYSTEM STATISTICS</b>
 
-{Config.EMOJIS['users']} <b>👥 User Analytics (Last 7 Days):</b>
+{Config.EMOJIS['users']} <b>User Stats:</b>
+• Total Users: {stats.get('total_users', 0):,}
+• Today New: {stats.get('today_users', 0):,}
+• VIP Users: {stats.get('vip_users', 0):,}
+• Blocked: {stats.get('blocked_users', 0):,}
+
+{Config.EMOJIS['megaphone']} <b>Channel Stats:</b>
+• Active Channels: {stats.get('active_channels', 0):,}
+
+{Config.EMOJIS['camera']} <b>Post Stats:</b>
+• Total Posts: {stats.get('total_posts', 0):,}
+• Today Posts: {stats.get('today_posts', 0):,}
+
+{Config.EMOJIS['gear']} <b>System Info:</b>
+• Uptime: {sys_stats['uptime']}
+• CPU: {sys_stats['cpu_percent']}%
+• Memory: {sys_stats['memory_percent']}%
 """
     
-    # Add daily stats summary
-    if stats.get('daily_stats'):
-        text += f"\n📅 <b>Daily Summary:</b>"
-        for day in stats['daily_stats'][:3]:  # Show last 3 days
-            text += f"\n• {day['date']}: {day['new_users']} new, {day['active_users']} active"
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 Refresh", callback_data="refresh_stats")],
+        [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]
+    ])
     
-    text += f"""
-
-{Config.EMOJIS['camera']} <b>📸 Performance Metrics:</b>
-├─ Total Posts: <code>{stats['performance_stats']['total_posts']:,}</code>
-├─ Avg Engagement: <code>{stats['performance_stats']['avg_engagement']}%</code>
-├─ Total Views: <code>{stats['performance_stats']['total_views']:,}</code>
-└─ Total Likes: <code>{stats['performance_stats']['total_likes']:,}</code>
-
-{Config.EMOJIS['gear']} <b>⚙️ System Performance:</b>
-├─ CPU Usage: {ui.create_progress_bar(sys_stats['cpu_percent'])}
-├─ Memory Usage: {ui.create_progress_bar(sys_stats['memory_percent'])}
-├─ Disk Usage: {ui.create_progress_bar(sys_stats['disk_percent'])}
-└─ Peak Concurrent: <code>{sys_stats['peak_concurrent']}</code>
-"""
-    
-    buttons = [
-        [
-            {"text": "📊 Detailed Report", "callback": "detailed_report"},
-            {"text": "📈 Export Data", "callback": "export_analytics"}
-        ],
-        [
-            {"text": "🔄 Refresh", "callback": "refresh_stats"},
-            {"text": "📋 User Stats", "callback": "user_statistics"}
-        ]
-    ]
-    
-    await update.message.reply_text(
-        text,
+    sent_msg = await update.message.reply_text(
+        ui.format_text(text, user),
         parse_mode=ParseMode.HTML,
-        reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True)
+        reply_markup=keyboard
     )
-    
-    db.update_user_activity(user.id, 'stats')
+    cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
 
-async def enhanced_help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced /help command with feature list"""
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /help command"""
     user = update.effective_user
-    bangla_time = ui.get_bangladesh_time_display()
+    system_monitor.update_user_activity(user.id)
     
     text = f"""
-{Config.EMOJIS['info']} <b>🤖 {Config.BOT_NAME} - Help Center</b>
-{Config.EMOJIS['time']} <i>{bangla_time}</i>
+{Config.EMOJIS['info']} <b>Supreme Bot Commands</b>
 
-<b>🎯 Core Features:</b>
-• Auto-delete messages (configurable timer)
-• Channel verification system
-• VIP access management
-• Post scheduling and templates
-• Enhanced analytics dashboard
-
-<b>🛡️ Security Features:</b>
-• Intelligent flood control
-• Suspicious activity detection
-• Maintenance mode
-• Enhanced user blocking
-
-<b>⚙️ System Features:</b>
-• Bangladesh timezone support
-• Smart backup system
-• Performance monitoring
-• Health check server
-
-<b>📊 Admin Features:</b>
-• Enhanced admin panel
-• Detailed statistics
-• Channel management
-• Post wizard (6-step)
-
-<b>🔧 User Commands:</b>
+<b>User Commands:</b>
 /start - Start the bot
+/romantic - Romantic messages
+/bdtime - Bangladesh time
 /help - Show this help message
 
-<b>👑 Admin Commands:</b>
+<b>Admin Commands:</b>
 /admin - Open admin panel
-/stats - Show detailed statistics
+/stats - Show statistics
 /backup - Create backup
-/broadcast - Broadcast message
 
-<b>🚀 Total Features: 100+</b>
+<b>Features:</b>
+• Romantic Bengali messages
+• Bangladesh timezone
+• Channel verification
+• VIP access system
+• Auto-delete messages
 """
     
-    await update.message.reply_text(
-        ui.format_text_with_time(text, user),
-        parse_mode=ParseMode.HTML
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💖 Romantic Messages", callback_data="romantic_menu")],
+        [InlineKeyboardButton("📅 Bangladesh Time", callback_data="bd_time_menu")],
+        [InlineKeyboardButton("🔙 Menu", callback_data="main_menu")]
+    ])
+    
+    sent_msg = await update.message.reply_text(
+        ui.format_text(text, user),
+        parse_mode=ParseMode.HTML,
+        reply_markup=keyboard
     )
-    
-    system_monitor.update_user_activity(user.id)
-    system_monitor.record_command('help')
-    db.update_user_activity(user.id, 'help')
-
-async def enhanced_backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced /backup command with progress"""
-    user = update.effective_user
-    
-    if user.id not in Config.ADMIN_IDS:
-        await update.message.reply_text("🚫 Admin only command!")
-        return
-    
-    system_monitor.update_user_activity(user.id)
-    system_monitor.record_command('backup')
-    
-    message = await update.message.reply_text("💾 Creating smart backup...")
-    
-    backup_file = db.create_smart_backup()
-    
-    if backup_file:
-        backup_size = os.path.getsize(backup_file) / 1024  # KB
-        backup_time = db.format_bangladesh_time()
-        
-        await message.edit_text(
-            f"✅ <b>Smart Backup Created Successfully!</b>\n\n"
-            f"📁 File: <code>{os.path.basename(backup_file)}</code>\n"
-            f"📦 Size: {backup_size:.2f} KB\n"
-            f"🕒 Time: {backup_time}\n"
-            f"📍 Location: <code>{backup_file}</code>",
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        await message.edit_text("❌ Failed to create backup!")
-    
-    db.update_user_activity(user.id, 'backup')
-
-async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show Bangladesh time"""
-    user = update.effective_user
-    bangla_time = ui.get_bangladesh_time_display()
-    
-    text = f"""
-🇧🇩 <b>Bangladesh Time</b>
-
-🕒 <b>Current Time:</b> {bangla_time}
-
-<b>Timezone:</b> {Config.TIMEZONE}
-<b>Date Format:</b> DD Month, YYYY - HH:MM AM/PM
-
-<i>All times in the bot are displayed in Bangladesh timezone.</i>
-"""
-    
-    await update.message.reply_text(
-        ui.format_text_with_time(text, user),
-        parse_mode=ParseMode.HTML
-    )
-    
-    system_monitor.update_user_activity(user.id)
-    system_monitor.record_command('time')
-    db.update_user_activity(user.id, 'time')
+    cleanup_manager.add_message(update.effective_chat.id, sent_msg.message_id)
 
 # ==============================================================================
-# 🔄 ENHANCED CALLBACK QUERY HANDLER WITH NEW FEATURES
+# 🔄 CALLBACK QUERY HANDLER WITH POPUP MESSAGES
 # ==============================================================================
 
-async def enhanced_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced callback query handler with new features"""
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle all callback queries with popup messages"""
     query = update.callback_query
-    await query.answer()
-    
     user = query.from_user
     data = query.data
     
     system_monitor.update_user_activity(user.id)
     
-    # Record callback for analytics
-    system_monitor.record_command(f"callback_{data}")
-    db.update_user_activity(user.id, f"callback_{data}")
-    
     # Admin check for admin functions
     admin_functions = {
-        'main_menu', 'menu_', 'edit_', 'toggle_', 'remove_', 'add_',
+        'menu_', 'edit_', 'toggle_', 'remove_', 'add_',
         'broadcast', 'create_post', 'block_user', 'unblock_user',
-        'add_vip', 'remove_vip', 'backup_', 'restore_', 'export_',
-        'import_', 'bulk_', 'template_', 'schedule_', 'report_',
-        'analytics_', 'channel_', 'post_', 'task_'
+        'add_vip', 'remove_vip', 'backup_', 'restore_',
+        'enhanced_post_wizard'
     }
     
     if any(data.startswith(func) for func in admin_functions) and user.id not in Config.ADMIN_IDS:
-        await query.message.reply_text("🚫 Admin access required!")
+        await query.answer("🚫 Admin access required!", show_alert=True)
         return
     
-    # Route callbacks to appropriate handlers
-    if data == "main_menu":
-        await enhanced_show_admin_panel(query.message, user)
+    # Route callbacks
+    if data == "verify_membership":
+        # Show popup message while checking
+        await query.answer("🔍 চ্যানেল চেক করা হচ্ছে...", show_alert=False)
+        
+        # Check membership
+        is_verified, message, missing_channels = await security.verify_user_membership(user.id, query.bot)
+        
+        if is_verified:
+            # Success popup
+            await query.answer("✅ সকল চ্যানেলে জয়েন করেছেন! 🎉", show_alert=True)
+            
+            # Update message with success
+            greeting, _ = romantic_manager.get_time_based_greeting()
+            welcome_msg = romantic_manager.generate_romantic_message(user.first_name)
+            btn_text = db.get_config('btn_text')
+            watch_url = db.get_config('watch_url')
+            
+            bd_time = bd_time_manager.get_bd_time()
+            time_info = f"\n\n⏰ বাংলাদেশ সময়: {bd_time['time']}\n📅 তারিখ: {bd_time['date']}"
+            
+            keyboard = InlineKeyboardMarkup([[
+                InlineKeyboardButton(btn_text, url=watch_url)
+            ], [
+                InlineKeyboardButton("💖 আরও রোমান্টিক মেসেজ", callback_data="more_romantic"),
+                InlineKeyboardButton("📅 বাংলাদেশ সময়", callback_data="bdtime_now")
+            ]])
+            
+            try:
+                await query.message.edit_caption(
+                    caption=ui.format_text(f"{greeting}! 🎉\n\n{welcome_msg}{time_info}", user),
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+            except:
+                await query.message.edit_text(
+                    ui.format_text(f"{greeting}! 🎉\n\n{welcome_msg}{time_info}", user),
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+        else:
+            # Failed popup
+            await query.answer("❌ কিছু চ্যানেল মিসিং! আবার চেষ্টা করুন।", show_alert=True)
+            
+            # Update message with missing channels
+            channel_list = "\n".join([f"• {ch['name']}" for ch in missing_channels])
+            message = f"❌ <b>কিছু চ্যানেলে জয়েন করা হয়নি!</b>\n\nনিচের চ্যানেলগুলোতে জয়েন করুন:\n{channel_list}"
+            
+            buttons = []
+            for channel in missing_channels:
+                buttons.append([
+                    {
+                        "text": f"📢 {channel['name']} এ জয়েন করুন",
+                        "url": channel['link']
+                    }
+                ])
+            
+            buttons.append([
+                {
+                    "text": "✅ আমি জয়েন করেছি",
+                    "callback": "verify_membership"
+                }
+            ])
+            
+            keyboard = ui.create_keyboard(buttons, add_back=False, add_close=False)
+            
+            try:
+                await query.message.edit_caption(
+                    caption=ui.format_text(message, user),
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+            except:
+                await query.message.edit_text(
+                    ui.format_text(message, user),
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+    
+    elif data == "more_romantic":
+        await query.answer("💖 নতুন রোমান্টিক মেসেজ লোড হচ্ছে...", show_alert=False)
+        
+        # Generate new romantic message
+        romantic_msg = romantic_manager.generate_romantic_message(user.first_name)
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"{romantic_msg}\n\n"
+        message += f"⏰ বাংলাদেশ সময়: {bd_time['time']}\n"
+        message += f"📅 তারিখ: {bd_time['date']}"
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("💖 আরেকটি মেসেজ", callback_data="more_romantic")],
+            [InlineKeyboardButton("💌 বিশেষ মেসেজ", callback_data="special_message")],
+            [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+        ])
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    
+    elif data == "bdtime_now" or data == "refresh_time":
+        await query.answer("🔄 সময় আপডেট করা হচ্ছে...", show_alert=False)
+        
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"""
+🇧🇩 <b>বাংলাদেশ সময়</b>
+
+🕐 সময়: <b>{bd_time['time']}</b>
+📅 তারিখ: <b>{bd_time['date']}</b>
+📆 দিন: <b>{bd_time['bangla_day']}</b>
+🗓️ মাস: <b>{bd_time['bangla_month']}</b>
+
+<i>বাংলাদেশের সরকারী সময় অনুযায়ী</i>
+"""
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 আপডেট", callback_data="refresh_time")],
+            [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+        ])
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    
+    elif data == "romantic_menu":
+        await query.answer("💖 রোমান্টিক মেসেজ মেনু", show_alert=False)
+        
+        romantic_msg = romantic_manager.generate_romantic_message(user.first_name)
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"{romantic_msg}\n\n"
+        message += f"⏰ বাংলাদেশ সময়: {bd_time['time']}\n"
+        message += f"📅 তারিখ: {bd_time['date']}\n"
+        message += f"✨ দিন: {bd_time['bangla_day']}"
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("💖 আরেকটি মেসেজ", callback_data="more_romantic")],
+            [InlineKeyboardButton("💌 বিশেষ মেসেজ", callback_data="special_message")],
+            [InlineKeyboardButton("📅 বাংলাদেশ সময়", callback_data="bd_time_menu")],
+            [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+        ])
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    
+    elif data == "bd_time_menu":
+        await query.answer("📅 বাংলাদেশ সময় মেনু", show_alert=False)
+        
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"""
+🇧🇩 <b>বাংলাদেশ সময়</b>
+
+🕐 সময়: <b>{bd_time['time']}</b>
+📅 তারিখ: <b>{bd_time['date']}</b>
+📆 দিন: <b>{bd_time['bangla_day']}</b>
+🗓️ মাস: <b>{bd_time['bangla_month']}</b>
+
+<i>বাংলাদেশের সরকারী সময় অনুযায়ী</i>
+"""
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 আপডেট", callback_data="refresh_time")],
+            [InlineKeyboardButton("💖 রোমান্টিক মেসেজ", callback_data="romantic_menu")],
+            [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+        ])
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    
+    elif data == "special_message":
+        await query.answer("💌 বিশেষ মেসেজ লোড হচ্ছে...", show_alert=False)
+        
+        # Special romantic message
+        special_messages = [
+            "আপনার একটি হাসি আমার সমস্ত দুঃখ দূর করে দেয় 😊",
+            "আপনাকে দেখলে মনে হয়, সবকিছু সম্ভব 💪",
+            "আপনার সাথে থাকার প্রতিটি মুহূর্তই আমার জন্য স্বর্গ 🏰",
+            "আপনি হচ্ছেন আমার জীবনের সবচেয়ে সুন্দর উপহার 🎁"
+        ]
+        
+        romantic_msg = random.choice(special_messages)
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"💌 <b>বিশেষ মেসেজ:</b>\n\n{romantic_msg}\n\n"
+        message += f"⏰ বাংলাদেশ সময়: {bd_time['time']}\n"
+        message += f"📅 তারিখ: {bd_time['date']}"
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("💖 আরেকটি মেসেজ", callback_data="more_romantic")],
+            [InlineKeyboardButton("📅 বাংলাদেশ সময়", callback_data="bd_time_menu")],
+            [InlineKeyboardButton("🔙 মেনু", callback_data="main_menu")]
+        ])
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    
+    elif data == "main_menu":
+        await query.answer("🏠 মেনুতে ফিরছেন...", show_alert=False)
+        
+        # Generate romantic welcome
+        welcome_msg = romantic_manager.generate_romantic_message(user.first_name)
+        bd_time = bd_time_manager.get_bd_time()
+        
+        message = f"{welcome_msg}\n\n"
+        message += f"⏰ বাংলাদেশ সময়: {bd_time['time']}\n"
+        message += f"📅 তারিখ: {bd_time['date']}\n\n"
+        message += "👇 <b>নিচের মেনু থেকে নির্বাচন করুন:</b>"
+        
+        await query.edit_message_text(
+            message,
+            reply_markup=ui.create_beautiful_menu(),
+            parse_mode=ParseMode.HTML
+        )
     
     elif data == "close_panel":
+        await query.answer("❌ প্যানেল বন্ধ করা হয়েছে", show_alert=False)
         try:
             await query.delete_message()
         except:
             pass
     
-    elif data == "verify_membership":
-        await handle_verify_membership(query, context)
-    
-    elif data.startswith("menu_"):
-        await handle_menu_commands(query, context, data)
-    
-    elif data.startswith("edit_"):
-        await handle_edit_commands(query, context, data)
-    
-    elif data.startswith("toggle_"):
-        await handle_toggle_commands(query, context, data)
-    
-    elif data.startswith("channel_"):
-        await handle_channel_commands(query, context, data)
-    
-    elif data.startswith("post_"):
-        await handle_post_commands(query, context, data)
-    
-    elif data.startswith("template_"):
-        await handle_template_commands(query, context, data)
-    
-    elif data.startswith("export_"):
-        await handle_export_commands(query, context, data)
-    
-    elif data.startswith("import_"):
-        await handle_import_commands(query, context, data)
-    
-    elif data.startswith("bulk_"):
-        await handle_bulk_commands(query, context, data)
-    
-    elif data in ["backup_now", "restart_bot", "cleanup_db", "view_logs"]:
-        await handle_system_commands(query, context, data)
-    
-    elif data in ["detailed_report", "refresh_stats", "user_statistics"]:
-        await handle_analytics_commands(query, context, data)
-    
-    else:
-        await query.message.reply_text("❌ Unknown action!")
+    elif data == "menu_stats":
+        await query.answer("📊 স্ট্যাটিস্টিক্স লোড হচ্ছে...", show_alert=False)
+        
+        stats = db.get_stats()
+        sys_stats = system_monitor.get_system_stats()
+        
+        text = f"""
+{Config.EMOJIS['chart']} <b>SYSTEM STATISTICS</b>
 
-async def enhanced_show_admin_panel(message, user):
-    """Show enhanced admin panel"""
-    stats = db.get_stats()
-    sys_stats = system_monitor.get_detailed_system_stats()
-    bangla_time = ui.get_bangladesh_time_display()
-    
-    text = f"""
-{Config.EMOJIS['admin']} <b>🚀 ENHANCED ADMIN PANEL</b>
-{Config.EMOJIS['time']} <i>{bangla_time}</i>
+{Config.EMOJIS['users']} <b>User Stats:</b>
+• Total Users: {stats.get('total_users', 0):,}
+• Today New: {stats.get('today_users', 0):,}
+• VIP Users: {stats.get('vip_users', 0):,}
 
-{Config.EMOJIS['chart']} <b>📊 Bot Statistics:</b>
-├─ Users: <code>{stats['total_users']:,}</code>
-├─ Today: <code>{stats['today_users']:,}</code>
-├─ VIP: <code>{stats['vip_users']:,}</code>
-└─ Active: <code>{stats['active_today']:,}</code>
+{Config.EMOJIS['megaphone']} <b>Channel Stats:</b>
+• Active Channels: {stats.get('active_channels', 0):,}
 
-{Config.EMOJIS['gear']} <b>⚙️ System Status:</b>
-├─ Uptime: {sys_stats['uptime']}
-├─ CPU: {sys_stats['cpu_percent']}%
-├─ Memory: {sys_stats['memory_percent']}%
-├─ Messages: <code>{sys_stats['message_count']:,}</code>
-└─ Response: <code>{sys_stats['avg_response_time']:.2f}ms</code>
-
-👇 <b>Select an option:</b>
+{Config.EMOJIS['gear']} <b>System Info:</b>
+• Uptime: {sys_stats['uptime']}
+• CPU: {sys_stats['cpu_percent']}%
+• Memory: {sys_stats['memory_percent']}%
 """
-    
-    if hasattr(message, 'edit_text'):
-        await message.edit_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
-    else:
-        await message.reply_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
-
-# ==============================================================================
-# 🎯 HANDLER FUNCTIONS FOR NEW FEATURES
-# ==============================================================================
-
-async def handle_verify_membership(query, context):
-    """Handle membership verification"""
-    missing_channels = await security.check_membership(query.from_user.id, context.bot)
-    
-    if not missing_channels:
-        await query.answer("✅ Verified successfully!", show_alert=True)
         
-        # Show welcome message with Bangladesh time
-        welcome_msg, keyboard = ui.get_welcome_ui(query.from_user)
-        
-        try:
-            await query.message.edit_caption(
-                caption=ui.format_text_with_time(welcome_msg, query.from_user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-        except:
-            await query.message.reply_text(
-                ui.format_text_with_time(welcome_msg, query.from_user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-    else:
-        await query.answer("❌ Still missing channels!", show_alert=True)
-
-async def handle_menu_commands(query, context, data):
-    """Handle menu commands"""
-    if data == "menu_messages":
-        buttons = [
-            [
-                {"text": "✏️ Welcome Message", "callback": "edit_welcome_msg"},
-                {"text": "✏️ Lock Message", "callback": "edit_lock_msg"}
-            ],
-            [
-                {"text": "🖼️ Welcome Photo", "callback": "edit_welcome_photo"},
-                {"text": "📝 Button Text", "callback": "edit_btn_text"}
-            ]
-        ]
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 Refresh", callback_data="refresh_stats")],
+            [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]
+        ])
         
         await query.edit_message_text(
-            ui.format_text_with_time("📝 <b>Message Editor</b>\nSelect message to edit:", query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
         )
     
-    elif data == "menu_links":
-        buttons = [
-            [
-                {"text": "🔗 Watch URL", "callback": "edit_watch_url"},
-                {"text": "🔘 Button URL", "callback": "edit_button_url"}
-            ],
-            [
-                {"text": "⏱️ Auto Delete", "callback": "edit_auto_delete"},
-                {"text": "🌐 Timezone", "callback": "edit_timezone"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text_with_time("🔗 <b>Link Settings</b>\nSelect setting to edit:", query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
+    elif data == "refresh_stats":
+        await query.answer("🔄 স্ট্যাটিস্টিক্স আপডেট করা হচ্ছে...", show_alert=False)
+        query.data = "menu_stats"
+        await callback_handler(update, context)
+    
+    elif data == "enhanced_post_wizard":
+        await query.answer("📝 পোস্ট উইজার্ড শুরু হচ্ছে...", show_alert=True)
+        await start_post_wizard_handler(update, context)
     
     elif data == "menu_channels":
+        await query.answer("🔗 চ্যানেল ম্যানেজার", show_alert=False)
+        
         channels = db.get_channels()
-        text, buttons = ui.get_channel_management_ui(channels)
+        text = "📢 <b>Channel Manager</b>\n\n"
         
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_security":
-        maint_status = db.get_config('maint_mode')
-        force_status = db.get_config('force_join')
-        flood_status = db.get_config('flood_threshold')
+        if channels:
+            text += "<b>Current Channels:</b>\n"
+            for idx, channel in enumerate(channels[:10], 1):  # Show first 10 only
+                text += f"{idx}. {channel['name']}\n"
+        else:
+            text += "No channels added.\n"
         
-        text = f"""
-🛡️ <b>Security Settings</b>
-
-<b>Current Status:</b>
-├─ Maintenance Mode: {maint_status}
-├─ Force Join: {force_status}
-├─ Flood Threshold: {flood_status} msgs/min
-└─ Session Timeout: {db.get_config('session_timeout')}s
-
-<b>Actions:</b>
-"""
+        if len(channels) > 10:
+            text += f"\n... and {len(channels) - 10} more channels"
         
-        buttons = [
-            [
-                {"text": f"🔄 Maintenance: {maint_status}", "callback": "toggle_maint"},
-                {"text": f"🔄 Force Join: {force_status}", "callback": "toggle_force"}
-            ],
-            [
-                {"text": "🚫 Block User", "callback": "block_user_start"},
-                {"text": "✅ Unblock User", "callback": "unblock_user_start"}
-            ],
-            [
-                {"text": "📊 Security Logs", "callback": "security_logs"},
-                {"text": "🔍 Activity Monitor", "callback": "activity_monitor"}
-            ]
+        keyboard = [
+            [InlineKeyboardButton("➕ Add Channel", callback_data="add_channel_start")],
+            [InlineKeyboardButton("📋 Channel List", callback_data="channel_list_full")],
+            [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]
         ]
         
         await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_marketing":
-        text = """
-📡 <b>Marketing Tools</b>
-
-<b>Available Tools:</b>
-• Create and schedule posts (6-step wizard)
-• Broadcast messages to all users
-• Target specific user groups
-• Analyze engagement metrics
-• Post templates library
-• Scheduled campaigns
-"""
-        
-        buttons = [
-            [
-                {"text": "📝 Create Post", "callback": "create_post_start"},
-                {"text": "📢 Broadcast", "callback": "broadcast_start"}
-            ],
-            [
-                {"text": "🎯 Target Users", "callback": "target_users"},
-                {"text": "📊 Analytics", "callback": "analytics"}
-            ],
-            [
-                {"text": "🎨 Templates", "callback": "menu_templates"},
-                {"text": "⏰ Schedule", "callback": "menu_schedule"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_stats":
-        stats = db.get_stats()
-        text = ui.get_stats_display(stats)
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard([], add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_vip":
-        vip_users = [uid for uid in db.get_all_users() if db.is_vip(uid)]
-        
-        text = f"""
-👑 <b>VIP Management</b>
-
-<b>Current VIP Users:</b>
-{len(vip_users)} VIP users
-
-<b>Actions:</b>
-"""
-        
-        buttons = [
-            [
-                {"text": "➕ Add VIP", "callback": "add_vip_start"},
-                {"text": "➖ Remove VIP", "callback": "remove_vip_start"}
-            ],
-            [
-                {"text": "📋 VIP List", "callback": "vip_list"},
-                {"text": "📊 VIP Stats", "callback": "vip_stats"}
-            ],
-            [
-                {"text": "⏰ Set Expiry", "callback": "vip_expiry"},
-                {"text": "🎁 VIP Perks", "callback": "vip_perks"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML
         )
     
     elif data == "menu_system":
-        sys_stats = system_monitor.get_detailed_system_stats()
-        bangla_time = ui.get_bangladesh_time_display()
+        await query.answer("⚙️ সিস্টেম সেটিংস", show_alert=False)
+        
+        sys_stats = system_monitor.get_system_stats()
+        maint_status = db.get_config('maint_mode')
+        romantic_status = db.get_config('romantic_messages')
+        timezone_status = db.get_config('bangla_timezone')
         
         text = f"""
 ⚙️ <b>System Settings</b>
-🕒 <i>{bangla_time}</i>
 
 <b>System Status:</b>
-├─ Uptime: {sys_stats['uptime']}
-├─ CPU: {sys_stats['cpu_percent']}%
-├─ Memory: {sys_stats['memory_percent']}%
-├─ Disk: {sys_stats['disk_percent']}%
-└─ Messages: <code>{sys_stats['message_count']:,}</code>
+• Uptime: {sys_stats['uptime']}
+• CPU: {sys_stats['cpu_percent']}%
+• Memory: {sys_stats['memory_percent']}%
+
+<b>Feature Status:</b>
+• Maintenance Mode: {maint_status}
+• Romantic Messages: {romantic_status}
+• Bangladesh Timezone: {timezone_status}
 
 <b>Actions:</b>
 """
         
-        buttons = [
+        keyboard = [
             [
-                {"text": "💾 Backup Now", "callback": "backup_now"},
-                {"text": "🔄 Restart Bot", "callback": "restart_bot"}
+                InlineKeyboardButton(f"🔧 Maintenance: {maint_status}", callback_data=f"toggle_maint"),
+                InlineKeyboardButton(f"💖 Romantic: {romantic_status}", callback_data=f"toggle_romantic")
             ],
             [
-                {"text": "🧹 Cleanup DB", "callback": "cleanup_db"},
-                {"text": "📜 View Logs", "callback": "view_logs"}
+                InlineKeyboardButton(f"🇧🇩 Timezone: {timezone_status}", callback_data=f"toggle_timezone"),
+                InlineKeyboardButton("💾 Backup", callback_data="backup_now")
             ],
             [
-                {"text": "⚡ Performance", "callback": "performance_tuning"},
-                {"text": "🔧 Maintenance", "callback": "system_maintenance"}
+                InlineKeyboardButton("🔙 Back", callback_data="main_menu")
             ]
         ]
         
         await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML
         )
     
-    elif data == "menu_templates":
-        templates = db.get_templates()
-        
-        text = f"""
-🎨 <b>Post Templates</b>
-
-<b>Available Templates:</b>
-{len(templates)} templates available
-"""
-        
-        buttons = []
-        for template in templates[:5]:  # Show first 5 templates
-            buttons.append([
-                {"text": f"📝 {template['name'][:15]}", "callback": f"template_use_{template['template_id']}"},
-                {"text": f"✏️ Edit", "callback": f"template_edit_{template['template_id']}"}
-            ])
-        
-        buttons.append([
-            {"text": "➕ New Template", "callback": "template_create"},
-            {"text": "📋 All Templates", "callback": "template_list"}
-        ])
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_schedule":
-        pending_tasks = db.get_pending_tasks()
-        
-        text = f"""
-⏰ <b>Scheduled Tasks</b>
-
-<b>Pending Tasks:</b>
-{len(pending_tasks)} tasks pending
-"""
-        
-        buttons = [
-            [
-                {"text": "➕ Schedule Post", "callback": "schedule_post"},
-                {"text": "📋 Task List", "callback": "task_list"}
-            ],
-            [
-                {"text": "🔄 Run Now", "callback": "run_scheduled"},
-                {"text": "🗑️ Clear All", "callback": "clear_scheduled"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-
-async def handle_edit_commands(query, context, data):
-    """Handle edit commands"""
-    if data.startswith("edit_"):
-        key = data.replace("edit_", "")
-        context.user_data['edit_key'] = key
-        current_value = db.get_config(key)
-        
-        await query.message.reply_text(
-            f"✏️ <b>Editing:</b> <code>{key}</code>\n"
-            f"<b>Current Value:</b>\n<code>{current_value[:200]}</code>\n\n"
-            f"Please send the new value:",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_EDIT_CONFIG
-
-async def handle_toggle_commands(query, context, data):
-    """Handle toggle commands"""
-    if data.startswith("toggle_"):
+    elif data.startswith("toggle_"):
         key = data.replace("toggle_", "")
         current = db.get_config(key)
         new_value = "ON" if current == "OFF" else "OFF"
@@ -3270,911 +1823,673 @@ async def handle_toggle_commands(query, context, data):
         
         await query.answer(f"✅ {key} set to {new_value}", show_alert=True)
         # Refresh menu
-        query.data = "menu_security"
-        await enhanced_callback_handler(update, context)
-
-async def handle_channel_commands(query, context, data):
-    """Handle channel commands"""
-    if data.startswith("edit_channel_"):
-        channel_id = data.replace("edit_channel_", "")
-        context.user_data['edit_channel_id'] = channel_id
+        if key == "maint_mode":
+            query.data = "menu_system"
+        elif key in ["romantic_messages", "bangla_timezone"]:
+            query.data = "menu_system"
+        await callback_handler(update, context)
+    
+    elif data == "backup_now":
+        await query.answer("💾 ব্যাকআপ তৈরি করা হচ্ছে...", show_alert=True)
         
-        # Get channel details
-        channels = db.get_channels()
-        channel = next((c for c in channels if c['id'] == channel_id), None)
+        # Create backup in background
+        backup_file = db.create_backup()
         
-        if channel:
-            buttons = [
-                [
-                    {"text": "✏️ Edit Name", "callback": f"channel_edit_name_{channel_id}"},
-                    {"text": "🔗 Edit Link", "callback": f"channel_edit_link_{channel_id}"}
-                ],
-                [
-                    {"text": "🔄 Toggle Private", "callback": f"channel_toggle_private_{channel_id}"},
-                    {"text": "🔄 Toggle Force Join", "callback": f"channel_toggle_force_{channel_id}"}
-                ],
-                [
-                    {"text": "📊 Stats", "callback": f"channel_stats_{channel_id}"},
-                    {"text": "🗑️ Delete", "callback": f"channel_delete_{channel_id}"}
-                ]
-            ]
-            
-            text = f"""
-📢 <b>Edit Channel</b>
-
-<b>Current Details:</b>
-├─ Name: {channel['name']}
-├─ Link: {channel['link'][:50]}...
-├─ Private: {'Yes' if channel.get('is_private') else 'No'}
-└─ Force Join: {'Yes' if channel.get('force_join', True) else 'No'}
-
-<b>Select what to edit:</b>
-"""
-            
-            await query.edit_message_text(
-                ui.format_text_with_time(text, query.from_user),
-                reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
+        if backup_file:
+            await query.message.reply_text(
+                f"✅ <b>Backup created successfully!</b>\n\n"
+                f"File: {os.path.basename(backup_file)}\n"
+                f"Size: {os.path.getsize(backup_file) // 1024} KB",
                 parse_mode=ParseMode.HTML
             )
-    
-    elif data.startswith("remove_channel_"):
-        channel_id = data.replace("remove_channel_", "")
-        if db.remove_channel(channel_id):
-            await query.answer("✅ Channel removed!", show_alert=True)
         else:
-            await query.answer("❌ Failed to remove!", show_alert=True)
-        # Refresh
-        query.data = "menu_channels"
-        await enhanced_callback_handler(update, context)
+            await query.message.reply_text("❌ Failed to create backup!")
     
-    elif data == "add_channel_start":
-        await query.message.reply_text(
-            "➕ <b>Add New Channel</b>\n\n"
-            "Please send the Channel ID (e.g., @channelname or -1001234567890):",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_CHANNEL_ADD_ID
+    else:
+        await query.answer("❌ Unknown action!", show_alert=True)
 
-async def handle_post_commands(query, context, data):
-    """Handle post commands"""
-    if data == "create_post_start":
-        await query.message.reply_text(
-            "📝 <b>Post Wizard - Step 1/6</b>\n\n"
-            "Please send the post caption/text (HTML formatting supported):",
-            parse_mode=ParseMode.HTML
-        )
-        context.user_data['post_wizard'] = {'step': 1}
-        return Config.STATE_POST_CAPTION
+# ==============================================================================
+# 📝 ENHANCED POST WIZARD HANDLERS
+# ==============================================================================
+
+async def start_post_wizard_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Start enhanced post wizard"""
+    query = update.callback_query
+    if query:
+        await query.answer()
+        user = query.from_user
+        message = query.message
+    else:
+        user = update.effective_user
+        message = update.message
     
-    elif data == "broadcast_start":
-        await query.message.reply_text(
-            "📢 <b>Broadcast Message</b>\n\n"
-            "Please send the message to broadcast (text, photo, or video):",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_BROADCAST
-
-async def handle_template_commands(query, context, data):
-    """Handle template commands"""
-    if data == "template_create":
-        await query.message.reply_text(
-            "🎨 <b>Create New Template</b>\n\n"
-            "Please send the template name:",
-            parse_mode=ParseMode.HTML
-        )
-        context.user_data['template_wizard'] = {'step': 1}
-        # This would continue to a conversation handler
+    context.user_data['post_wizard'] = {
+        'step': 1,
+        'data': {},
+        'force_channels': [],
+        'target_channels': []
+    }
     
-    elif data.startswith("template_use_"):
-        template_id = int(data.replace("template_use_", ""))
-        templates = db.get_templates()
-        template = next((t for t in templates if t['template_id'] == template_id), None)
-        
-        if template:
-            # Use the template for post creation
-            context.user_data['post_wizard'] = {
-                'step': 1,
-                'caption': template['caption'],
-                'media_url': template['media_url'],
-                'button_text': template['button_text'],
-                'button_url': template['button_url'],
-                'using_template': template_id
-            }
-            
-            db.use_template(template_id)
-            
-            await query.answer(f"✅ Using template: {template['name']}", show_alert=True)
-            query.data = "create_post_start"
-            await enhanced_callback_handler(update, context)
+    text = """
+📝 <b>পোস্ট উইজার্ড - ধাপ ১/৬</b>
 
-async def handle_export_commands(query, context, data):
-    """Handle export commands"""
-    if data == "export_channels":
-        csv_content = db.export_channels_csv()
-        
-        if csv_content:
-            # Send as file
-            file_obj = io.BytesIO(csv_content.encode())
-            file_obj.name = f"channels_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-            
-            await query.message.reply_document(
-                document=file_obj,
-                caption="📤 Channel export completed!"
+✨ <b>পোস্টের টাইটেল লিখুন:</b>
+HTML ফরম্যাট সাপোর্টেড:
+<code>&lt;b&gt;বোল্ড&lt;/b&gt;</code>
+<code>&lt;i&gt;ইটালিক&lt;/i&gt;</code>
+<code>&lt;u&gt;আন্ডারলাইন&lt;/u&gt;</code>
+<code>&lt;a href='লিঙ্ক'&gt;টেক্সট&lt;/a&gt;</code>
+
+<b>উদাহরণ:</b>
+<i>আজকের বিশেষ অফার!</i>
+
+আপনার টাইটেল লিখুন:
+"""
+    
+    if query:
+        await message.edit_text(text, parse_mode=ParseMode.HTML)
+        await message.reply_text("আপনার টাইটেল লিখুন:")
+    else:
+        await message.reply_text(text, parse_mode=ParseMode.HTML)
+    
+    return "POST_TITLE"
+
+async def post_title_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle post title"""
+    title = update.message.text_html
+    context.user_data['post_wizard']['data']['title'] = title
+    context.user_data['post_wizard']['step'] = 2
+    
+    await update.message.reply_text(
+        "🖼️ <b>পোস্ট উইজার্ড - ধাপ ২/৬</b>\n\n"
+        "📸 <b>ফটো আপলোড করুন:</b>\n"
+        "একটি ফটো বা ছবি পাঠান (স্কিপ করতে 'skip' লিখুন):",
+        parse_mode=ParseMode.HTML
+    )
+    
+    # Delete user message
+    try:
+        await update.message.delete()
+    except:
+        pass
+    
+    return "POST_PHOTO"
+
+async def post_photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle post photo"""
+    if update.message.text and update.message.text.lower() == 'skip':
+        context.user_data['post_wizard']['data']['photo'] = None
+        context.user_data['post_wizard']['data']['has_media'] = False
+    elif update.message.photo:
+        context.user_data['post_wizard']['data']['photo'] = update.message.photo[-1].file_id
+        context.user_data['post_wizard']['data']['has_media'] = True
+    else:
+        await update.message.reply_text("❌ দয়া করে একটি ফটো পাঠান বা 'skip' লিখুন")
+        return "POST_PHOTO"
+    
+    context.user_data['post_wizard']['step'] = 3
+    
+    # Delete user message
+    try:
+        await update.message.delete()
+    except:
+        pass
+    
+    await update.message.reply_text(
+        "🔘 <b>পোস্ট উইজার্ড - ধাপ ৩/৬</b>\n\n"
+        "🛠️ <b>বাটন কাস্টমাইজ করুন:</b>\n"
+        "বাটনের টেক্সট লিখুন (ডিফল্ট ব্যবহার করতে 'default' লিখুন):\n\n"
+        f"বর্তমান ডিফল্ট: <code>{db.get_config('btn_text')}</code>",
+        parse_mode=ParseMode.HTML
+    )
+    return "POST_BUTTON"
+
+async def post_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle button text"""
+    if update.message.text and update.message.text.lower() == 'default':
+        context.user_data['post_wizard']['data']['button_text'] = db.get_config('btn_text')
+    else:
+        context.user_data['post_wizard']['data']['button_text'] = update.message.text
+    
+    context.user_data['post_wizard']['step'] = 4
+    
+    # Delete user message
+    try:
+        await update.message.delete()
+    except:
+        pass
+    
+    # Get force join channels
+    channels = db.get_channels(force_join_only=True)
+    
+    if not channels:
+        await update.message.reply_text(
+            "ℹ️ <b>কোন ফোর্স জয়েন চ্যানেল নেই</b>\n\n"
+            "পরবর্তী ধাপে যাচ্ছেন...",
+            parse_mode=ParseMode.HTML
+        )
+        context.user_data['post_wizard']['data']['force_channels'] = []
+        return await post_force_channels_handler(update, context)
+    
+    # Create channel selection
+    channel_list = "\n".join([f"{i+1}. {ch['name']}" for i, ch in enumerate(channels)])
+    
+    keyboard = []
+    for channel in channels:
+        keyboard.append([
+            InlineKeyboardButton(
+                f"⬜ {channel['name']}",
+                callback_data=f"wiz_force_{channel['id']}"
             )
-        else:
-            await query.answer("❌ No channels to export!", show_alert=True)
+        ])
     
-    elif data == "export_analytics":
-        stats = db.get_detailed_stats(30)  # 30 days
-        
-        # Create CSV
-        output = io.StringIO()
-        writer = csv.writer(output)
-        
-        # Write header
-        writer.writerow(['Date', 'New Users', 'Active Users', 'Messages', 'Posts', 'VIP Added', 'Errors', 'Avg Response'])
-        
-        # Write data
-        for day in stats.get('daily_stats', []):
-            writer.writerow([
-                day['date'],
-                day['new_users'],
-                day['active_users'],
-                day['messages_sent'],
-                day['posts_sent'],
-                day['vip_added'],
-                day['errors_count'],
-                day['avg_response_time']
-            ])
-        
-        file_obj = io.BytesIO(output.getvalue().encode())
-        file_obj.name = f"analytics_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
-        await query.message.reply_document(
-            document=file_obj,
-            caption="📊 Analytics export completed!"
-        )
+    keyboard.append([
+        InlineKeyboardButton("✅ সব সিলেক্ট", callback_data="wiz_force_all"),
+        InlineKeyboardButton("❌ সব আনসিলেক্ট", callback_data="wiz_force_none")
+    ])
+    
+    keyboard.append([
+        InlineKeyboardButton("👉 পরবর্তী ধাপ", callback_data="wiz_force_next")
+    ])
+    
+    await update.message.reply_text(
+        f"🔐 <b>পোস্ট উইজার্ড - ধাপ ৪/৬</b>\n\n"
+        f"🎯 <b>ফোর্স জয়েন চ্যানেল সিলেক্ট করুন:</b>\n"
+        f"এই চ্যানেলগুলোতে জয়েন না করলে ইউজাররা পোস্ট দেখতে পারবে না\n\n"
+        f"<b>চ্যানেল লিস্ট:</b>\n{channel_list}\n\n"
+        f"সিলেক্ট করুন (একাধিক সিলেক্ট করা যাবে):",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode=ParseMode.HTML
+    )
+    return "POST_FORCE_CHANNELS"
 
-async def handle_import_commands(query, context, data):
-    """Handle import commands"""
-    if data == "import_channels_start":
-        await query.message.reply_text(
-            "📥 <b>Import Channels from CSV</b>\n\n"
-            "Please send a CSV file with the following columns:\n"
-            "Channel ID, Name, Link, Private (0/1), Force Join (0/1), Status, Category, Priority\n\n"
-            "Send /cancel to cancel.",
-            parse_mode=ParseMode.HTML
-        )
-        context.user_data['import_type'] = 'channels'
-        # This would continue to a conversation handler
-
-async def handle_bulk_commands(query, context, data):
-    """Handle bulk commands"""
-    if data == "bulk_edit_channels":
+async def post_force_channels_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle force channel selection"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    
+    if data == "wiz_force_next":
+        context.user_data['post_wizard']['step'] = 5
+        
+        # Get target channels
         channels = db.get_channels()
         
-        text = "🔄 <b>Bulk Edit Channels</b>\n\n"
-        text += f"Total channels: {len(channels)}\n\n"
-        text += "Select action:"
+        if not channels:
+            await query.message.edit_text(
+                "❌ <b>কোন চ্যানেল নেই!</b>\n\n"
+                "পোস্ট করার জন্য দয়া করে আগে চ্যানেল যোগ করুন।",
+                parse_mode=ParseMode.HTML
+            )
+            return ConversationHandler.END
         
-        buttons = [
+        # Create target channel selection
+        channel_list = "\n".join([f"{i+1}. {ch['name']}" for i, ch in enumerate(channels[:10])])
+        if len(channels) > 10:
+            channel_list += f"\n... এবং আরও {len(channels)-10} টি চ্যানেল"
+        
+        keyboard = []
+        for channel in channels:
+            keyboard.append([
+                InlineKeyboardButton(
+                    f"⬜ {channel['name']}",
+                    callback_data=f"wiz_target_{channel['id']}"
+                )
+            ])
+        
+        keyboard.append([
+            InlineKeyboardButton("📤 সব চ্যানেল", callback_data="wiz_target_all"),
+            InlineKeyboardButton("👑 ভিআইপি চ্যানেল", callback_data="wiz_target_vip")
+        ])
+        
+        keyboard.append([
+            InlineKeyboardButton("👉 পরবর্তী ধাপ", callback_data="wiz_target_next")
+        ])
+        
+        await query.message.edit_text(
+            f"📤 <b>পোস্ট উইজার্ড - ধাপ ৫/৬</b>\n\n"
+            f"🎯 <b>টার্গেট চ্যানেল সিলেক্ট করুন:</b>\n"
+            f"এই চ্যানেলগুলোতে পোস্টটি শেয়ার করা হবে\n\n"
+            f"<b>চ্যানেল লিস্ট:</b>\n{channel_list}\n\n"
+            f"সিলেক্ট করুন (একাধিক সিলেক্ট করা যাবে):",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.HTML
+        )
+        return "POST_TARGET_CHANNELS"
+    
+    elif data.startswith("wiz_force_"):
+        channel_id = data.replace("wiz_force_", "")
+        
+        if channel_id == "all":
+            channels = db.get_channels(force_join_only=True)
+            context.user_data['post_wizard']['force_channels'] = [ch['id'] for ch in channels]
+        elif channel_id == "none":
+            context.user_data['post_wizard']['force_channels'] = []
+        else:
+            if channel_id in context.user_data['post_wizard']['force_channels']:
+                context.user_data['post_wizard']['force_channels'].remove(channel_id)
+            else:
+                context.user_data['post_wizard']['force_channels'].append(channel_id)
+        
+        # Update buttons
+        channels = db.get_channels(force_join_only=True)
+        keyboard = []
+        for channel in channels:
+            is_selected = channel['id'] in context.user_data['post_wizard']['force_channels']
+            keyboard.append([
+                InlineKeyboardButton(
+                    f"{'✅' if is_selected else '⬜'} {channel['name']}",
+                    callback_data=f"wiz_force_{channel['id']}"
+                )
+            ])
+        
+        keyboard.append([
+            InlineKeyboardButton("✅ সব সিলেক্ট", callback_data="wiz_force_all"),
+            InlineKeyboardButton("❌ সব আনসিলেক্ট", callback_data="wiz_force_none")
+        ])
+        
+        keyboard.append([
+            InlineKeyboardButton("👉 পরবর্তী ধাপ", callback_data="wiz_force_next")
+        ])
+        
+        selected_count = len(context.user_data['post_wizard']['force_channels'])
+        
+        await query.message.edit_text(
+            f"🔐 <b>পোস্ট উইজার্ড - ধাপ ৪/৬</b>\n\n"
+            f"🎯 <b>ফোর্স জয়েন চ্যানেল সিলেক্ট করুন:</b>\n"
+            f"সিলেক্টেড: {selected_count} টি চ্যানেল\n\n"
+            f"সিলেক্ট করুন (একাধিক সিলেক্ট করা যাবে):",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.HTML
+        )
+    
+    return "POST_FORCE_CHANNELS"
+
+async def post_target_channels_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle target channel selection"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    
+    if data == "wiz_target_next":
+        context.user_data['post_wizard']['step'] = 6
+        
+        # Create preview
+        data = context.user_data['post_wizard']['data']
+        force_channels = context.user_data['post_wizard']['force_channels']
+        target_channels = context.user_data['post_wizard']['target_channels']
+        
+        preview = "🎯 <b>পোস্ট প্রিভিউ - ধাপ ৬/৬</b>\n\n"
+        preview += f"<b>টাইটেল:</b>\n{data.get('title', 'N/A')[:200]}...\n\n"
+        
+        if data.get('has_media'):
+            preview += "🖼️ <b>ফটো:</b> আছে\n"
+        else:
+            preview += "🖼️ <b>ফটো:</b> নেই\n"
+        
+        preview += f"🔘 <b>বাটন টেক্সট:</b> {data.get('button_text', 'N/A')[:50]}\n\n"
+        
+        preview += f"🔐 <b>ফোর্স জয়েন চ্যানেল:</b> {len(force_channels)} টি\n"
+        preview += f"📤 <b>টার্গেট চ্যানেল:</b> {len(target_channels)} টি\n\n"
+        
+        preview += "👇 <b>নিচের অপশন থেকে একটি সিলেক্ট করুন:</b>"
+        
+        keyboard = [
             [
-                {"text": "✅ Enable All", "callback": "bulk_enable_all"},
-                {"text": "❌ Disable All", "callback": "bulk_disable_all"}
+                InlineKeyboardButton("✅ পোস্ট করুন", callback_data="wiz_post_confirm"),
+                InlineKeyboardButton("✏️ এডিট করুন", callback_data="wiz_post_edit")
             ],
             [
-                {"text": "🔒 Make All Private", "callback": "bulk_private_all"},
-                {"text": "🔓 Make All Public", "callback": "bulk_public_all"}
+                InlineKeyboardButton("↩️ নতুন করে শুরু", callback_data="wiz_post_restart"),
+                InlineKeyboardButton("❌ বাতিল করুন", callback_data="wiz_post_cancel")
+            ]
+        ]
+        
+        await query.message.edit_text(
+            preview,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.HTML
+        )
+        return "POST_PREVIEW"
+    
+    elif data.startswith("wiz_target_"):
+        channel_id = data.replace("wiz_target_", "")
+        
+        if channel_id == "all":
+            channels = db.get_channels()
+            context.user_data['post_wizard']['target_channels'] = [ch['id'] for ch in channels]
+        elif channel_id == "vip":
+            vip_channels = [ch for ch in db.get_channels() if ch.get('is_private', False)]
+            context.user_data['post_wizard']['target_channels'] = [ch['id'] for ch in vip_channels]
+        else:
+            if channel_id in context.user_data['post_wizard']['target_channels']:
+                context.user_data['post_wizard']['target_channels'].remove(channel_id)
+            else:
+                context.user_data['post_wizard']['target_channels'].append(channel_id)
+        
+        # Update buttons
+        channels = db.get_channels()
+        keyboard = []
+        for channel in channels:
+            is_selected = channel['id'] in context.user_data['post_wizard']['target_channels']
+            keyboard.append([
+                InlineKeyboardButton(
+                    f"{'📤' if is_selected else '⬜'} {channel['name']}",
+                    callback_data=f"wiz_target_{channel['id']}"
+                )
+            ])
+        
+        keyboard.append([
+            InlineKeyboardButton("📤 সব চ্যানেল", callback_data="wiz_target_all"),
+            InlineKeyboardButton("👑 ভিআইপি চ্যানেল", callback_data="wiz_target_vip")
+        ])
+        
+        keyboard.append([
+            InlineKeyboardButton("👉 পরবর্তী ধাপ", callback_data="wiz_target_next")
+        ])
+        
+        selected_count = len(context.user_data['post_wizard']['target_channels'])
+        
+        await query.message.edit_text(
+            f"📤 <b>পোস্ট উইজার্ড - ধাপ ৫/৬</b>\n\n"
+            f"🎯 <b>টার্গেট চ্যানেল সিলেক্ট করুন:</b>\n"
+            f"সিলেক্টেড: {selected_count} টি চ্যানেল\n\n"
+            f"সিলেক্ট করুন (একাধিক সিলেক্ট করা যাবে):",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.HTML
+        )
+    
+    return "POST_TARGET_CHANNELS"
+
+async def post_preview_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle post preview"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    
+    if data == "wiz_post_confirm":
+        await query.answer("📤 পোস্ট করা হচ্ছে...", show_alert=True)
+        await send_final_post(query, context)
+        return ConversationHandler.END
+    
+    elif data == "wiz_post_edit":
+        await query.answer("✏️ এডিট মেনু", show_alert=False)
+        
+        keyboard = [
+            [
+                InlineKeyboardButton("✏️ টাইটেল এডিট", callback_data="wiz_edit_title"),
+                InlineKeyboardButton("🖼️ ফটো এডিট", callback_data="wiz_edit_photo")
             ],
             [
-                {"text": "📊 Update Stats", "callback": "bulk_update_stats"},
-                {"text": "🧹 Clean Inactive", "callback": "bulk_clean_inactive"}
+                InlineKeyboardButton("🔘 বাটন এডিট", callback_data="wiz_edit_button"),
+                InlineKeyboardButton("🔐 ফোর্স চ্যানেল", callback_data="wiz_edit_force")
+            ],
+            [
+                InlineKeyboardButton("📤 টার্গেট চ্যানেল", callback_data="wiz_edit_target"),
+                InlineKeyboardButton("↩️ প্রিভিউ", callback_data="wiz_back_preview")
             ]
         ]
         
         await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
+            "✏️ <b>কোনটি এডিট করতে চান?</b>",
+            reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML
         )
-
-async def handle_system_commands(query, context, data):
-    """Handle system commands"""
-    if data == "backup_now":
-        await query.answer("💾 Creating backup...", show_alert=True)
-        backup_file = db.create_smart_backup()
-        if backup_file:
-            await query.message.reply_text(f"✅ Backup created: {os.path.basename(backup_file)}")
-        else:
-            await query.message.reply_text("❌ Backup failed!")
+        return "POST_EDIT"
     
-    elif data == "cleanup_db":
-        # Cleanup old data
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        # Delete old activity logs (older than 30 days)
-        cursor.execute("DELETE FROM activity_logs WHERE timestamp < DATE('now', '-30 days')")
-        deleted_logs = cursor.rowcount
-        
-        # Delete old sessions
-        cursor.execute("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP")
-        deleted_sessions = cursor.rowcount
-        
-        conn.commit()
-        
-        await query.answer(f"🧹 Cleaned up: {deleted_logs} logs, {deleted_sessions} sessions", show_alert=True)
+    elif data == "wiz_post_restart":
+        await query.answer("🔄 নতুন পোস্ট শুরু হচ্ছে...", show_alert=False)
+        context.user_data.clear()
+        await start_post_wizard_handler(update, context)
     
-    elif data == "view_logs":
-        try:
-            with open(Config.LOG_FILE, 'r') as f:
-                log_content = f.read()[-4000:]  # Last 4000 characters
-            
-            await query.message.reply_text(
-                f"📜 <b>Recent Logs</b>\n\n"
-                f"<code>{log_content}</code>",
-                parse_mode=ParseMode.HTML
-            )
-        except Exception as e:
-            await query.answer(f"❌ Error reading logs: {e}", show_alert=True)
-
-async def handle_analytics_commands(query, context, data):
-    """Handle analytics commands"""
-    if data == "detailed_report":
-        stats = db.get_detailed_stats(30)
-        
-        text = "📈 <b>Detailed 30-Day Report</b>\n\n"
-        
-        if stats.get('daily_stats'):
-            text += "<b>Daily Summary:</b>\n"
-            for day in stats['daily_stats'][:10]:  # Show last 10 days
-                text += f"• {day['date']}: {day['new_users']} new, {day['active_users']} active\n"
-        
-        text += f"\n<b>User Growth:</b>\n"
-        text += f"• Total Users: {stats['user_growth']['total_users']:,}\n"
-        text += f"• VIP Users: {stats['user_growth']['vip_users']:,}\n"
-        
-        text += f"\n<b>Performance:</b>\n"
-        text += f"• Total Posts: {stats['performance_stats']['total_posts']:,}\n"
-        text += f"• Avg Engagement: {stats['performance_stats']['avg_engagement']}%\n"
-        
-        await query.edit_message_text(
-            ui.format_text_with_time(text, query.from_user),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "refresh_stats":
-        await query.answer("🔄 Refreshing statistics...", show_alert=True)
-        query.data = "menu_stats"
-        await enhanced_callback_handler(update, context)
-
-# ==============================================================================
-# ✏️ ENHANCED CONVERSATION HANDLERS
-# ==============================================================================
-
-async def enhanced_edit_config_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced configuration editing handler"""
-    key = context.user_data.get('edit_key')
-    new_value = update.message.text
-    
-    if key:
-        if security.validate_input(new_value):
-            if db.set_config(key, new_value):
-                # Clear cache for this key
-                cache_key = f"config_{key}"
-                if cache_key in db.cache:
-                    del db.cache[cache_key]
-                
-                await update.message.reply_text(
-                    f"✅ <b>{key}</b> updated successfully!\n\n"
-                    f"New value: <code>{new_value[:100]}...</code>",
-                    parse_mode=ParseMode.HTML
-                )
-            else:
-                await update.message.reply_text(
-                    f"❌ Failed to update {key}!",
-                    parse_mode=ParseMode.HTML
-                )
-        else:
-            await update.message.reply_text(
-                "❌ Invalid input detected! Please check for dangerous characters.",
-                parse_mode=ParseMode.HTML
-            )
-    else:
-        await update.message.reply_text("❌ Error: No key specified!")
-    
-    context.user_data.clear()
-    return ConversationHandler.END
-
-async def enhanced_post_wizard_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced 6-step post wizard handler"""
-    if 'post_wizard' not in context.user_data:
-        context.user_data['post_wizard'] = {'step': 1}
-    
-    wizard = context.user_data['post_wizard']
-    step = wizard.get('step', 1)
-    
-    if step == 1:  # Caption
-        wizard['caption'] = update.message.text_html
-        wizard['step'] = 2
-        
-        await update.message.reply_text(
-            "📸 <b>Post Wizard - Step 2/6</b>\n\n"
-            "Send photo or video for the post (or type /skip for text only):\n\n"
-            "<i>Tip: You can send multiple media files</i>",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_MEDIA
-    
-    elif step == 2:  # Media
-        if update.message.photo:
-            wizard['media'] = update.message.photo[-1].file_id
-            wizard['type'] = 'photo'
-        elif update.message.video:
-            wizard['media'] = update.message.video.file_id
-            wizard['type'] = 'video'
-        elif update.message.text and update.message.text.lower() == '/skip':
-            wizard['media'] = None
-            wizard['type'] = 'text'
-        else:
-            wizard['media'] = None
-            wizard['type'] = 'text'
-        
-        wizard['step'] = 3
-        
-        await update.message.reply_text(
-            "🔘 <b>Post Wizard - Step 3/6</b>\n\n"
-            "Send button text (or /skip to use default):\n\n"
-            f"<i>Default: {db.get_config('btn_text')}</i>",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_BUTTON
-    
-    elif step == 3:  # Button Text
-        if update.message.text and update.message.text.lower() != '/skip':
-            wizard['button_text'] = update.message.text
-        else:
-            wizard['button_text'] = db.get_config('btn_text')
-        
-        wizard['step'] = 4
-        
-        await update.message.reply_text(
-            "🔗 <b>Post Wizard - Step 4/6</b>\n\n"
-            "Send button URL (or /skip to use default):\n\n"
-            f"<i>Default: {db.get_config('watch_url')}</i>",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_BUTTON_URL
-    
-    elif step == 4:  # Button URL
-        if update.message.text and update.message.text.lower() != '/skip':
-            wizard['button_url'] = update.message.text
-        else:
-            wizard['button_url'] = db.get_config('watch_url')
-        
-        wizard['step'] = 5
-        
-        # Get channels for selection
-        channels = db.get_channels()
-        
-        if not channels:
-            await update.message.reply_text("❌ No channels available!")
-            context.user_data.clear()
-            return ConversationHandler.END
-        
-        # Create channel selection
-        text = "📢 <b>Post Wizard - Step 5/6</b>\n\n"
-        text += "<b>Select channels for force join:</b>\n"
-        
-        buttons = []
-        for channel in channels:
-            channel_name = channel['name'][:20]
-            buttons.append([
-                {
-                    "text": f"✅ {channel_name}",
-                    "callback": f"wizard_select_{channel['id']}"
-                }
-            ])
-        
-        buttons.append([
-            {"text": "✅ Select All", "callback": "wizard_select_all"},
-            {"text": "❌ Select None", "callback": "wizard_select_none"}
-        ])
-        buttons.append([
-            {"text": "➡️ Next", "callback": "wizard_step_6"}
-        ])
-        
-        wizard['force_join_channels'] = []
-        
-        await update.message.reply_text(
-            text,
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=False, add_close=False),
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_CONFIRM
-    
-    elif step == 5:  # Force Join Selection (handled by callback)
-        pass
-    
-    elif step == 6:  # Target Channels
-        # Get channels for posting
-        channels = db.get_channels()
-        
-        text = "🎯 <b>Post Wizard - Step 6/6</b>\n\n"
-        text += "<b>Select target channels for posting:</b>\n"
-        
-        buttons = []
-        for channel in channels:
-            channel_name = channel['name'][:20]
-            buttons.append([
-                {
-                    "text": f"📤 {channel_name}",
-                    "callback": f"wizard_target_{channel['id']}"
-                }
-            ])
-        
-        buttons.append([
-            {"text": "📤 Post to ALL", "callback": "wizard_target_all"}
-        ])
-        buttons.append([
-            {"text": "✅ Finish & Post", "callback": "wizard_finish"}
-        ])
-        
-        wizard['target_channels'] = []
-        
-        await update.message.reply_text(
-            text,
-            reply_markup=ui.create_enhanced_keyboard(buttons, add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_CONFIRM
-
-async def enhanced_broadcast_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced broadcast handler with progress tracking"""
-    message = update.message
-    users = db.get_all_users(active_only=True)
-    
-    if not users:
-        await message.reply_text("❌ No users to broadcast!")
+    elif data == "wiz_post_cancel":
+        await query.answer("❌ পোস্ট বাতিল করা হয়েছে", show_alert=True)
+        await query.edit_message_text("❌ পোস্ট বাতিল করা হয়েছে!")
+        context.user_data.clear()
         return ConversationHandler.END
     
-    total_users = len(users)
+    elif data == "wiz_back_preview":
+        query.data = "wiz_target_next"
+        await post_target_channels_handler(update, context)
     
-    # Ask for confirmation
+    return "POST_PREVIEW"
+
+async def send_final_post(query, context):
+    """Send final post to channels"""
+    data = context.user_data['post_wizard']['data']
+    force_channels = context.user_data['post_wizard']['force_channels']
+    target_channels = context.user_data['post_wizard']['target_channels']
+    
+    if not target_channels:
+        await query.edit_message_text("❌ কোনো টার্গেট চ্যানেল সিলেক্ট করা হয়নি!")
+        return
+    
+    button_text = data.get('button_text', db.get_config('btn_text'))
+    watch_url = db.get_config('watch_url')
+    
     keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton("✅ Yes, Broadcast", callback_data="confirm_broadcast"),
-        InlineKeyboardButton("❌ Cancel", callback_data="cancel_broadcast")
+        InlineKeyboardButton(button_text, url=watch_url)
     ]])
     
-    await message.reply_text(
-        f"📢 <b>Broadcast Confirmation</b>\n\n"
-        f"Are you sure you want to broadcast to {total_users:,} users?\n\n"
-        f"<i>This may take several minutes.</i>",
-        reply_markup=keyboard,
+    post_message = data.get('title', '')
+    
+    # Add force join info if any
+    if force_channels:
+        force_text = "\n\n🔐 <b>ফোর্স জয়েন চ্যানেল:</b>\n"
+        for channel_id in force_channels[:5]:  # Show first 5 only
+            channel = next((ch for ch in db.get_channels() if ch['id'] == channel_id), None)
+            if channel:
+                force_text += f"• {channel['name']}\n"
+        if len(force_channels) > 5:
+            force_text += f"... এবং আরও {len(force_channels)-5} টি\n"
+        post_message += force_text
+    
+    # Show preview to admin
+    preview_msg = await query.message.reply_text(
+        "📤 <b>পোস্ট প্রিভিউ:</b>\n" + post_message[:500] + ("..." if len(post_message) > 500 else ""),
         parse_mode=ParseMode.HTML
     )
     
-    # Store broadcast data
-    context.user_data['broadcast_data'] = {
-        'message': message,
-        'users': users,
-        'total': total_users
-    }
+    status_msg = await query.message.reply_text(f"⏳ {len(target_channels)} টি চ্যানেলে পোস্ট করা হচ্ছে...")
     
-    return Config.STATE_BROADCAST
-
-async def enhanced_add_channel_flow(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced add channel flow"""
-    if 'channel_step' not in context.user_data:
-        context.user_data['channel_step'] = 1
+    success = 0
+    failed = 0
     
-    step = context.user_data['channel_step']
-    
-    if step == 1:  # Channel ID
-        channel_id = update.message.text.strip()
-        
-        # Validate channel ID
-        if not (channel_id.startswith('@') or channel_id.startswith('-100')):
-            await update.message.reply_text(
-                "❌ Invalid channel ID format!\n"
-                "Channel ID should start with @ (for public) or -100 (for private).\n"
-                "Please send the channel ID again:"
-            )
-            return Config.STATE_CHANNEL_ADD_ID
-        
-        context.user_data['channel_id'] = channel_id
-        context.user_data['channel_step'] = 2
-        
-        await update.message.reply_text(
-            "📝 <b>Step 2/4</b>\n\n"
-            "Please send the channel name:",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_CHANNEL_ADD_NAME
-    
-    elif step == 2:  # Channel Name
-        context.user_data['channel_name'] = update.message.text
-        context.user_data['channel_step'] = 3
-        
-        await update.message.reply_text(
-            "🔗 <b>Step 3/4</b>\n\n"
-            "Please send the channel link (t.me/...):",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_CHANNEL_ADD_LINK
-    
-    elif step == 3:  # Channel Link
-        context.user_data['channel_link'] = update.message.text
-        context.user_data['channel_step'] = 4
-        
-        # Ask for additional settings
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton("🔒 Private", callback_data="channel_private_yes"),
-            InlineKeyboardButton("🔓 Public", callback_data="channel_private_no")
-        ], [
-            InlineKeyboardButton("✅ Force Join", callback_data="channel_force_yes"),
-            InlineKeyboardButton("❌ No Force", callback_data="channel_force_no")
-        ]])
-        
-        await update.message.reply_text(
-            "⚙️ <b>Step 4/4</b>\n\n"
-            "Configure channel settings:",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_CHANNEL_ADD_LINK
-    
-    elif step == 4:  # Settings (handled by callback)
-        pass
-
-async def enhanced_block_user_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced block user handler with reason"""
-    try:
-        parts = update.message.text.split(' ', 1)
-        user_id = int(parts[0])
-        reason = parts[1] if len(parts) > 1 else "Manual block by admin"
-        
-        if db.block_user(user_id, update.effective_user.id, reason):
-            await update.message.reply_text(
-                f"✅ User {user_id} blocked successfully!\n"
-                f"Reason: {reason}"
-            )
-        else:
-            await update.message.reply_text(f"❌ Failed to block user {user_id}!")
-    except ValueError:
-        await update.message.reply_text("❌ Invalid format! Use: /block <user_id> [reason]")
-    
-    return ConversationHandler.END
-
-async def enhanced_add_vip_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced add VIP handler with level"""
-    try:
-        parts = update.message.text.split(' ', 2)
-        user_id = int(parts[0])
-        level = int(parts[1]) if len(parts) > 1 else 1
-        notes = parts[2] if len(parts) > 2 else ""
-        
-        if db.add_vip(user_id, level):
-            # Add notes if provided
-            if notes:
-                conn = db.get_connection()
-                cursor = conn.cursor()
-                cursor.execute('''
-                    UPDATE vip_users SET notes = ? WHERE user_id = ?
-                ''', (notes, user_id))
-                conn.commit()
+    for channel_id in target_channels:
+        try:
+            channel = next((ch for ch in db.get_channels() if ch['id'] == channel_id), None)
+            if not channel:
+                failed += 1
+                continue
             
-            await update.message.reply_text(
-                f"✅ User {user_id} granted VIP access (Level {level})!\n"
-                f"Notes: {notes[:50]}..."
-            )
-        else:
-            await update.message.reply_text(f"❌ Failed to add VIP for user {user_id}!")
-    except ValueError:
-        await update.message.reply_text("❌ Invalid format! Use: /vipadd <user_id> [level] [notes]")
+            if data.get('has_media') and data.get('photo'):
+                await context.bot.send_photo(
+                    chat_id=channel_id,
+                    photo=data['photo'],
+                    caption=post_message,
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=channel_id,
+                    text=post_message,
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+            success += 1
+        except Exception as e:
+            failed += 1
+            logger.error(f"Failed to post to {channel_id}: {e}")
+        
+        await asyncio.sleep(1)  # Rate limiting
     
-    return ConversationHandler.END
+    await status_msg.edit_text(
+        f"✅ <b>পোস্টিং সম্পন্ন!</b>\n\n"
+        f"• সফল: {success}\n"
+        f"• ব্যর্থ: {failed}\n"
+        f"• মোট: {len(target_channels)}",
+        parse_mode=ParseMode.HTML
+    )
+    
+    # Delete preview
+    try:
+        await preview_msg.delete()
+    except:
+        pass
+    
+    context.user_data.clear()
 
-async def enhanced_cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced cancel handler with cleanup"""
+async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Cancel conversation"""
     await update.message.reply_text("❌ Operation cancelled.")
-    
-    # Cleanup user data
-    if 'post_wizard' in context.user_data:
-        del context.user_data['post_wizard']
-    if 'edit_key' in context.user_data:
-        del context.user_data['edit_key']
-    if 'channel_step' in context.user_data:
-        del context.user_data['channel_step']
-    
     context.user_data.clear()
     return ConversationHandler.END
 
 # ==============================================================================
-# 🚀 ENHANCED MAIN APPLICATION SETUP
+# 🚀 MAIN APPLICATION SETUP
 # ==============================================================================
 
-def setup_enhanced_application():
-    """Setup enhanced Telegram application with all handlers"""
+def setup_application():
+    """Setup the Telegram application with all handlers"""
     
-    # Create enhanced application
+    # Create application
     application = ApplicationBuilder() \
         .token(Config.TOKEN) \
-        .connection_pool_size(20) \
-        .pool_timeout(60) \
-        .read_timeout(60) \
-        .write_timeout(60) \
-        .get_updates_read_timeout(60) \
+        .connection_pool_size(10) \
+        .pool_timeout(30) \
+        .read_timeout(30) \
+        .write_timeout(30) \
+        .get_updates_read_timeout(30) \
         .http_version("1.1") \
-        .post_init(set_bot_commands) \
         .build()
     
-    # ===== ENHANCED CONVERSATION HANDLERS =====
+    # ===== CONVERSATION HANDLERS =====
     
-    # Edit configuration conversation
-    edit_config_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(enhanced_callback_handler, pattern='^edit_')],
-        states={
-            Config.STATE_EDIT_CONFIG: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_edit_config_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
-    )
-    
-    # Enhanced post wizard conversation (6-step)
+    # Enhanced post wizard conversation
     post_wizard_conv = ConversationHandler(
         entry_points=[
-            CallbackQueryHandler(enhanced_callback_handler, pattern='^create_post_start$'),
-            CallbackQueryHandler(enhanced_callback_handler, pattern='^template_use_')
+            CommandHandler("post", start_post_wizard_handler),
+            CallbackQueryHandler(start_post_wizard_handler, pattern='^enhanced_post_wizard$')
         ],
         states={
-            Config.STATE_POST_CAPTION: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_post_wizard_handler)
-            ],
-            Config.STATE_POST_MEDIA: [
-                MessageHandler(filters.PHOTO | filters.VIDEO | filters.TEXT, enhanced_post_wizard_handler)
-            ],
-            Config.STATE_POST_BUTTON: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_post_wizard_handler)
-            ],
-            Config.STATE_POST_BUTTON_URL: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_post_wizard_handler)
-            ],
-            Config.STATE_POST_CONFIRM: [
-                CallbackQueryHandler(enhanced_callback_handler, pattern='^wizard_')
-            ]
+            "POST_TITLE": [MessageHandler(filters.TEXT & ~filters.COMMAND, post_title_handler)],
+            "POST_PHOTO": [MessageHandler(filters.PHOTO | filters.TEXT, post_photo_handler)],
+            "POST_BUTTON": [MessageHandler(filters.TEXT & ~filters.COMMAND, post_button_handler)],
+            "POST_FORCE_CHANNELS": [CallbackQueryHandler(post_force_channels_handler, pattern='^wiz_force_')],
+            "POST_TARGET_CHANNELS": [CallbackQueryHandler(post_target_channels_handler, pattern='^wiz_target_')],
+            "POST_PREVIEW": [CallbackQueryHandler(post_preview_handler, pattern='^wiz_post_')],
+            "POST_EDIT": [CallbackQueryHandler(post_preview_handler, pattern='^wiz_edit_|^wiz_back_')]
         },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
+        fallbacks=[CommandHandler('cancel', cancel_handler)]
     )
     
-    # Enhanced broadcast conversation
-    broadcast_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(enhanced_callback_handler, pattern='^broadcast_start$')],
-        states={
-            Config.STATE_BROADCAST: [
-                MessageHandler(filters.ALL & ~filters.COMMAND, enhanced_broadcast_handler),
-                CallbackQueryHandler(enhanced_callback_handler, pattern='^confirm_|^cancel_')
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
-    )
+    # ===== ADD HANDLERS =====
     
-    # Enhanced add channel conversation
-    add_channel_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(enhanced_callback_handler, pattern='^add_channel_start$')],
-        states={
-            Config.STATE_CHANNEL_ADD_ID: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_add_channel_flow)
-            ],
-            Config.STATE_CHANNEL_ADD_NAME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_add_channel_flow)
-            ],
-            Config.STATE_CHANNEL_ADD_LINK: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_add_channel_flow),
-                CallbackQueryHandler(enhanced_callback_handler, pattern='^channel_')
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
-    )
+    # Command handlers
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("romantic", romantic_command))
+    application.add_handler(CommandHandler("bdtime", bdtime_command))
+    application.add_handler(CommandHandler("admin", admin_command))
+    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("help", help_command))
     
-    # Enhanced block user conversation
-    block_user_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(enhanced_callback_handler, pattern='^block_user_start$')],
-        states={
-            Config.STATE_USER_BLOCK: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_block_user_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
-    )
-    
-    # Enhanced add VIP conversation
-    add_vip_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(enhanced_callback_handler, pattern='^add_vip_start$')],
-        states={
-            Config.STATE_VIP_ADD: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, enhanced_add_vip_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', enhanced_cancel_handler)]
-    )
-    
-    # ===== ADD ENHANCED HANDLERS =====
-    
-    # Enhanced command handlers
-    application.add_handler(CommandHandler("start", enhanced_start_command))
-    application.add_handler(CommandHandler("admin", enhanced_admin_command))
-    application.add_handler(CommandHandler("stats", enhanced_stats_command))
-    application.add_handler(CommandHandler("help", enhanced_help_command))
-    application.add_handler(CommandHandler("backup", enhanced_backup_command))
-    application.add_handler(CommandHandler("time", time_command))
-    
-    # Enhanced conversation handlers
-    application.add_handler(edit_config_conv)
+    # Conversation handlers
     application.add_handler(post_wizard_conv)
-    application.add_handler(broadcast_conv)
-    application.add_handler(add_channel_conv)
-    application.add_handler(block_user_conv)
-    application.add_handler(add_vip_conv)
     
-    # Enhanced callback query handler (must be last)
-    application.add_handler(CallbackQueryHandler(enhanced_callback_handler))
+    # Callback query handler (must be last)
+    application.add_handler(CallbackQueryHandler(callback_handler))
     
-    # Enhanced error handler
-    application.add_error_handler(enhanced_error_handler)
+    # Error handler
+    application.add_error_handler(error_handler)
     
     return application
 
-async def enhanced_error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enhanced error handler with better logging"""
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle errors gracefully"""
     system_monitor.increment_error()
     
-    # Get error details
-    error = context.error
-    error_type = type(error).__name__
+    # Log error
+    logger.error(f"Exception while handling update: {context.error}")
     
-    # Log error with more details
-    logger.error(f"Exception while handling update: {error}")
-    logger.error(f"Error type: {error_type}")
-    
-    if update:
-        logger.error(f"Update that caused error: {update}")
-    
-    # Get full traceback
-    tb_list = traceback.format_exception(None, error, error.__traceback__)
+    # Send traceback to log file
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
     tb_string = ''.join(tb_list)
+    logger.error(f"Traceback:\n{tb_string}")
     
-    # Log traceback to file
-    error_log_file = f"error_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-    with open(error_log_file, 'w') as f:
-        f.write(f"Time: {datetime.datetime.now()}\n")
-        f.write(f"Error: {error}\n")
-        f.write(f"Type: {error_type}\n")
-        if update:
-            f.write(f"Update: {update.to_json() if hasattr(update, 'to_json') else str(update)}\n")
-        f.write("\nTraceback:\n")
-        f.write(tb_string)
-    
-    logger.error(f"Full traceback saved to: {error_log_file}")
-    
-    # Send detailed error notification to admin
-    error_msg = f"""
-⚠️ <b>Bot Error Notification</b>
-
-<b>Error Type:</b> <code>{error_type}</code>
-<b>Error Message:</b> <code>{str(error)[:200]}</code>
-<b>Time:</b> {db.format_bangladesh_time()}
-<b>Log File:</b> <code>{error_log_file}</code>
-
-<i>Check error logs for full details.</i>
-"""
-    
-    try:
-        for admin_id in Config.ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    admin_id,
-                    error_msg,
-                    parse_mode=ParseMode.HTML
-                )
-            except Exception as e:
-                logger.error(f"Failed to send error notification to admin {admin_id}: {e}")
-    except:
-        pass
-    
-    # Try to send user-friendly error message to user
+    # Try to send error message to user
     try:
         if update and update.effective_message:
             await update.effective_message.reply_text(
-                "❌ An unexpected error occurred. Our team has been notified.\n"
-                "Please try again later or contact support.",
+                "❌ An error occurred. The admin has been notified.",
                 parse_mode=ParseMode.HTML
             )
     except:
         pass
 
 async def set_bot_commands(application: Application):
-    """Set enhanced bot commands for menu"""
+    """Set bot commands for menu"""
     commands = [
-        BotCommand("start", "Start the bot"),
+        BotCommand("start", "Start the bot with romantic welcome"),
+        BotCommand("romantic", "Get romantic Bengali messages"),
+        BotCommand("bdtime", "Check Bangladesh time"),
         BotCommand("admin", "Admin panel"),
-        BotCommand("stats", "View detailed statistics"),
-        BotCommand("help", "Show help with features"),
-        BotCommand("backup", "Create smart backup"),
-        BotCommand("time", "Show Bangladesh time")
+        BotCommand("stats", "View statistics"),
+        BotCommand("help", "Show help"),
+        BotCommand("post", "Create new post (Admin only)")
     ]
     
     try:
         await application.bot.set_my_commands(commands)
-        await application.bot.set_my_name(Config.BOT_NAME)
-        await application.bot.set_my_description(
-            f"{Config.BOT_NAME} - Advanced bot with 100+ features including "
-            "auto-delete, channel verification, VIP system, and more!"
-        )
-        
-        logger.info("Enhanced bot commands set successfully")
-        logger.info(f"Bot name set to: {Config.BOT_NAME}")
+        logger.info("Bot commands set successfully")
     except Exception as e:
-        logger.error(f"Failed to set bot commands/name: {e}")
+        logger.error(f"Failed to set bot commands: {e}")
 
-def enhanced_main():
-    """Enhanced main entry point"""
-    logger.info("=" * 80)
-    logger.info("🚀 STARTING SUPREME GOD BOT v10.0 - ULTIMATE EDITION")
-    logger.info("=" * 80)
+def main():
+    """Main entry point"""
+    logger.info("🚀 Starting Supreme God Bot v12.0 (Romantic Edition)...")
+    logger.info("=" * 60)
     
-    # Display enhanced system info
-    stats = system_monitor.get_detailed_system_stats()
-    bangla_time = ui.get_bangladesh_time_display()
+    # Display system info
+    stats = system_monitor.get_system_stats()
+    logger.info(f"System Uptime: {stats['uptime']}")
     
-    logger.info(f"🤖 Bot Name: {Config.BOT_NAME}")
-    logger.info(f"🇧🇩 Bangladesh Time: {bangla_time}")
-    logger.info(f"⏰ System Uptime: {stats['uptime']}")
-    logger.info(f"⚡ CPU Usage: {stats['cpu_percent']}% ({stats['cpu_count']} cores)")
-    logger.info(f"💾 Memory Usage: {stats['memory_percent']}%")
-    logger.info(f"💿 Disk Usage: {stats['disk_percent']}%")
-    
-    # Display enhanced bot info
+    # Display bot info
     db_stats = db.get_stats()
-    logger.info(f"👥 Total Users: {db_stats['total_users']:,}")
-    logger.info(f"📢 Active Channels: {db_stats['active_channels']:,}")
-    logger.info(f"⭐ VIP Users: {db_stats['vip_users']:,}")
+    logger.info(f"Total Users: {db_stats['total_users']:,}")
+    logger.info(f"Active Channels: {db_stats['active_channels']:,}")
     
-    logger.info("=" * 80)
-    logger.info("✨ FEATURES ENABLED: 100+")
-    logger.info("🎯 Core: Auto-delete, Admin Panel, 11 Master Channels")
-    logger.info("🛡️ Security: Flood Control, Verification, Maintenance Mode")
-    logger.info("⚡ Performance: Bangladesh Timezone, Smart Backup, Caching")
-    logger.info("📊 Analytics: Detailed Stats, User Tracking, Performance")
-    logger.info("🎨 UI: Enhanced Menus, Progress Bars, ASCII Art")
-    logger.info("=" * 80)
+    logger.info("✨ Features:")
+    logger.info("1. Romantic Bengali Messages")
+    logger.info("2. Bangladesh Timezone")
+    logger.info("3. 6-Step Post Wizard")
+    logger.info("4. Popup Verification")
+    logger.info("5. Intelligent Cleanup")
+    
+    logger.info("=" * 60)
     
     try:
-        # Create and setup enhanced application
-        application = setup_enhanced_application()
+        # Create and setup application
+        application = setup_application()
         
-        # Run enhanced polling
-        logger.info("📡 Starting enhanced polling...")
+        # Set bot commands
+        asyncio.run(set_bot_commands(application))
+        
+        # Start polling
         application.run_polling(
             allowed_updates=Update.ALL_TYPES,
             drop_pending_updates=True,
-            close_loop=False,
-            poll_interval=0.5,
-            timeout=30
+            close_loop=False
         )
         
     except KeyboardInterrupt:
-        logger.info("Bot stopped by user (KeyboardInterrupt)")
+        logger.info("Bot stopped by user")
     except Exception as e:
         logger.critical(f"Fatal error: {e}")
         sys.exit(1)
-    finally:
-        # Enhanced cleanup
-        task_manager.cleanup()
-        logger.info("Enhanced bot shutdown complete")
-        logger.info("=" * 80)
 
 if __name__ == "__main__":
-    # Run enhanced main function
-    asyncio.run(enhanced_main())
+    main()
