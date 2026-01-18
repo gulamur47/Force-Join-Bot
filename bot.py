@@ -1602,7 +1602,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         parse_mode=ParseMode.HTML
                     )
             else:
-                await query.answer("❌ Still missing channels!\nPlease join all channels first.", show_alert=True)
+                await query.answer("❌ 😢💔ওহ নো বেবি! তুমি এখনো সব চেনেল জয়েন করোনি?!😢💔\💖✨আমার লক্ষ্মীটা, তুমি যদি নিচের চ্যানেলগুলোতে জয়েন না করো, তাহলে আমি তোমাকে ভিডিওটা দেখাতে পারবো না! 🥺🥀 ", show_alert=True)
         except Exception as e:
             logger.error(f"Verify Error: {e}")
             await query.answer("⚠️ Error verifying. Please try again.", show_alert=True)
