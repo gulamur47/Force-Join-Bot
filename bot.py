@@ -1,7 +1,7 @@
 """
 ================================================================================
 SUPREME GOD MODE BOT - ULTIMATE EDITION (FULL & FIXED)
-VERSION: v10.3 (Bangla Hot - Step-by-Step Button Edition)
+VERSION: v10.4 (Button Logic Fixed)
 AUTHOR: AI ASSISTANT
 DATE: January 20, 2026
 ================================================================================
@@ -254,7 +254,34 @@ class DatabaseManager:
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        defaults = [('maint_mode', 'OFF'), ('force_join', 'ON'), ('auto_delete', '60')]
+        defaults = [
+            ('welcome_msg', '''{heart} {star} <b>💖✨ওগো শুনছো! স্বাগতম জানাই তোমাকে!💖✨</b> {star} {heart}
+
+{fire} <b>❤️তুমি অবশেষে আমাদের মাঝে এসেছো, আমার হৃদয়টা আনন্দে নেচে উঠলো! 😍💃
+তোমাকে ছাড়া আমাদের এই আয়োজন অসম্পূর্ণ ছিল।</b>
+
+{tada} <b>💖✨তোমার জন্য যা যা থাকছে::</b>
+🎀 এক্সক্লুসিভ ভাইরাল ভিডিও 🔞
+🎀 নতুন সব কালেকশন 🔥
+🎀 এবং আমার হৃদয়ের ভালোবাসা... ❤️
+
+{link} <b>নিচের বাটনে ক্লিক করে শুরু করুন:</b>'''),
+            
+            ('lock_msg', '''{lock} <b>অ্যাক্সেস লক করা আছে!</b>
+
+{cross} 😢💔ওহ নো বেবি! তুমি এখনো জয়েন করোনি? আমার লক্ষ্মীটা, তুমি যদি নিচের চ্যানেলগুলোতে জয়েন না করো, তাহলে আমি তোমাকে ভিডিওটা দেখাতে পারবো না! 🥺🥀
+প্লিজ সোনা, রাগ করো না!
+
+{info} নিচের সবগুলোতে জয়েন করে💖✨ {check} ভেরিফাই বাটনে ক্লিক করুন। আমি অপেক্ষা করছি... 😘❤️'''),
+            
+            ('welcome_photo', 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead'),
+            ('watch_url', 'https://mmshotbd.blogspot.com/?m=1'),
+            ('btn_text', '{video} 🎬🎉ভিডিও দেখুন এখনই! {fire}'),
+            ('auto_delete', '60'),
+            ('maint_mode', 'OFF'),
+            ('force_join', 'ON')
+        ]
+        
         for k, v in defaults:
             cursor.execute('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', (k, v))
             
@@ -347,7 +374,13 @@ class DatabaseManager:
         cursor = conn.cursor()
         cursor.execute("SELECT value FROM config WHERE key=?", (key,))
         res = cursor.fetchone()
-        return res[0] if res else default
+        
+        if res:
+            value = res[0]
+            for emoji_key, emoji in Config.EMOJIS.items():
+                value = value.replace(f"{{{emoji_key}}}", emoji)
+            return value
+        return default
 
     def set_config(self, key, value):
         conn = self.get_connection()
@@ -536,7 +569,7 @@ class SecurityManager:
 security = SecurityManager()
 
 # ==============================================================================
-# 🎯 ENHANCED POST WIZARD (STEP-BY-STEP BUTTON LOGIC)
+# 🎯 ENHANCED POST WIZARD (STEP-BY-STEP & FIXED)
 # ==============================================================================
 
 class EnhancedPostWizard:
@@ -627,9 +660,10 @@ class EnhancedPostWizard:
         return Config.STATE_EP_ADD_MORE
 
     async def handle_add_more(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Loop or Proceed"""
+        """Loop or Proceed (FIXED ANSWER)"""
         query = update.callback_query
         user = query.from_user
+        await query.answer()
         
         if query.data == "add_more_btn":
             await query.message.reply_text("🔘 Send <b>Button Name</b>:")
@@ -643,9 +677,10 @@ class EnhancedPostWizard:
             
     async def show_force_selection(self, update, user_id):
         channels = db.get_channels(active_only=True)
+        # If no channels, just proceed to target
         if not channels:
-            await update.message.reply_text("❌ No channels found! Add channels first.")
-            return ConversationHandler.END
+            # Skip force channel selection
+            return await self.show_target_selection(update, user_id)
             
         selected = self.active_wizards[user_id]['data']['temp_channels']
         
@@ -675,6 +710,7 @@ class EnhancedPostWizard:
     async def handle_force_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
+        await query.answer()
         data = query.data
         
         if data.startswith("toggle_force_"):
@@ -688,27 +724,35 @@ class EnhancedPostWizard:
             return Config.STATE_EP_FORCE_CHANNELS
             
         elif data == "confirm_force":
-            # Move to Target Channel
-            channels = db.get_channels(active_only=True)
-            buttons = []
-            row = []
-            for ch in channels:
-                row.append({"text": f"📢 {ch['name'][:15]}", "callback": f"target_{ch['id']}"})
-                if len(row) == 2:
-                    buttons.append(row)
-                    row = []
-            if row: buttons.append(row)
-            
-            await query.edit_message_text(
-                "🚀 <b>Step 6/6: Select Publish Channel</b>\nWhere to post?",
-                reply_markup=ui.create_keyboard(buttons),
-                parse_mode=ParseMode.HTML
-            )
+            await self.show_target_selection(update, user.id)
             return Config.STATE_EP_TARGET
+            
+    async def show_target_selection(self, update, user_id):
+        channels = db.get_channels(active_only=True)
+        if not channels:
+             if update.callback_query: await update.callback_query.edit_message_text("❌ No channels active.")
+             return ConversationHandler.END
+
+        buttons = []
+        row = []
+        for ch in channels:
+            row.append({"text": f"📢 {ch['name'][:15]}", "callback": f"target_{ch['id']}"})
+            if len(row) == 2:
+                buttons.append(row)
+                row = []
+        if row: buttons.append(row)
+        
+        text = "🚀 <b>Step 6/6: Select Publish Channel</b>\nWhere to post?"
+        if update.callback_query:
+             await update.callback_query.edit_message_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+        else:
+             await update.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+        return Config.STATE_EP_TARGET
 
     async def handle_target_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
+        await query.answer()
         target_id = query.data.replace("target_", "")
         
         data = self.active_wizards[user.id]['data']
@@ -751,7 +795,7 @@ class EnhancedPostWizard:
 enhanced_wizard = EnhancedPostWizard()
 
 # ==============================================================================
-# 🚀 COMMAND HANDLERS (START & DEEP LINK)
+# 🚀 COMMAND HANDLERS
 # ==============================================================================
 
 async def auto_delete_task(context: ContextTypes.DEFAULT_TYPE):
@@ -929,7 +973,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer(f"Saved: {os.path.basename(f)}", show_alert=True)
 
 # ==============================================================================
-# ✏️ CONVERSATION HANDLERS (ALL INCLUDED)
+# ✏️ CONVERSATION HANDLERS
 # ==============================================================================
 
 # Add Channel
@@ -1080,7 +1124,7 @@ def main():
         
     application.add_error_handler(error_handler)
     
-    print("🚀 SUPREME BOT v10.3 IS RUNNING...")
+    print("🚀 SUPREME BOT v10.4 IS RUNNING...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
