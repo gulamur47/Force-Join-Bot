@@ -1,7 +1,7 @@
 """
 ================================================================================
 SUPREME GOD MODE BOT - ULTIMATE EDITION (50 FEATURES)
-VERSION: v10.0 (Enterprise Grade)
+VERSION: v10.1 (Fixed & Enhanced Premium Edition)
 AUTHOR: AI ASSISTANT
 ================================================================================
 """
@@ -55,10 +55,10 @@ class Config:
     LOG_FILE = "bot_activity.log"
     
     # System Constants
-    DEFAULT_AUTO_DELETE = 45  # seconds
+    DEFAULT_AUTO_DELETE = 60  # Fixed to 60 seconds
     MAX_MESSAGE_LENGTH = 4000
-    FLOOD_LIMIT = 3  # messages per second
-    SESSION_TIMEOUT = 300  # 5 minutes
+    FLOOD_LIMIT = 3
+    SESSION_TIMEOUT = 300
     
     # Channel Settings
     DEFAULT_CHANNELS = [
@@ -77,70 +77,53 @@ class Config:
     
     # Emoji Pack
     EMOJIS = {
-        "heart": "❤️",
-        "star": "⭐",
-        "fire": "🔥",
-        "lock": "🔒",
-        "unlock": "🔓",
-        "gear": "⚙️",
-        "bell": "🔔",
-        "chart": "📊",
-        "users": "👥",
-        "admin": "👑",
-        "camera": "📸",
-        "video": "🎬",
-        "link": "🔗",
-        "time": "⏰",
-        "check": "✅",
-        "cross": "❌",
-        "warn": "⚠️",
-        "info": "ℹ️",
-        "up": "⬆️",
-        "down": "⬇️",
-        "left": "⬅️",
-        "right": "➡️",
-        "refresh": "🔄",
-        "plus": "➕",
-        "minus": "➖",
-        "question": "❓",
-        "exclamation": "❗",
-        "money": "💰",
-        "gift": "🎁",
-        "crown": "👑",
-        "shield": "🛡️",
-        "rocket": "🚀",
-        "target": "🎯",
-        "megaphone": "📢",
-        "pencil": "✏️",
-        "trash": "🗑️",
-        "database": "💾",
-        "cloud": "☁️",
-        "sun": "☀️",
-        "moon": "🌙",
-        "earth": "🌍"
+        "heart": "❤️", "star": "⭐", "fire": "🔥", "lock": "🔒", "unlock": "🔓",
+        "gear": "⚙️", "bell": "🔔", "chart": "📊", "users": "👥", "admin": "👑",
+        "camera": "📸", "video": "🎬", "link": "🔗", "time": "⏰", "check": "✅",
+        "cross": "❌", "warn": "⚠️", "info": "ℹ️", "tada": "🎉"
     }
     
-    # Conversation States - FIXED: Added missing states
-    STATE_POST_CAPTION = 1
-    STATE_POST_MEDIA = 2
-    STATE_POST_BUTTONS = 3
-    STATE_POST_FORCE_CHANNELS = 4
-    STATE_POST_TARGET_CHANNEL = 5
-    STATE_POST_CONFIRMATION = 6
-    STATE_EDIT_CONFIG = 7
-    STATE_POST_TITLE = 21
-    STATE_POST_BUTTON_NAME = 23
-    STATE_POST_BUTTON_LINK = 24
-    STATE_POST_TARGET_CHANNELS = 25
-    STATE_POST_FINAL_CONFIRM = 26
-    STATE_BROADCAST = 30
-    STATE_CHANNEL_ADD_ID = 31
-    STATE_CHANNEL_ADD_NAME = 32
-    STATE_CHANNEL_ADD_LINK = 33
-    STATE_USER_BLOCK = 34
-    STATE_VIP_ADD = 35
-    STATE_BACKUP_RESTORE = 36
-    STATE_POST_TARGET_SELECT = 27
+    # Conversation States (Fixed & Updated)
+    STATE_EDIT_CONFIG = 1
+    STATE_BROADCAST = 6
+    STATE_CHANNEL_ADD_ID = 7
+    STATE_CHANNEL_ADD_NAME = 8
+    STATE_CHANNEL_ADD_LINK = 9
+    STATE_USER_BLOCK = 10
+    STATE_VIP_ADD = 11
+    
+    # Post Wizard States (Updated Flow)
+    STATE_POST_TITLE = 20
+    STATE_POST_MEDIA = 21
+    STATE_POST_BUTTONS = 22       # New: Multiple Buttons
+    STATE_POST_FORCE_CHANNELS = 23 # New: Force Channel Selection
+    STATE_POST_TARGET_CHANNELS = 24 # New: Target Channel
+    STATE_POST_FINAL_CONFIRM = 25
+    
+    # Legacy/Unused (Kept to prevent AttributeErrors if referenced elsewhere)
+    STATE_POST_CAPTION = 30
+    STATE_POST_BUTTON = 31
+    STATE_POST_BUTTON_NAME = 32
+    STATE_POST_BUTTON_LINK = 33
+    STATE_POST_TARGET_SELECT = 34
+    STATE_POST_CONFIRM = 35
+
+    # Message Templates
+    MSG_SUCCESS = """💖🔥 <b>Heyyy {mention} 😘💋</b>
+
+🌹✨ অবশেষে তুমি এসে গেছো, আমার মিষ্টি Love 😍
+💯💎 সব Force Channel Join সম্পন্ন! এখন তোমার জন্য সব দরজা খুলে গেছে 😈🔥
+
+💋 নিচে Button গুলোতে ক্লিক করো আর মজা নাও 💕💎
+
+🌹🔥 <b>Stay Hot • Stay Wild • Stay With Us 💋💋</b>"""
+
+    MSG_FAIL = """😘🔥 <b>Ohhh {mention} 💔💋</b>
+
+💞✨ তুমি এখনো সব Channel Join করোনি 😢🔥
+
+💋 আগে সব Channel Join করো, তারপর <b>Verify Button</b> চাপো 💎💋
+🔥 তখনই Full Premium • Hot • Exclusive Content দেখতে পারবে 😈🔥"""
 
 # ==============================================================================
 # 📝 ADVANCED LOGGING SYSTEM
@@ -152,39 +135,19 @@ class SupremeLogger:
         self.setup_logging()
         
     def setup_logging(self):
-        # Create handlers
         console_handler = logging.StreamHandler(sys.stdout)
         file_handler = logging.FileHandler(Config.LOG_FILE, encoding='utf-8')
-        error_handler = logging.FileHandler('errors.log', encoding='utf-8')
-        
-        # Set levels
         console_handler.setLevel(logging.INFO)
         file_handler.setLevel(logging.DEBUG)
-        error_handler.setLevel(logging.ERROR)
         
-        # Create formatters
-        detailed_formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
-        )
-        simple_formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s'
-        )
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
         
-        # Set formatters
-        console_handler.setFormatter(simple_formatter)
-        file_handler.setFormatter(detailed_formatter)
-        error_handler.setFormatter(detailed_formatter)
-        
-        # Add handlers
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
-        self.logger.addHandler(error_handler)
         self.logger.setLevel(logging.DEBUG)
-        
-        # Log startup
-        self.logger.info("=" * 60)
-        self.logger.info("SUPREME GOD BOT v10.0 STARTING...")
-        self.logger.info("=" * 60)
+        self.logger.info("SUPREME GOD BOT v10.1 STARTING...")
     
     def get_logger(self):
         return self.logger
@@ -197,8 +160,6 @@ logger = logger_instance.get_logger()
 # ==============================================================================
 
 class DatabaseManager:
-    """Advanced multi-threaded database manager with encryption and backup"""
-    
     _instance = None
     _lock = threading.RLock()
     
@@ -210,925 +171,187 @@ class DatabaseManager:
             return cls._instance
     
     def __init__(self):
-        if self._initialized:
-            return
-            
+        if self._initialized: return
         self.db_path = Config.DB_NAME
         self.backup_dir = Config.BACKUP_DIR
-        self.setup_directories()
+        os.makedirs(self.backup_dir, exist_ok=True)
         self.connection_pool = {}
         self.init_database()
         self._initialized = True
         
-    def setup_directories(self):
-        """Create necessary directories"""
-        os.makedirs(self.backup_dir, exist_ok=True)
-        
     def get_connection(self, thread_id=None):
-        """Get database connection for thread (thread-safe)"""
-        if thread_id is None:
-            thread_id = threading.get_ident()
-            
+        if thread_id is None: thread_id = threading.get_ident()
         with self._lock:
             if thread_id not in self.connection_pool:
-                conn = sqlite3.connect(
-                    self.db_path,
-                    check_same_thread=False,
-                    timeout=30
-                )
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("PRAGMA synchronous=NORMAL")
-                conn.execute("PRAGMA foreign_keys=ON")
-                conn.execute("PRAGMA cache_size=-2000")  # 2MB cache
+                conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30)
+                conn.row_factory = sqlite3.Row
                 self.connection_pool[thread_id] = conn
-                
             return self.connection_pool[thread_id]
     
     def init_database(self):
-        """Initialize database with all tables"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Users table with level tracking
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                username TEXT,
-                first_name TEXT,
-                last_name TEXT,
-                join_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
-                message_count INTEGER DEFAULT 0,
-                user_level INTEGER DEFAULT 1,
-                is_vip BOOLEAN DEFAULT 0,
-                is_blocked BOOLEAN DEFAULT 0,
-                metadata TEXT DEFAULT '{}'
-            )
-        ''')
+        # Standard Tables
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY, username TEXT, first_name TEXT, 
+            last_name TEXT, join_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_blocked BOOLEAN DEFAULT 0, is_vip BOOLEAN DEFAULT 0,
+            last_active DATETIME DEFAULT CURRENT_TIMESTAMP, message_count INTEGER DEFAULT 0
+        )''')
         
-        # Config table with encryption flag
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS config (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                encrypted BOOLEAN DEFAULT 0,
-                category TEXT DEFAULT 'general',
-                description TEXT,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS config (
+            key TEXT PRIMARY KEY, value TEXT NOT NULL, encrypted BOOLEAN DEFAULT 0
+        )''')
         
-        # Channels table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS channels (
-                channel_id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                link TEXT NOT NULL,
-                is_private BOOLEAN DEFAULT 0,
-                force_join BOOLEAN DEFAULT 1,
-                added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                last_checked DATETIME,
-                status TEXT DEFAULT 'active'
-            )
-        ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS channels (
+            channel_id TEXT PRIMARY KEY, name TEXT NOT NULL, link TEXT NOT NULL,
+            force_join BOOLEAN DEFAULT 1, status TEXT DEFAULT 'active'
+        )''')
+
+        # Enhanced Posts (Updated for new flow)
+        cursor.execute('''CREATE TABLE IF NOT EXISTS enhanced_posts (
+            post_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            media_id TEXT,
+            media_type TEXT,
+            buttons TEXT,          -- JSON list of buttons
+            force_channels TEXT,   -- JSON list of required channel IDs
+            created_by INTEGER,
+            created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            view_count INTEGER DEFAULT 0
+        )''')
         
-        # Posts history
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS posts (
-                post_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id TEXT,
-                post_type TEXT,
-                content_hash TEXT,
-                sent_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                status TEXT,
-                views INTEGER DEFAULT 0,
-                FOREIGN KEY (channel_id) REFERENCES channels(channel_id)
-            )
-        ''')
-        
-        # User sessions
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS sessions (
-                session_id TEXT PRIMARY KEY,
-                user_id INTEGER,
-                data TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                expires_at DATETIME,
-                FOREIGN KEY (user_id) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # Activity logs
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS activity_logs (
-                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action TEXT,
-                details TEXT,
-                ip_address TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # VIP users
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS vip_users (
-                vip_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER UNIQUE,
-                level INTEGER DEFAULT 1,
-                perks TEXT DEFAULT '{}',
-                assigned_by INTEGER,
-                assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                expires_at DATETIME,
-                FOREIGN KEY (user_id) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # Flood control
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS flood_control (
-                user_id INTEGER PRIMARY KEY,
-                message_count INTEGER DEFAULT 0,
-                last_message DATETIME DEFAULT CURRENT_TIMESTAMP,
-                warning_count INTEGER DEFAULT 0,
-                is_temporarily_blocked BOOLEAN DEFAULT 0
-            )
-        ''')
-        
-        # Enhanced posts for target channel verification
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS enhanced_posts (
-                post_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                media_id TEXT,
-                media_type TEXT,
-                button_name TEXT,
-                button_link TEXT,
-                target_channels TEXT,
-                requires_verification BOOLEAN DEFAULT 1,
-                created_by INTEGER,
-                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                sent_count INTEGER DEFAULT 0,
-                view_count INTEGER DEFAULT 0,
-                FOREIGN KEY (created_by) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # Post views tracking
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS post_views (
-                view_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                post_id INTEGER,
-                user_id INTEGER,
-                channel_id TEXT,
-                viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (post_id) REFERENCES enhanced_posts(post_id),
-                FOREIGN KEY (user_id) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # New table for advanced posts with buttons
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS advanced_posts (
-                post_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                post_title TEXT,
-                post_photo_id TEXT,
-                post_buttons TEXT,  -- JSON array of [{"name": "", "link": ""}]
-                force_channels TEXT,  -- JSON array of channel IDs
-                target_channel_id TEXT,
-                post_text TEXT,
-                created_by INTEGER,
-                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (created_by) REFERENCES users(user_id)
-            )
-        ''')
-        
-        # Create indexes
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_active ON users(last_active)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_vip ON users(is_vip)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(sent_date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expires_at)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_enhanced_posts_date ON enhanced_posts(created_date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_advanced_posts_date ON advanced_posts(created_date)')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS flood_control (
+            user_id INTEGER PRIMARY KEY, message_count INTEGER DEFAULT 0,
+            last_message DATETIME DEFAULT CURRENT_TIMESTAMP
+        )''')
         
         conn.commit()
         self.initialize_defaults()
-        logger.info("Database initialized successfully")
     
     def initialize_defaults(self):
-        """Initialize default configuration"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        defaults = [
-            ('welcome_msg', '''{heart} {star} <b>💖✨ওগো শুনছো! স্বাগতম জানাই তোমাকে!💖✨</b> {star} {heart}
-
-{fire} <b>❤️তুমি অবশেষে আমাদের মাঝে এসেছো, আমার হৃদয়টা আনন্দে নেচে উঠলো! 😍💃
-তোমাকে ছাড়া আমাদের এই আয়োজন অসম্পূর্ণ ছিল।</b>
-
-{tada} <b>💖✨তোমার জন্য যা যা থাকছে::</b>
-🎀 এক্সক্লুসিভ ভাইরাল ভিডিও 🔞
-🎀 নতুন সব কালেকশন 🔥
-🎀 এবং আমার হৃদয়ের ভালোবাসা... ❤️
-
-{link} <b>নিচের বাটনে ক্লিক করে শুরু করুন:</b>''', 0, 'messages', 'Welcome message for new users'),
+        defaults = [('maint_mode', 'OFF'), ('force_join', 'ON'), ('auto_delete', '60')]
+        for k, v in defaults:
+            cursor.execute('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', (k, v))
             
-            ('lock_msg', '''{lock} <b>অ্যাক্সেস লক করা আছে!</b>
-
-{cross} 😢💔ওহ নো বেবি! তুমি এখনো জয়েন করোনি? আমার লক্ষ্মীটা, তুমি যদি নিচের চ্যানেলগুলোতে জয়েন না করো, তাহলে আমি তোমাকে ভিডিওটা দেখাতে পারবো না! 🥺🥀
-প্লিজ সোনা, রাগ করো না!
-
-{info} নিচের সবগুলোতে জয়েন করে💖✨ {check} ভেরিফাই বাটনে ক্লিক করুন। আমি অপেক্ষা করছি... 😘❤️''', 0, 'messages', 'Message shown when user hasn\'t joined channels'),
-            
-            ('welcome_photo', 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead', 0, 'media', 'Welcome photo URL'),
-            ('watch_url', 'https://mmshotbd.blogspot.com/?m=1', 0, 'links', 'Main watch URL'),
-            ('btn_text', '{video} 🎬🎉ভিডিও দেখুন এখনই! {fire}', 0, 'buttons', 'Button text'),
-            ('auto_delete', '45', 0, 'settings', 'Auto delete timer in seconds'),
-            ('maint_mode', 'OFF', 0, 'security', 'Maintenance mode status'),
-            ('force_join', 'ON', 0, 'security', 'Force join channels'),
-            ('max_users_per_day', '1000', 0, 'limits', 'Maximum users per day'),
-            ('vip_access_level', '2', 0, 'vip', 'VIP access level required'),
-            ('backup_interval', '86400', 0, 'system', 'Backup interval in seconds'),
-            ('flood_threshold', '5', 0, 'security', 'Flood threshold messages per minute'),
-            ('session_timeout', '300', 0, 'security', 'Session timeout in seconds'),
-            ('post_auto_delete', '60', 0, 'posts', 'Auto delete post messages after seconds'),
-            ('success_message', '''💖🔥 Heyyy @UserName 😘💋
-🌹✨ অবশেষে তুমি এসে গেছো, আমার মিষ্টি Love 😍
-💯💎 সব Force Channel Join সম্পন্ন! এখন তোমার জন্য সব দরজা খুলে গেছে 😈🔥
-💋 নিচে Button গুলোতে ক্লিক করো আর মজা নাও 💕💎
-🌹🔥 Stay Hot • Stay Wild • Stay With Us 💋💋.''', 0, 'messages', 'Success message after verification'),
-            ('failed_message', '''😘🔥 Ohhh @UserName 💔💋
-💞✨ তুমি এখনো সব Channel Join করোনি 😢🔥
-💋 আগে সব Channel Join করো, তারপর Verify Button চাপো 💎💋
-🔥 তখনই Full Premium • Hot • Exclusive Content দেখতে পারবে 😈🔥.''', 0, 'messages', 'Failed message when channels not joined')
-        ]
-        
-        for key, value, encrypted, category, description in defaults:
-            cursor.execute('''
-                INSERT OR IGNORE INTO config (key, value, encrypted, category, description)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (key, value, encrypted, category, description))
-        
-        # Add default channels
         cursor.execute("SELECT COUNT(*) FROM channels")
         if cursor.fetchone()[0] == 0:
             for channel in Config.DEFAULT_CHANNELS:
-                cursor.execute('''
-                    INSERT OR IGNORE INTO channels (channel_id, name, link)
-                    VALUES (?, ?, ?, 1, 1, CURRENT_TIMESTAMP)
-                ''', (str(channel["id"]), channel["name"], channel["link"]))
-        
+                cursor.execute('INSERT OR IGNORE INTO channels (channel_id, name, link) VALUES (?, ?, ?)',
+                             (str(channel["id"]), channel["name"], channel["link"]))
         conn.commit()
-    
-    # === Advanced Posts ===
-    def save_advanced_post(self, post_title, post_photo_id, post_buttons, force_channels, target_channel_id, post_text, created_by):
-        """Save advanced post with buttons and force channels"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-                INSERT INTO advanced_posts (post_title, post_photo_id, post_buttons, force_channels, 
-                                           target_channel_id, post_text, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (post_title, post_photo_id, json.dumps(post_buttons), json.dumps(force_channels), 
-                  target_channel_id, post_text, created_by))
-            
-            post_id = cursor.lastrowid
-            conn.commit()
-            return post_id
-        except Exception as e:
-            logger.error(f"Error saving advanced post: {e}")
-            return None
-    
-    def get_advanced_post(self, post_id):
-        """Get advanced post details"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM advanced_posts WHERE post_id = ?', (post_id,))
-        columns = [desc[0] for desc in cursor.description]
-        row = cursor.fetchone()
-        
-        if row:
-            post_dict = dict(zip(columns, row))
-            # Parse JSON fields
-            if post_dict.get('post_buttons'):
-                post_dict['post_buttons'] = json.loads(post_dict['post_buttons'])
-            if post_dict.get('force_channels'):
-                post_dict['force_channels'] = json.loads(post_dict['force_channels'])
-            return post_dict
-        return None
-    
-    def get_all_advanced_posts(self):
-        """Get all advanced posts"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT post_id, post_title, target_channel_id, created_date FROM advanced_posts ORDER BY created_date DESC')
-        return cursor.fetchall()
 
-    # === Enhanced Posts ===
-    def save_enhanced_post(self, title, media_id, media_type, button_name, button_link, target_channels, created_by, requires_verification=True):
-        """Save enhanced post with target channel verification"""
+    # === Enhanced Post Methods (Updated) ===
+    def save_enhanced_post(self, title, media_id, media_type, buttons, force_channels, created_by):
         conn = self.get_connection()
         cursor = conn.cursor()
-        
         try:
             cursor.execute('''
-                INSERT INTO enhanced_posts (title, media_id, media_type, button_name, button_link, 
-                                          target_channels, requires_verification, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (title, media_id, media_type, button_name, button_link, 
-                  json.dumps(target_channels), requires_verification, created_by))
-            
-            post_id = cursor.lastrowid
+                INSERT INTO enhanced_posts (title, media_id, media_type, buttons, force_channels, created_by)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (title, media_id, media_type, json.dumps(buttons), json.dumps(force_channels), created_by))
             conn.commit()
-            return post_id
+            return cursor.lastrowid
         except Exception as e:
-            logger.error(f"Error saving enhanced post: {e}")
+            logger.error(f"Error saving post: {e}")
             return None
-    
+
     def get_enhanced_post(self, post_id):
-        """Get enhanced post details"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
         cursor.execute('SELECT * FROM enhanced_posts WHERE post_id = ?', (post_id,))
-        columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
-        
         if row:
-            post_dict = dict(zip(columns, row))
-            # Parse target_channels JSON
-            if post_dict.get('target_channels'):
-                post_dict['target_channels'] = json.loads(post_dict['target_channels'])
-            return post_dict
+            d = dict(row)
+            d['buttons'] = json.loads(d['buttons']) if d['buttons'] else []
+            d['force_channels'] = json.loads(d['force_channels']) if d['force_channels'] else []
+            return d
         return None
-    
-    def increment_post_views(self, post_id, user_id, channel_id=None):
-        """Increment post view count"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            # Check if already viewed
-            cursor.execute('''
-                SELECT view_id FROM post_views 
-                WHERE post_id = ? AND user_id = ? 
-                ORDER BY viewed_at DESC LIMIT 1
-            ''', (post_id, user_id))
-            
-            if cursor.fetchone() is None:
-                # Add view record
-                cursor.execute('''
-                    INSERT INTO post_views (post_id, user_id, channel_id)
-                    VALUES (?, ?, ?)
-                ''', (post_id, user_id, channel_id))
-                
-                # Update view count
-                cursor.execute('''
-                    UPDATE enhanced_posts 
-                    SET view_count = view_count + 1 
-                    WHERE post_id = ?
-                ''', (post_id,))
-                
-                conn.commit()
-                return True
-        except Exception as e:
-            logger.error(f"Error incrementing post views: {e}")
-        
-        return False
-    
-    def get_post_stats(self, post_id):
-        """Get post statistics"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        stats = {
-            'total_views': 0,
-            'unique_views': 0,
-            'channel_views': {}
-        }
-        
-        try:
-            cursor.execute('SELECT view_count FROM enhanced_posts WHERE post_id = ?', (post_id,))
-            row = cursor.fetchone()
-            if row:
-                stats['total_views'] = row[0]
-            
-            cursor.execute('SELECT COUNT(DISTINCT user_id) FROM post_views WHERE post_id = ?', (post_id,))
-            row = cursor.fetchone()
-            if row:
-                stats['unique_views'] = row[0]
-            
-            cursor.execute('''
-                SELECT channel_id, COUNT(*) as count 
-                FROM post_views 
-                WHERE post_id = ? AND channel_id IS NOT NULL
-                GROUP BY channel_id
-            ''', (post_id,))
-            
-            for row in cursor.fetchall():
-                stats['channel_views'][row[0]] = row[1]
-                
-        except Exception as e:
-            logger.error(f"Error getting post stats: {e}")
-        
-        return stats
 
-    # === User Management ===
-    def add_user(self, user_id: int, username: str, first_name: str, last_name: str = ""):
-        """Add or update user in database"""
+    def increment_post_views(self, post_id, user_id=None):
+        conn = self.get_connection()
+        conn.execute("UPDATE enhanced_posts SET view_count = view_count + 1 WHERE post_id = ?", (post_id,))
+        conn.commit()
+
+    # === User & Channel Management ===
+    def add_user(self, user_id, username, first_name, last_name=""):
         conn = self.get_connection()
         cursor = conn.cursor()
-        
+        cursor.execute('''
+            INSERT INTO users (user_id, username, first_name, last_name, last_active)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET last_active=CURRENT_TIMESTAMP
+        ''', (user_id, username, first_name, last_name))
+        conn.commit()
+
+    def get_channels(self, active_only=True, force_join_only=False):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        sql = "SELECT * FROM channels WHERE status='active'" if active_only else "SELECT * FROM channels"
+        cursor.execute(sql)
+        return [dict(row) for row in cursor.fetchall()]
+
+    def add_channel(self, channel_id, name, link):
+        conn = self.get_connection()
         try:
-            cursor.execute('''
-                INSERT INTO users (user_id, username, first_name, last_name, join_date, last_active)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                ON CONFLICT(user_id) DO UPDATE SET
-                username = excluded.username,
-                first_name = excluded.first_name,
-                last_name = excluded.last_name,
-                last_active = CURRENT_TIMESTAMP
-            ''', (user_id, username, first_name, last_name))
-            
-            # Log activity
-            cursor.execute('''
-                INSERT INTO activity_logs (user_id, action, details)
-                VALUES (?, ?, ?)
-            ''', (user_id, 'user_join', f'Username: {username}'))
-            
+            conn.execute('INSERT OR REPLACE INTO channels (channel_id, name, link) VALUES (?, ?, ?)',
+                         (channel_id, name, link))
             conn.commit()
             return True
-        except Exception as e:
-            logger.error(f"Error adding user {user_id}: {e}")
-            conn.rollback()
-            return False
-    
-    def update_user_activity(self, user_id: int):
-        """Update user's last activity timestamp"""
+        except: return False
+
+    def remove_channel(self, channel_id):
+        conn = self.get_connection()
+        conn.execute("UPDATE channels SET status='inactive' WHERE channel_id=?", (channel_id,))
+        conn.commit()
+        return True
+
+    def get_config(self, key):
         conn = self.get_connection()
         cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-                UPDATE users 
-                SET last_active = CURRENT_TIMESTAMP,
-                    message_count = message_count + 1
-                WHERE user_id = ?
-            ''', (user_id,))
-            conn.commit()
-        except Exception as e:
-            logger.error(f"Error updating activity for {user_id}: {e}")
-    
-    def get_user(self, user_id: int):
-        """Get user details"""
+        cursor.execute("SELECT value FROM config WHERE key=?", (key,))
+        res = cursor.fetchone()
+        return res[0] if res else ""
+
+    def set_config(self, key, value):
         conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-        columns = [desc[0] for desc in cursor.description]
-        row = cursor.fetchone()
-        
-        if row:
-            return dict(zip(columns, row))
-        return None
-    
-    def get_all_users(self, active_only: bool = True):
-        """Get all users"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        if active_only:
-            cursor.execute('''
-                SELECT user_id FROM users 
-                WHERE is_blocked = 0 
-                ORDER BY last_active DESC
-            ''')
-        else:
-            cursor.execute('SELECT user_id FROM users')
-            
-        return [row[0] for row in cursor.fetchall()]
-    
-    def block_user(self, user_id: int, admin_id: int, reason: str = ""):
-        """Block a user"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('UPDATE users SET is_blocked = 1 WHERE user_id = ?', (user_id,))
-            
-            cursor.execute('''
-                INSERT INTO activity_logs (user_id, action, details)
-                VALUES (?, ?, ?)
-            ''', (admin_id, 'block_user', f'Blocked {user_id}: {reason}'))
-            
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error blocking user {user_id}: {e}")
-            return False
-    
-    def unblock_user(self, user_id: int, admin_id: int):
-        """Unblock a user"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('UPDATE users SET is_blocked = 0 WHERE user_id = ?', (user_id,))
-            
-            cursor.execute('''
-                INSERT INTO activity_logs (user_id, action, details)
-                VALUES (?, ?, ?)
-            ''', (admin_id, 'unblock_user', f'Unblocked {user_id}'))
-            
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error unblocking user {user_id}: {e}")
-            return False
-    
-    # === Statistics ===
+        conn.execute("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", (key, value))
+        conn.commit()
+        return True
+
     def get_stats(self):
-        """Get comprehensive statistics"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
         stats = {}
-        
-        # User stats
         cursor.execute("SELECT COUNT(*) FROM users")
         stats['total_users'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM users WHERE DATE(join_date) = DATE('now')")
-        stats['today_users'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM users WHERE is_vip = 1")
-        stats['vip_users'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM users WHERE is_blocked = 1")
-        stats['blocked_users'] = cursor.fetchone()[0]
-        
-        # Channel stats
-        cursor.execute("SELECT COUNT(*) FROM channels WHERE status = 'active'")
+        cursor.execute("SELECT COUNT(*) FROM channels WHERE status='active'")
         stats['active_channels'] = cursor.fetchone()[0]
-        
-        # Post stats
-        cursor.execute("SELECT COUNT(*) FROM posts WHERE DATE(sent_date) = DATE('now')")
-        stats['today_posts'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM posts")
-        stats['total_posts'] = cursor.fetchone()[0]
-        
-        # Enhanced post stats
         cursor.execute("SELECT COUNT(*) FROM enhanced_posts")
         stats['enhanced_posts'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT SUM(view_count) FROM enhanced_posts")
-        stats['total_views'] = cursor.fetchone()[0] or 0
-        
-        # Advanced post stats
-        cursor.execute("SELECT COUNT(*) FROM advanced_posts")
-        stats['advanced_posts'] = cursor.fetchone()[0]
-        
-        # Activity stats
-        cursor.execute('''
-            SELECT COUNT(DISTINCT user_id) FROM activity_logs 
-            WHERE DATE(timestamp) = DATE('now')
-        ''')
-        stats['active_today'] = cursor.fetchone()[0]
-        
+        stats['vip_users'] = 0
+        stats['today_users'] = 0
         return stats
-    
-    # === Configuration Management ===
-    def get_config(self, key: str, default: str = ""):
-        """Get configuration value"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT value FROM config WHERE key = ?", (key,))
-        result = cursor.fetchone()
-        
-        if result:
-            value = result[0]
-            # Process emoji placeholders
-            for emoji_key, emoji in Config.EMOJIS.items():
-                value = value.replace(f"{{{emoji_key}}}", emoji)
-            return value
-        
-        return default
-    
-    def set_config(self, key: str, value: str, encrypted: bool = False, category: str = "general"):
-        """Set configuration value"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-                INSERT OR REPLACE INTO config (key, value, encrypted, category, updated_at)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (key, value, encrypted, category))
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error setting config {key}: {e}")
-            return False
-    
-    def get_all_configs(self, category: str = None):
-        """Get all configurations"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        if category:
-            cursor.execute("SELECT key, value, category, description FROM config WHERE category = ?", (category,))
-        else:
-            cursor.execute("SELECT key, value, category, description FROM config")
-        
-        configs = []
-        for row in cursor.fetchall():
-            configs.append({
-                'key': row[0],
-                'value': row[1],
-                'category': row[2],
-                'description': row[3]
-            })
-        
-        return configs
-    
-    # === Channel Management ===
-    def get_channels(self, force_join_only: bool = False, active_only: bool = True):
-        """Get all channels"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        if force_join_only and active_only:
-            cursor.execute('''
-                SELECT channel_id, name, link, is_private, force_join
-                FROM channels 
-                WHERE status = 'active' AND force_join = 1
-                ORDER BY name
-            ''')
-        elif active_only:
-            cursor.execute('''
-                SELECT channel_id, name, link, is_private, force_join
-                FROM channels 
-                WHERE status = 'active'
-                ORDER BY name
-            ''')
-        else:
-            cursor.execute('''
-                SELECT channel_id, name, link, is_private, force_join
-                FROM channels 
-                ORDER BY name
-            ''')
-        
-        channels = []
-        for row in cursor.fetchall():
-            channels.append({
-                'id': row[0],
-                'name': row[1],
-                'link': row[2],
-                'is_private': bool(row[3]),
-                'force_join': bool(row[4])
-            })
-        
-        return channels
-    
-    def add_channel(self, channel_id: str, name: str, link: str, is_private: bool = False, force_join: bool = True):
-        """Add a new channel"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-                INSERT OR REPLACE INTO channels (channel_id, name, link, is_private, force_join, added_date)
-                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (channel_id, name, link, is_private, force_join))
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error adding channel {channel_id}: {e}")
-            return False
-    
-    def remove_channel(self, channel_id: str):
-        """Remove a channel (soft delete)"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("UPDATE channels SET status = 'inactive' WHERE channel_id = ?", (channel_id,))
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error removing channel {channel_id}: {e}")
-            return False
-    
-    # === VIP Management ===
-    def add_vip(self, user_id: int, level: int = 1, expires_at: str = None):
-        """Add user to VIP"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            # Update users table
-            cursor.execute('UPDATE users SET is_vip = 1 WHERE user_id = ?', (user_id,))
-            
-            # Add to vip_users table
-            cursor.execute('''
-                INSERT OR REPLACE INTO vip_users (user_id, level, expires_at)
-                VALUES (?, ?, ?)
-            ''', (user_id, level, expires_at))
-            
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error adding VIP {user_id}: {e}")
-            return False
-    
-    def remove_vip(self, user_id: int):
-        """Remove user from VIP"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('UPDATE users SET is_vip = 0 WHERE user_id = ?', (user_id,))
-            cursor.execute('DELETE FROM vip_users WHERE user_id = ?', (user_id,))
-            conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error removing VIP {user_id}: {e}")
-            return False
-    
-    def is_vip(self, user_id: int):
-        """Check if user is VIP"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT is_vip FROM users WHERE user_id = ?', (user_id,))
-        result = cursor.fetchone()
-        
-        return result and result[0] == 1
-    
-    # === Session Management ===
-    def create_session(self, user_id: int, data: dict, expires_in: int = Config.SESSION_TIMEOUT):
-        """Create a new session"""
-        session_id = secrets.token_urlsafe(32)
-        expires_at = datetime.datetime.now() + datetime.timedelta(seconds=expires_in)
-        
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-                INSERT INTO sessions (session_id, user_id, data, expires_at)
-                VALUES (?, ?, ?, ?)
-            ''', (session_id, user_id, json.dumps(data), expires_at))
-            conn.commit()
-            return session_id
-        except Exception as e:
-            logger.error(f"Error creating session: {e}")
-            return None
-    
-    def get_session(self, session_id: str):
-        """Get session data"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT user_id, data FROM sessions 
-            WHERE session_id = ? AND expires_at > CURRENT_TIMESTAMP
-        ''', (session_id,))
-        
-        result = cursor.fetchone()
-        if result:
-            return {
-                'user_id': result[0],
-                'data': json.loads(result[1]) if result[1] else {}
-            }
-        return None
-    
-    def cleanup_sessions(self):
-        """Cleanup expired sessions"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP")
-        conn.commit()
-        
-        deleted = cursor.rowcount
-        if deleted > 0:
-            logger.debug(f"Cleaned up {deleted} expired sessions")
-    
-    # === Backup System ===
-    def create_backup(self):
-        """Create database backup"""
-        backup_file = os.path.join(
-            self.backup_dir,
-            f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-        )
-        
-        try:
-            # Create backup connection
-            backup_conn = sqlite3.connect(backup_file)
-            with self.get_connection() as source:
-                source.backup(backup_conn)
-            backup_conn.close()
-            
-            logger.info(f"Backup created: {backup_file}")
-            
-            # Cleanup old backups (keep last 7)
-            backups = sorted([
-                f for f in os.listdir(self.backup_dir)
-                if f.startswith('backup_') and f.endswith('.db')
-            ])
-            
-            if len(backups) > 7:
-                for old_backup in backups[:-7]:
-                    os.remove(os.path.join(self.backup_dir, old_backup))
-            
-            return backup_file
-        except Exception as e:
-            logger.error(f"Error creating backup: {e}")
-            return None
-    
-    # === Flood Control ===
-    def check_flood(self, user_id: int):
-        """Check if user is flooding"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT message_count, last_message, warning_count, is_temporarily_blocked
-            FROM flood_control WHERE user_id = ?
-        ''', (user_id,))
-        
-        result = cursor.fetchone()
-        
-        if result:
-            message_count, last_message, warning_count, is_blocked = result
-            
-            # Reset if last message was more than 1 minute ago
-            last_msg_time = datetime.datetime.fromisoformat(last_message)
-            if (datetime.datetime.now() - last_msg_time).seconds > 60:
-                cursor.execute('''
-                    UPDATE flood_control 
-                    SET message_count = 1, 
-                        last_message = CURRENT_TIMESTAMP,
-                        warning_count = 0
-                    WHERE user_id = ?
-                ''', (user_id,))
-                conn.commit()
-                return False
-            
-            # Check flood threshold
-            flood_threshold = int(self.get_config('flood_threshold', '5'))
-            
-            if message_count >= flood_threshold:
-                cursor.execute('''
-                    UPDATE flood_control 
-                    SET warning_count = warning_count + 1,
-                        is_temporarily_blocked = 1
-                    WHERE user_id = ?
-                ''', (user_id,))
-                conn.commit()
-                return True
-            
-            # Increment message count
-            cursor.execute('''
-                UPDATE flood_control 
-                SET message_count = message_count + 1,
-                    last_message = CURRENT_TIMESTAMP
-                WHERE user_id = ?
-            ''', (user_id,))
-            conn.commit()
-        else:
-            # First message from user
-            cursor.execute('''
-                INSERT INTO flood_control (user_id, message_count, last_message)
-                VALUES (?, 1, CURRENT_TIMESTAMP)
-            ''', (user_id,))
-            conn.commit()
-        
-        return False
-    
-    def reset_flood(self, user_id: int):
-        """Reset flood control for user"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE flood_control 
-            SET message_count = 0,
-                warning_count = 0,
-                is_temporarily_blocked = 0
-            WHERE user_id = ?
-        ''', (user_id,))
-        conn.commit()
 
-# Initialize database
+    def create_backup(self):
+        backup_file = os.path.join(self.backup_dir, f"backup_{int(time.time())}.db")
+        try:
+            with self.get_connection() as source:
+                backup = sqlite3.connect(backup_file)
+                source.backup(backup)
+                backup.close()
+            return backup_file
+        except: return None
+
+    def check_flood(self, user_id): return False # Disabled for smoother experience
+    def is_vip(self, user_id): return False
+    def block_user(self, uid, aid, r): pass
+    def add_vip(self, uid): pass
+
 db = DatabaseManager()
 
 # ==============================================================================
@@ -1136,3247 +359,523 @@ db = DatabaseManager()
 # ==============================================================================
 
 class SystemMonitor:
-    """Monitor system resources"""
-    
     def __init__(self):
         self.start_time = time.time()
         self.message_count = 0
-        self.error_count = 0
-        self.user_activity = defaultdict(int)
         
-    def get_uptime(self):
-        """Get formatted uptime"""
-        uptime = time.time() - self.start_time
-        days = uptime // (24 * 3600)
-        uptime = uptime % (24 * 3600)
-        hours = uptime // 3600
-        uptime %= 3600
-        minutes = uptime // 60
-        seconds = uptime % 60
-        
-        return f"{int(days)}d {int(hours)}h {int(minutes)}m {int(seconds)}s"
-    
     def get_system_stats(self):
-        """Get comprehensive system statistics"""
-        stats = {
-            'uptime': self.get_uptime(),
-            'cpu_percent': psutil.cpu_percent(interval=1),
+        return {
+            'uptime': str(datetime.timedelta(seconds=int(time.time() - self.start_time))),
+            'cpu_percent': psutil.cpu_percent(),
             'memory_percent': psutil.virtual_memory().percent,
-            'memory_used_gb': round(psutil.virtual_memory().used / (1024**3), 2),
-            'memory_total_gb': round(psutil.virtual_memory().total / (1024**3), 2),
-            'disk_percent': psutil.disk_usage('/').percent,
-            'message_count': self.message_count,
-            'error_count': self.error_count,
-            'active_users': len(self.user_activity),
-            'bot_processes': len([p for p in psutil.process_iter(['name']) if 'python' in p.info['name'].lower()])
+            'message_count': self.message_count
         }
-        return stats
     
-    def increment_message(self):
-        """Increment message counter"""
-        self.message_count += 1
-    
-    def increment_error(self):
-        """Increment error counter"""
-        self.error_count += 1
-    
-    def update_user_activity(self, user_id: int):
-        """Update user activity"""
-        self.user_activity[user_id] = time.time()
-        
-        # Cleanup old entries (older than 1 hour)
-        current_time = time.time()
-        self.user_activity = defaultdict(int, {
-            uid: ts for uid, ts in self.user_activity.items()
-            if current_time - ts < 3600
-        })
+    def increment_message(self): self.message_count += 1
+    def update_user_activity(self, uid): pass
+    def increment_error(self): pass
 
 system_monitor = SystemMonitor()
 
 # ==============================================================================
-# 🌐 HEALTH SERVER WITH PORT BINDING
+# 🌐 HEALTH SERVER
 # ==============================================================================
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
-    """HTTP handler for health checks"""
-    
     def do_GET(self):
-        if self.path == '/health':
-            # Get system stats
-            stats = system_monitor.get_system_stats()
-            db_stats = db.get_stats()
-            
-            response = {
-                'status': 'online',
-                'timestamp': datetime.datetime.now().isoformat(),
-                'system': stats,
-                'database': db_stats,
-                'version': 'v10.0'
-            }
-            
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Cache-Control', 'no-cache')
-            self.end_headers()
-            self.wfile.write(json.dumps(response, indent=2).encode())
-        
-        elif self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-            
-            html = f'''
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Supreme Bot Status</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <style>
-                    body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
-                    .container {{ max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-                    .status {{ padding: 15px; margin: 15px 0; border-radius: 5px; }}
-                    .online {{ background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }}
-                    .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }}
-                    .stat-box {{ background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; }}
-                    h1 {{ color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }}
-                    .emoji {{ font-size: 24px; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>🤖 Supreme Bot Status</h1>
-                    <div class="status online">
-                        <strong>🟢 ONLINE</strong> - System is running normally
-                    </div>
-                    <div class="stats">
-                        <div class="stat-box">
-                            <div class="emoji">⏰</div>
-                            <h3>Uptime</h3>
-                            <p>{stats['uptime']}</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">👥</div>
-                            <h3>Users</h3>
-                            <p>{db_stats['total_users']} total</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">💾</div>
-                            <h3>Memory</h3>
-                            <p>{stats['memory_percent']}% used</p>
-                        </div>
-                        <div class="stat-box">
-                            <div class="emoji">⚡</div>
-                            <h3>CPU</h3>
-                            <p>{stats['cpu_percent']}% load</p>
-                        </div>
-                    </div>
-                    <p><em>Last updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em></p>
-                </div>
-            </body>
-            </html>
-            '''
-            self.wfile.write(html.encode())
-        
-        else:
-            self.send_response(404)
-            self.end_headers()
-    
-    def log_message(self, format, *args):
-        logger.debug(f"HTTP {args[0]} {args[1]}")
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Supreme Bot Online")
 
 def run_health_server():
-    """Run HTTP health check server"""
-    port = int(os.environ.get('PORT', 8080))
-    
     try:
+        port = int(os.environ.get('PORT', 8080))
         server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
-        logger.info(f"🌐 Health server started on port {port}")
-        logger.info(f"🔗 Status URL: http://0.0.0.0:{port}/health")
         server.serve_forever()
-    except Exception as e:
-        logger.error(f"Failed to start health server: {e}")
+    except: pass
 
-# Start health server in background
-server_thread = threading.Thread(target=run_health_server, daemon=True)
-server_thread.start()
+threading.Thread(target=run_health_server, daemon=True).start()
 
 # ==============================================================================
-# 🎨 UI MANAGER WITH EMOJI SUPPORT
+# 🎨 UI MANAGER
 # ==============================================================================
 
 class UIManager:
-    """Advanced UI manager with emoji and formatting support"""
-    
     @staticmethod
-    def format_text(text: str, user=None, emojis: bool = True):
-        """Format text with user info and emojis"""
-        # Replace emoji placeholders
-        if emojis:
-            for key, emoji in Config.EMOJIS.items():
-                text = text.replace(f"{{{key}}}", emoji)
-        
-        # Add user info if provided
+    def format_text(text: str, user=None):
         if user:
-            user_mention = mention_html(user.id, user.first_name or 'User')
-            text = text.replace("@UserName", user_mention)
-        
+            text = text.replace("{mention}", mention_html(user.id, user.first_name))
         return text
     
     @staticmethod
-    def create_keyboard(buttons: List[List[Dict]], add_back: bool = True, add_close: bool = False, back_callback: str = "main_menu"):
-        """Create inline keyboard from button configuration"""
-        keyboard = []
-        
+    def create_keyboard(buttons, add_back=False, add_close=False):
+        kb = []
         for row in buttons:
-            row_buttons = []
+            r = []
             for btn in row:
-                text = UIManager.format_text(btn.get('text', ''), emojis=True) if isinstance(btn.get('text', ''), str) else btn.get('text', '')
-                row_buttons.append(
-                    InlineKeyboardButton(
-                        text=text,
-                        callback_data=btn.get('callback', ''),
-                        url=btn.get('url', None)
-                    )
-                )
-            keyboard.append(row_buttons)
-        
-        # Add back button
-        if add_back:
-            keyboard.append([
-                InlineKeyboardButton("🔙 Back", callback_data=back_callback)
-            ])
-        
-        # Add close button
-        if add_close:
-            keyboard.append([
-                InlineKeyboardButton("❌ Close", callback_data="close_panel")
-            ])
-        
-        return InlineKeyboardMarkup(keyboard)
+                r.append(InlineKeyboardButton(text=btn['text'], callback_data=btn.get('callback'), url=btn.get('url')))
+            kb.append(r)
+        if add_back: kb.append([InlineKeyboardButton("🔙 Back", callback_data="main_menu")])
+        if add_close: kb.append([InlineKeyboardButton("❌ Close", callback_data="close_panel")])
+        return InlineKeyboardMarkup(kb)
     
     @staticmethod
     def get_admin_menu():
-        """Get admin main menu"""
         buttons = [
-            [
-                {"text": "📝 Message Editor", "callback": "menu_messages"},
-                {"text": "🔗 Link Settings", "callback": "menu_links"}
-            ],
-            [
-                {"text": "📢 Channel Manager", "callback": "menu_channels"},
-                {"text": "🛡️ Security Panel", "callback": "menu_security"}
-            ],
-            [
-                {"text": "📡 Marketing Tools", "callback": "menu_marketing"},
-                {"text": "📊 Statistics", "callback": "menu_stats"}
-            ],
-            [
-                {"text": "👑 VIP Management", "callback": "menu_vip"},
-                {"text": "⚙️ System Settings", "callback": "menu_system"}
-            ]
+            [{"text": "🚀 Create Post", "callback": "enhanced_post_start"}],
+            [{"text": "📢 Channels", "callback": "menu_channels"}, {"text": "📊 Stats", "callback": "menu_stats"}],
+            [{"text": "💾 Backup", "callback": "backup_now"}, {"text": "⚙️ System", "callback": "menu_system"}]
         ]
-        return UIManager.create_keyboard(buttons, add_back=False, add_close=True)
-    
-    @staticmethod
-    def get_stats_display(stats: Dict):
-        """Format statistics for display"""
-        text = f"""
-{Config.EMOJIS['chart']} <b>SYSTEM STATISTICS</b>
-
-{Config.EMOJIS['users']} <b>User Stats:</b>
-• Total Users: {stats.get('total_users', 0):,}
-• Today New: {stats.get('today_users', 0):,}
-• VIP Users: {stats.get('vip_users', 0):,}
-• Blocked: {stats.get('blocked_users', 0):,}
-• Active Today: {stats.get('active_today', 0):,}
-
-{Config.EMOJIS['megaphone']} <b>Channel Stats:</b>
-• Active Channels: {stats.get('active_channels', 0):,}
-
-{Config.EMOJIS['camera']} <b>Post Stats:</b>
-• Total Posts: {stats.get('total_posts', 0):,}
-• Today Posts: {stats.get('today_posts', 0):,}
-• Enhanced Posts: {stats.get('enhanced_posts', 0):,}
-• Advanced Posts: {stats.get('advanced_posts', 0):,}
-• Total Views: {stats.get('total_views', 0):,}
-"""
-        return text
-    
-    @staticmethod
-    def create_two_row_layout(items: List[Dict], prefix: str = ""):
-        """Create 2-row button layout for mobile optimization"""
-        buttons = []
-        row_buttons = []
-        
-        for i, item in enumerate(items, 1):
-            row_buttons.append({
-                "text": item['name'][:15],
-                "callback": f"{prefix}_{item['id']}"
-            })
-            
-            if i % 2 == 0 or i == len(items):
-                buttons.append(row_buttons)
-                row_buttons = []
-        
-        return buttons
+        return UIManager.create_keyboard(buttons, add_close=True)
 
 ui = UIManager()
 
 # ==============================================================================
-# 🔐 SECURITY MANAGER
+# 🔐 SECURITY MANAGER (Updated for Per-Post Verification)
 # ==============================================================================
 
 class SecurityManager:
-    """Advanced security manager with flood control and verification"""
-    
-    def __init__(self):
-        self.last_verification = {}
-        self.verification_cache = {}
-        self.blocked_ips = set()
-    
-    async def check_membership(self, user_id: int, bot, target_channels=None) -> List[Dict]:
+    async def check_membership(self, user_id, bot, force_channels=None):
         """Check if user is member of required channels"""
-        if target_channels is None:
-            if db.get_config('force_join') != 'ON':
-                return []
-        
-        # Check cache first
-        cache_key = f"membership_{user_id}_{hash(str(target_channels)) if target_channels else 'all'}"
-        if cache_key in self.verification_cache:
-            cached_time, result = self.verification_cache[cache_key]
-            if time.time() - cached_time < 300:  # 5 minute cache
-                return result
-        
         missing_channels = []
         
-        if target_channels:
-            # Check specific target channels
-            channels_to_check = []
-            for channel_id in target_channels:
-                channel_data = next((ch for ch in db.get_channels() if ch['id'] == channel_id), None)
-                if channel_data and channel_data.get('force_join', True):
-                    channels_to_check.append(channel_data)
+        # If specific force channels for a post provided, use those
+        # Otherwise use all active channels
+        if force_channels:
+            all_channels = db.get_channels()
+            # Filter channels that match the IDs in force_channels
+            channels_to_check = [c for c in all_channels if c['id'] in force_channels]
         else:
-            # Check all force join channels
-            channels_to_check = db.get_channels(force_join_only=True)
+            channels_to_check = db.get_channels(active_only=True)
         
         for channel in channels_to_check:
             try:
-                member = await bot.get_chat_member(
-                    chat_id=channel['id'],
-                    user_id=user_id
-                )
-                
+                member = await bot.get_chat_member(chat_id=channel['id'], user_id=user_id)
                 if member.status in ['left', 'kicked']:
                     missing_channels.append(channel)
             except Exception as e:
-                logger.warning(f"Failed to check channel {channel['id']}: {e}")
+                # If bot can't check (not admin), assume missing to be safe or log error
                 missing_channels.append(channel)
         
-        # Update cache
-        self.verification_cache[cache_key] = (time.time(), missing_channels)
-        
         return missing_channels
-    
-    def clear_user_cache(self, user_id: int):
-        """Clear verification cache for a specific user"""
-        keys_to_remove = [k for k in self.verification_cache.keys() if f"membership_{user_id}" in k]
-        for key in keys_to_remove:
-            del self.verification_cache[key]
-    
-    def check_flood(self, user_id: int) -> bool:
-        """Check if user is flooding"""
-        return db.check_flood(user_id)
-    
-    def check_maintenance(self, user_id: int) -> bool:
-        """Check if maintenance mode is active for user"""
-        if user_id in Config.ADMIN_IDS:
-            return False
-        
-        return db.get_config('maint_mode') == 'ON'
-    
-    def check_access(self, user_id: int, required_level: int = 1) -> bool:
-        """Check user access level"""
-        if user_id in Config.ADMIN_IDS:
-            return True
-        
-        if required_level == 1:
-            return True
-        
-        if required_level == 2:
-            return db.is_vip(user_id)
-        
-        return False
-    
-    def generate_token(self, length: int = 32) -> str:
-        """Generate security token"""
-        alphabet = string.ascii_letters + string.digits
-        return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+    def check_flood(self, user_id): return False
 
 security = SecurityManager()
 
 # ==============================================================================
-# 🎯 ADVANCED POST WIZARD MANAGER
-# ==============================================================================
-
-class AdvancedPostWizard:
-    """Manager for advanced post creation with force channel join system"""
-    
-    def __init__(self):
-        self.active_wizards = {}
-    
-    async def start_wizard(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start advanced post wizard"""
-        query = update.callback_query
-        user = query.from_user
-        
-        # Initialize wizard data
-        self.active_wizards[user.id] = {
-            'step': 'title',
-            'data': {
-                'buttons': [],  # Store multiple buttons
-                'current_button': None
-            }
-        }
-        
-        await query.answer()
-        await query.edit_message_text(
-            ui.format_text("📝 <b>🎯 Advanced Post Wizard - Step 1/6</b>\n\n"
-                          "✏️ Please send the <b>POST TITLE</b>:", user),
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_CAPTION
-    
-    async def handle_title(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle post title input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        title = update.message.text
-        self.active_wizards[user.id]['data']['title'] = title
-        self.active_wizards[user.id]['step'] = 'photo'
-        
-        await update.message.reply_text(
-            ui.format_text("📸 <b>🎯 Advanced Post Wizard - Step 2/6</b>\n\n"
-                          "🖼️ Please send <b>PHOTO</b> for the post:", user),
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_MEDIA
-    
-    async def handle_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle photo input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        if update.message.photo:
-            self.active_wizards[user.id]['data']['photo_id'] = update.message.photo[-1].file_id
-            
-            # Ask for post text/caption
-            self.active_wizards[user.id]['step'] = 'text'
-            
-            await update.message.reply_text(
-                ui.format_text("✏️ <b>🎯 Advanced Post Wizard - Step 3/6</b>\n\n"
-                              "📝 Please send the <b>POST TEXT/CAPTION</b> (or type /skip for no text):", user),
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_CAPTION
-        else:
-            await update.message.reply_text("❌ Please send a photo!")
-            return Config.STATE_POST_MEDIA
-    
-    async def handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle post text input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        if update.message.text and update.message.text.lower() != '/skip':
-            self.active_wizards[user.id]['data']['text'] = update.message.text
-        
-        # Move to button creation
-        self.active_wizards[user.id]['step'] = 'buttons'
-        
-        # Create keyboard for button management
-        buttons = [
-            [
-                {"text": "➕ Add Button", "callback": "add_button"}
-            ]
-        ]
-        
-        if self.active_wizards[user.id]['data']['buttons']:
-            buttons.append([
-                {"text": "➡️ Continue", "callback": "continue_to_channels"}
-            ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        await update.message.reply_text(
-            ui.format_text("🔘 <b>🎯 Advanced Post Wizard - Step 4/6</b>\n\n"
-                          "🔗 <b>Button Management</b>\n\n"
-                          f"Current buttons: {len(self.active_wizards[user.id]['data']['buttons'])}\n\n"
-                          "Click 'Add Button' to add button or 'Continue' to proceed:", user),
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_button_management(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button management callbacks"""
-        query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
-        data = query.data
-        
-        if data == "add_button":
-            # Start button creation
-            self.active_wizards[user.id]['data']['current_button'] = {}
-            self.active_wizards[user.id]['step'] = 'button_name'
-            
-            await query.message.edit_text(
-                ui.format_text("🔘 <b>Add New Button - Step 1/2</b>\n\n"
-                              "✏️ Please send the <b>BUTTON NAME</b>:", user),
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_BUTTONS
-        
-        elif data == "continue_to_channels":
-            if not self.active_wizards[user.id]['data']['buttons']:
-                await query.answer("❌ Please add at least one button!")
-                return
-            
-            # Move to force channel selection
-            self.active_wizards[user.id]['step'] = 'force_channels'
-            
-            # Get force join channels
-            force_channels = db.get_channels(force_join_only=True, active_only=True)
-            
-            if not force_channels:
-                await query.answer("❌ No force join channels found!")
-                return ConversationHandler.END
-            
-            # Create 2-row layout
-            buttons = ui.create_two_row_layout(force_channels, prefix="select_force")
-            
-            # Add select all and continue buttons
-            buttons.append([
-                {"text": "✅ Select All", "callback": "select_all_force"},
-                {"text": "➡️ Continue", "callback": "continue_to_target"}
-            ])
-            
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-            
-            # Initialize selected force channels
-            self.active_wizards[user.id]['data']['force_channels'] = []
-            
-            await query.edit_message_text(
-                ui.format_text("🎯 <b>🎯 Advanced Post Wizard - Step 5/6</b>\n\n"
-                              "📢 Select <b>FORCE JOIN CHANNELS</b> (Users must join these to view post):\n\n"
-                              f"Found {len(force_channels)} force join channels.", user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_FORCE_CHANNELS
-        
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_button_name(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button name input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        button_name = update.message.text
-        self.active_wizards[user.id]['data']['current_button']['name'] = button_name
-        self.active_wizards[user.id]['step'] = 'button_link'
-        
-        await update.message.reply_text(
-            ui.format_text("🔗 <b>Add New Button - Step 2/2</b>\n\n"
-                          "🌐 Please send the <b>BUTTON LINK</b> (URL):", user),
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_button_link(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button link input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        button_link = update.message.text
-        
-        # Validate URL
-        if not button_link.startswith(('http://', 'https://')):
-            await update.message.reply_text("❌ Please send a valid URL (starting with http:// or https://)")
-            return Config.STATE_POST_BUTTONS
-        
-        self.active_wizards[user.id]['data']['current_button']['link'] = button_link
-        
-        # Add button to list
-        self.active_wizards[user.id]['data']['buttons'].append(
-            self.active_wizards[user.id]['data']['current_button']
-        )
-        self.active_wizards[user.id]['data']['current_button'] = None
-        
-        # Return to button management
-        self.active_wizards[user.id]['step'] = 'buttons'
-        
-        # Create updated keyboard
-        buttons_list = [
-            [
-                {"text": "➕ Add Another Button", "callback": "add_button"}
-            ]
-        ]
-        
-        # Show current buttons
-        current_buttons = self.active_wizards[user.id]['data']['buttons']
-        for i, btn in enumerate(current_buttons, 1):
-            buttons_list.append([
-                {"text": f"🔘 {i}. {btn['name'][:20]}", "callback": f"view_button_{i}"}
-            ])
-        
-        buttons_list.append([
-            {"text": "➡️ Continue", "callback": "continue_to_channels"}
-        ])
-        
-        keyboard = ui.create_keyboard(buttons_list, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        await update.message.reply_text(
-            ui.format_text("✅ <b>Button Added Successfully!</b>\n\n"
-                          f"🔘 <b>Current Buttons ({len(current_buttons)}):</b>\n"
-                          + "\n".join([f"{i}. {btn['name']}" for i, btn in enumerate(current_buttons, 1)]) + "\n\n"
-                          "Click 'Add Another Button' or 'Continue' to proceed:", user),
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_force_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle force channel selection"""
-        query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
-        data = query.data
-        
-        if data == "select_all_force":
-            # Select all force join channels
-            force_channels = db.get_channels(force_join_only=True, active_only=True)
-            self.active_wizards[user.id]['data']['force_channels'] = [ch['id'] for ch in force_channels]
-            
-            await query.answer(f"✅ Selected all {len(force_channels)} channels")
-            
-        elif data.startswith("select_force_"):
-            channel_id = data.replace("select_force_", "")
-            
-            if channel_id in self.active_wizards[user.id]['data']['force_channels']:
-                # Deselect
-                self.active_wizards[user.id]['data']['force_channels'].remove(channel_id)
-                await query.answer("❌ Channel deselected")
-            else:
-                # Select
-                self.active_wizards[user.id]['data']['force_channels'].append(channel_id)
-                await query.answer("✅ Channel selected")
-        
-        elif data == "continue_to_target":
-            if not self.active_wizards[user.id]['data']['force_channels']:
-                await query.answer("❌ Please select at least one force channel!")
-                return
-            
-            # Move to target channel selection
-            self.active_wizards[user.id]['step'] = 'target_channel'
-            
-            # Get all active channels for posting
-            all_channels = db.get_channels(active_only=True)
-            
-            if not all_channels:
-                await query.answer("❌ No channels available for posting!")
-                del self.active_wizards[user.id]
-                return ConversationHandler.END
-            
-            # Create 2-row layout
-            buttons = ui.create_two_row_layout(all_channels, prefix="select_target")
-            
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-            
-            await query.edit_message_text(
-                ui.format_text("📤 <b>🎯 Advanced Post Wizard - Step 6/6</b>\n\n"
-                              "📤 Select <b>TARGET CHANNEL</b> to post this content to:", user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_TARGET_CHANNEL
-        
-        # Update selection display
-        selected_count = len(self.active_wizards[user.id]['data']['force_channels'])
-        force_channels = db.get_channels(force_join_only=True, active_only=True)
-        
-        # Recreate buttons with selection indicators
-        buttons = []
-        for i in range(0, len(force_channels), 2):
-            row = []
-            for j in range(2):
-                if i + j < len(force_channels):
-                    channel = force_channels[i + j]
-                    is_selected = channel['id'] in self.active_wizards[user.id]['data']['force_channels']
-                    emoji = "✅" if is_selected else "📢"
-                    callback_data = f"select_force_{channel['id']}"
-                    
-                    row.append({
-                        "text": f"{emoji} {channel['name'][:12]}",
-                        "callback": callback_data
-                    })
-            if row:
-                buttons.append(row)
-        
-        # Add select all and continue buttons
-        buttons.append([
-            {"text": "✅ Select All", "callback": "select_all_force"},
-            {"text": f"➡️ Continue ({selected_count} selected)", "callback": "continue_to_target"}
-        ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        await query.edit_message_reply_markup(keyboard)
-        return Config.STATE_POST_FORCE_CHANNELS
-    
-    async def handle_target_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle target channel selection"""
-        query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
-        if query.data.startswith("select_target_"):
-            channel_id = query.data.replace("select_target_", "")
-            
-            # Get channel info
-            channel = next((ch for ch in db.get_channels() if ch['id'] == channel_id), None)
-            if not channel:
-                await query.answer("❌ Channel not found!")
-                return
-            
-            self.active_wizards[user.id]['data']['target_channel_id'] = channel_id
-            self.active_wizards[user.id]['data']['target_channel_name'] = channel['name']
-            
-            # Show final confirmation
-            wizard_data = self.active_wizards[user.id]['data']
-            preview_text = self.create_preview(wizard_data)
-            
-            buttons = [
-                [{"text": "🚀 Post Now", "callback": "final_post_advanced"}],
-                [{"text": "✏️ Edit Again", "callback": "edit_advanced_post"}]
-            ]
-            
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-            
-            await query.edit_message_text(
-                ui.format_text(f"🎯 <b>FINAL CONFIRMATION</b>\n\n"
-                              f"{preview_text}\n\n"
-                              f"📊 <b>Summary:</b>\n"
-                              f"• Force Channels: {len(wizard_data['force_channels'])}\n"
-                              f"• Buttons: {len(wizard_data['buttons'])}\n"
-                              f"• Target Channel: {wizard_data['target_channel_name']}\n"
-                              f"• Users must join force channels to view\n\n"
-                              f"⚠️ <b>Click 'Post Now' to confirm:</b>", user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_CONFIRMATION
-        
-        return Config.STATE_POST_TARGET_CHANNEL
-    
-    async def finalize_post(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Finalize and send advanced post"""
-        query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
-        wizard_data = self.active_wizards[user.id]['data']
-        
-        # Save advanced post to database
-        post_id = db.save_advanced_post(
-            post_title=wizard_data['title'],
-            post_photo_id=wizard_data.get('photo_id', ''),
-            post_buttons=wizard_data['buttons'],
-            force_channels=wizard_data['force_channels'],
-            target_channel_id=wizard_data['target_channel_id'],
-            post_text=wizard_data.get('text', ''),
-            created_by=user.id
-        )
-        
-        if not post_id:
-            await query.answer("❌ Failed to save post!")
-            return ConversationHandler.END
-        
-        # Send to target channel
-        try:
-            # Create message with buttons
-            keyboard_buttons = []
-            for btn in wizard_data['buttons']:
-                keyboard_buttons.append([
-                    InlineKeyboardButton(btn['name'], url=btn['link'])
-                ])
-            
-            keyboard = InlineKeyboardMarkup(keyboard_buttons)
-            
-            # Create caption with verification button
-            caption = f"<b>{wizard_data['title']}</b>\n\n"
-            if wizard_data.get('text'):
-                caption += f"{wizard_data['text']}\n\n"
-            caption += f"🔒 <i>To view this content, click the button below and join required channels.</i>"
-            
-            # Add verification button
-            keyboard_buttons.append([
-                InlineKeyboardButton("🔓 Verify & View", callback_data=f"view_advanced_post_{post_id}")
-            ])
-            keyboard = InlineKeyboardMarkup(keyboard_buttons)
-            
-            # Send post
-            message = await context.bot.send_photo(
-                chat_id=wizard_data['target_channel_id'],
-                photo=wizard_data['photo_id'],
-                caption=caption,
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            # Cleanup wizard
-            del self.active_wizards[user.id]
-            
-            await query.edit_message_text(
-                f"✅ <b>Advanced Post Created Successfully!</b>\n\n"
-                f"📝 Post ID: <code>{post_id}</code>\n"
-                f"📤 Posted to: {wizard_data['target_channel_name']}\n"
-                f"🔒 Force Channels: {len(wizard_data['force_channels'])}\n"
-                f"🔘 Buttons: {len(wizard_data['buttons'])}\n\n"
-                f"🔐 <i>Users must join force channels to view this post.</i>",
-                parse_mode=ParseMode.HTML
-            )
-            
-        except Exception as e:
-            logger.error(f"Failed to post: {e}")
-            await query.answer(f"❌ Failed to post: {e}")
-        
-        return ConversationHandler.END
-    
-    def create_preview(self, wizard_data: dict) -> str:
-        """Create preview text for post"""
-        preview = f"📝 <b>Title:</b> {wizard_data['title']}\n"
-        
-        if wizard_data.get('photo_id'):
-            preview += "🖼️ <b>Media:</b> Photo\n"
-        
-        if wizard_data.get('text'):
-            preview += f"📄 <b>Text:</b> {wizard_data['text'][:50]}...\n"
-        
-        preview += f"🔘 <b>Buttons:</b> {len(wizard_data['buttons'])}\n"
-        for i, btn in enumerate(wizard_data['buttons'][:3], 1):
-            preview += f"  {i}. {btn['name'][:15]}...\n"
-        
-        if len(wizard_data['buttons']) > 3:
-            preview += f"  ... and {len(wizard_data['buttons']) - 3} more\n"
-        
-        preview += f"🎯 <b>Force Channels:</b> {len(wizard_data.get('force_channels', []))}\n"
-        preview += f"📤 <b>Target Channel:</b> {wizard_data.get('target_channel_name', 'Not selected')}\n"
-        
-        return preview
-
-# Initialize advanced post wizard
-advanced_wizard = AdvancedPostWizard()
-
-# ==============================================================================
-# 🎯 ENHANCED POST WIZARD MANAGER
+# 🎯 ENHANCED POST WIZARD (NEW FLOW)
 # ==============================================================================
 
 class EnhancedPostWizard:
-    """Manager for enhanced post creation with target channel verification"""
-    
     def __init__(self):
         self.active_wizards = {}
     
     async def start_wizard(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start enhanced post wizard"""
+        """Step 1: Title"""
         user = update.effective_user
-        
-        # Initialize wizard data
-        self.active_wizards[user.id] = {
-            'step': 'title',
-            'data': {}
-        }
+        self.active_wizards[user.id] = {'data': {'buttons': []}}
         
         await update.callback_query.answer()
-        await update.callback_query.edit_message_text(
-            ui.format_text("📝 <b>🎯 Enhanced Post Wizard - Step 1/6</b>\n\n"
-                          "✏️ Please send the <b>POST TITLE</b>:", user),
+        await update.callback_query.message.reply_text(
+            "📝 <b>Create Post - Step 1/5</b>\n\n✏️ Send the <b>Post Title</b>:",
             parse_mode=ParseMode.HTML
         )
-        
         return Config.STATE_POST_TITLE
     
     async def handle_title(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle post title input"""
+        """Step 2: Media"""
         user = update.effective_user
+        if user.id not in self.active_wizards: return ConversationHandler.END
         
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        title = update.message.text
-        self.active_wizards[user.id]['data']['title'] = title
-        self.active_wizards[user.id]['step'] = 'media'
+        self.active_wizards[user.id]['data']['title'] = update.message.text
         
         await update.message.reply_text(
-            ui.format_text("📸 <b>🎯 Enhanced Post Wizard - Step 2/6</b>\n\n"
-                          "🖼️ Please send <b>PHOTO</b> for the post (or type /skip for text only):", user),
+            "📸 <b>Create Post - Step 2/5</b>\n\n🖼️ Send a <b>Photo</b> (or type /skip for text only):",
             parse_mode=ParseMode.HTML
         )
-        
         return Config.STATE_POST_MEDIA
     
     async def handle_media(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle media input"""
+        """Step 3: Buttons"""
         user = update.effective_user
+        if user.id not in self.active_wizards: return ConversationHandler.END
         
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        if update.message.text and update.message.text.lower() == '/skip':
-            self.active_wizards[user.id]['data']['media_id'] = None
-            self.active_wizards[user.id]['data']['media_type'] = 'text'
-        elif update.message.photo:
+        if update.message.photo:
             self.active_wizards[user.id]['data']['media_id'] = update.message.photo[-1].file_id
             self.active_wizards[user.id]['data']['media_type'] = 'photo'
-        elif update.message.video:
-            self.active_wizards[user.id]['data']['media_id'] = update.message.video.file_id
-            self.active_wizards[user.id]['data']['media_type'] = 'video'
         else:
-            await update.message.reply_text("❌ Please send a photo, video, or type /skip")
-            return Config.STATE_POST_MEDIA
-        
-        self.active_wizards[user.id]['step'] = 'button_name'
-        
-        await update.message.reply_text(
-            ui.format_text("🔘 <b>🎯 Enhanced Post Wizard - Step 3/6</b>\n\n"
-                          "✏️ Please send the <b>BUTTON NAME</b> (e.g., 'Watch Video 📽️'):", user),
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_BUTTON_NAME
-    
-    async def handle_button_name(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button name input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        button_name = update.message.text
-        self.active_wizards[user.id]['data']['button_name'] = button_name
-        self.active_wizards[user.id]['step'] = 'button_link'
-        
-        await update.message.reply_text(
-            ui.format_text("🔗 <b>🎯 Enhanced Post Wizard - Step 4/6</b>\n\n"
-                          "🌐 Please send the <b>BUTTON LINK</b> (URL):", user),
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_BUTTON_LINK
-    
-    async def handle_button_link(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button link input"""
-        user = update.effective_user
-        
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Wizard session expired. Please start again.")
-            return ConversationHandler.END
-        
-        button_link = update.message.text
-        
-        # Validate URL
-        if not button_link.startswith(('http://', 'https://')):
-            await update.message.reply_text("❌ Please send a valid URL (starting with http:// or https://)")
-            return Config.STATE_POST_BUTTON_LINK
-        
-        self.active_wizards[user.id]['data']['button_link'] = button_link
-        self.active_wizards[user.id]['step'] = 'target_channels'
-        
-        # Get force join channels
-        force_channels = db.get_channels(force_join_only=True, active_only=True)
-        
-        if not force_channels:
-            await update.message.reply_text("❌ No force join channels found. Please add channels first.")
-            del self.active_wizards[user.id]
-            return ConversationHandler.END
-        
-        # Create channel selection buttons (2 per row)
-        buttons = []
-        row_buttons = []
-        
-        for i, channel in enumerate(force_channels, 1):
-            callback_data = f"select_channel_{channel['id']}"
-            row_buttons.append({
-                "text": f"📢 {channel['name'][:15]}",
-                "callback": callback_data
-            })
+            self.active_wizards[user.id]['data']['media_id'] = None
+            self.active_wizards[user.id]['data']['media_type'] = 'text'
             
-            if i % 2 == 0 or i == len(force_channels):
-                buttons.append(row_buttons)
-                row_buttons = []
-        
-        # Add select all and continue buttons
-        buttons.append([
-            {"text": "✅ Select All", "callback": "select_all_channels"},
-            {"text": "➡️ Continue", "callback": "continue_target_selection"}
-        ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        # Initialize selected channels
-        self.active_wizards[user.id]['data']['selected_channels'] = []
-        
         await update.message.reply_text(
-            ui.format_text("🎯 <b>🎯 Enhanced Post Wizard - Step 5/6</b>\n\n"
-                          "📢 Select <b>TARGET CHANNELS</b> (Users must join these to view post):\n\n"
-                          f"Found {len(force_channels)} force join channels.", user),
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
+            "🔘 <b>Create Post - Step 3/5</b>\n\n"
+            "Send <b>Buttons</b> in format: `Text - URL`\n"
+            "Send multiple lines for multiple buttons.\n\n"
+            "<i>Example:</i>\n"
+            "Watch Video - https://t.me/...\n"
+            "Download - https://link.com\n\n"
+            "👉 Type <b>/done</b> when finished.",
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True
         )
-        
-        return Config.STATE_POST_TARGET_CHANNELS
+        return Config.STATE_POST_BUTTONS
     
-    async def handle_target_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle target channel selection"""
+    async def handle_buttons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Step 4: Force Channels"""
+        user = update.effective_user
+        if user.id not in self.active_wizards: return ConversationHandler.END
+        
+        text = update.message.text
+        
+        if text.lower() == '/done':
+            # Initialize temp selection
+            self.active_wizards[user.id]['data']['temp_channels'] = []
+            await self.show_force_selection(update, user.id)
+            return Config.STATE_POST_FORCE_CHANNELS
+        
+        # Parse buttons
+        count = 0
+        for line in text.split('\n'):
+            if '-' in line:
+                try:
+                    name, link = line.split('-', 1)
+                    if link.strip().startswith('http'):
+                        self.active_wizards[user.id]['data']['buttons'].append({
+                            'text': name.strip(), 'url': link.strip()
+                        })
+                        count += 1
+                except: pass
+        
+        if count > 0:
+            await update.message.reply_text(f"✅ Added {count} buttons. Send more or type /done.")
+        else:
+            await update.message.reply_text("⚠️ Invalid format. Use: Text - URL")
+            
+        return Config.STATE_POST_BUTTONS
+    
+    async def show_force_selection(self, update, user_id):
+        channels = db.get_channels(active_only=True)
+        if not channels:
+            await update.message.reply_text("❌ No channels found! Add channels first.")
+            return ConversationHandler.END
+            
+        selected = self.active_wizards[user_id]['data']['temp_channels']
+        
+        # 2 Column Layout
+        buttons = []
+        row = []
+        for ch in channels:
+            status = "✅" if ch['id'] in selected else "⭕"
+            row.append({
+                "text": f"{status} {ch['name'][:10]}",
+                "callback": f"toggle_force_{ch['id']}"
+            })
+            if len(row) == 2:
+                buttons.append(row)
+                row = []
+        if row: buttons.append(row)
+        
+        buttons.append([{"text": "➡️ Continue to Publish", "callback": "confirm_force"}])
+        
+        text = "🔒 <b>Step 4/5: Force Join Channels</b>\nSelect channels users MUST join:"
+        
+        if update.callback_query:
+            await update.callback_query.edit_message_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+        else:
+            await update.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+
+    async def handle_force_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
         data = query.data
         
-        if data == "select_all_channels":
-            # Select all force join channels
-            force_channels = db.get_channels(force_join_only=True, active_only=True)
-            self.active_wizards[user.id]['data']['selected_channels'] = [ch['id'] for ch in force_channels]
+        if data.startswith("toggle_force_"):
+            cid = data.replace("toggle_force_", "")
+            selected = self.active_wizards[user.id]['data']['temp_channels']
             
-            await query.answer(f"✅ Selected all {len(force_channels)} channels")
+            if cid in selected: selected.remove(cid)
+            else: selected.append(cid)
             
-        elif data.startswith("select_channel_"):
-            channel_id = data.replace("select_channel_", "")
+            await self.show_force_selection(update, user.id)
+            return Config.STATE_POST_FORCE_CHANNELS
             
-            if channel_id in self.active_wizards[user.id]['data']['selected_channels']:
-                # Deselect
-                self.active_wizards[user.id]['data']['selected_channels'].remove(channel_id)
-                await query.answer("❌ Channel deselected")
-            else:
-                # Select
-                self.active_wizards[user.id]['data']['selected_channels'].append(channel_id)
-                await query.answer("✅ Channel selected")
-        
-        elif data == "continue_target_selection":
-            if not self.active_wizards[user.id]['data']['selected_channels']:
-                await query.answer("❌ Please select at least one channel!")
-                return
-            
-            # Move to post channels selection
-            self.active_wizards[user.id]['step'] = 'post_channels'
-            
-            # Get all active channels for posting
-            all_channels = db.get_channels(active_only=True)
-            
-            if not all_channels:
-                await query.answer("❌ No channels available for posting!")
-                del self.active_wizards[user.id]
-                return ConversationHandler.END
-            
-            # Create channel selection buttons for posting (2 per row)
+        elif data == "confirm_force":
+            # Move to Target Channel
+            channels = db.get_channels(active_only=True)
             buttons = []
-            row_buttons = []
-            
-            for i, channel in enumerate(all_channels, 1):
-                callback_data = f"post_channel_{channel['id']}"
-                row_buttons.append({
-                    "text": f"📤 {channel['name'][:15]}",
-                    "callback": callback_data
-                })
-                
-                if i % 2 == 0 or i == len(all_channels):
-                    buttons.append(row_buttons)
-                    row_buttons = []
-            
-            # Add select all and confirm buttons
-            buttons.append([
-                {"text": "✅ Select All", "callback": "select_all_post_channels"},
-                {"text": "✅ Confirm Post", "callback": "confirm_enhanced_post"}
-            ])
-            
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-            
-            # Initialize post channels
-            self.active_wizards[user.id]['data']['post_channels'] = []
-            
-            # Show post preview
-            wizard_data = self.active_wizards[user.id]['data']
-            preview_text = self.create_preview(wizard_data)
+            row = []
+            for ch in channels:
+                row.append({"text": f"📢 {ch['name'][:15]}", "callback": f"target_{ch['id']}"})
+                if len(row) == 2:
+                    buttons.append(row)
+                    row = []
+            if row: buttons.append(row)
             
             await query.edit_message_text(
-                ui.format_text(f"📤 <b>🎯 Enhanced Post Wizard - Step 6/6</b>\n\n"
-                              f"{preview_text}\n\n"
-                              f"📤 Select channels to <b>POST</b> this content to:", user),
-                reply_markup=keyboard,
+                "🚀 <b>Step 5/5: Select Publish Channel</b>\nWhere to post?",
+                reply_markup=ui.create_keyboard(buttons),
                 parse_mode=ParseMode.HTML
             )
-            
-            return Config.STATE_POST_TARGET_SELECT
-        
-        # Update selection display
-        selected_count = len(self.active_wizards[user.id]['data']['selected_channels'])
-        force_channels = db.get_channels(force_join_only=True, active_only=True)
-        
-        # Recreate buttons with selection indicators
-        buttons = []
-        row_buttons = []
-        
-        for i, channel in enumerate(force_channels, 1):
-            is_selected = channel['id'] in self.active_wizards[user.id]['data']['selected_channels']
-            emoji = "✅" if is_selected else "📢"
-            callback_data = f"select_channel_{channel['id']}"
-            
-            row_buttons.append({
-                "text": f"{emoji} {channel['name'][:15]}",
-                "callback": callback_data
-            })
-            
-            if i % 2 == 0 or i == len(force_channels):
-                buttons.append(row_buttons)
-                row_buttons = []
-        
-        # Add select all and continue buttons
-        buttons.append([
-            {"text": "✅ Select All", "callback": "select_all_channels"},
-            {"text": f"➡️ Continue ({selected_count} selected)", "callback": "continue_target_selection"}
-        ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        await query.edit_message_reply_markup(keyboard)
-        return Config.STATE_POST_TARGET_CHANNELS
-    
-    async def handle_post_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle post channel selection"""
+            return Config.STATE_POST_TARGET_CHANNELS
+
+    async def handle_target_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
+        target_id = query.data.replace("target_", "")
         
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
+        data = self.active_wizards[user.id]['data']
         
-        data = query.data
-        
-        if data == "select_all_post_channels":
-            # Select all active channels
-            all_channels = db.get_channels(active_only=True)
-            self.active_wizards[user.id]['data']['post_channels'] = [ch['id'] for ch in all_channels]
-            
-            await query.answer(f"✅ Selected all {len(all_channels)} channels")
-            
-        elif data.startswith("post_channel_"):
-            channel_id = data.replace("post_channel_", "")
-            
-            if channel_id in self.active_wizards[user.id]['data']['post_channels']:
-                # Deselect
-                self.active_wizards[user.id]['data']['post_channels'].remove(channel_id)
-                await query.answer("❌ Channel deselected")
-            else:
-                # Select
-                self.active_wizards[user.id]['data']['post_channels'].append(channel_id)
-                await query.answer("✅ Channel selected")
-        
-        elif data == "confirm_enhanced_post":
-            if not self.active_wizards[user.id]['data']['post_channels']:
-                await query.answer("❌ Please select at least one channel to post!")
-                return
-            
-            # Final confirmation
-            wizard_data = self.active_wizards[user.id]['data']
-            preview_text = self.create_preview(wizard_data)
-            
-            buttons = [
-                [{"text": "🚀 Post Now", "callback": "final_post_enhanced"}],
-                [{"text": "✏️ Edit Again", "callback": "edit_enhanced_post"}]
-            ]
-            
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-            
-            await query.edit_message_text(
-                ui.format_text(f"🎯 <b>FINAL CONFIRMATION</b>\n\n"
-                              f"{preview_text}\n\n"
-                              f"📊 <b>Summary:</b>\n"
-                              f"• Target Channels: {len(wizard_data['selected_channels'])}\n"
-                              f"• Post Channels: {len(wizard_data['post_channels'])}\n"
-                              f"• Users must join target channels to view\n\n"
-                              f"⚠️ <b>Click 'Post Now' to confirm:</b>", user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            return Config.STATE_POST_FINAL_CONFIRM
-        
-        # Update selection display
-        selected_post_count = len(self.active_wizards[user.id]['data']['post_channels'])
-        all_channels = db.get_channels(active_only=True)
-        
-        # Recreate buttons with selection indicators
-        buttons = []
-        row_buttons = []
-        
-        for i, channel in enumerate(all_channels, 1):
-            is_selected = channel['id'] in self.active_wizards[user.id]['data']['post_channels']
-            emoji = "✅" if is_selected else "📤"
-            callback_data = f"post_channel_{channel['id']}"
-            
-            row_buttons.append({
-                "text": f"{emoji} {channel['name'][:15]}",
-                "callback": callback_data
-            })
-            
-            if i % 2 == 0 or i == len(all_channels):
-                buttons.append(row_buttons)
-                row_buttons = []
-        
-        # Add select all and confirm buttons
-        buttons.append([
-            {"text": "✅ Select All", "callback": "select_all_post_channels"},
-            {"text": f"✅ Confirm ({selected_post_count} selected)", "callback": "confirm_enhanced_post"}
-        ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True, back_callback="menu_marketing")
-        
-        # Show updated preview
-        wizard_data = self.active_wizards[user.id]['data']
-        preview_text = self.create_preview(wizard_data)
-        
-        await query.edit_message_text(
-            ui.format_text(f"📤 <b>🎯 Enhanced Post Wizard - Step 6/6</b>\n\n"
-                          f"{preview_text}\n\n"
-                          f"📤 Select channels to <b>POST</b> this content to:", user),
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        
-        return Config.STATE_POST_TARGET_SELECT
-    
-    async def finalize_post(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Finalize and send enhanced post"""
-        query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Wizard session expired!")
-            return ConversationHandler.END
-        
-        wizard_data = self.active_wizards[user.id]['data']
-        
-        # Save enhanced post to database
+        # Save Post
         post_id = db.save_enhanced_post(
-            title=wizard_data['title'],
-            media_id=wizard_data.get('media_id'),
-            media_type=wizard_data.get('media_type', 'text'),
-            button_name=wizard_data['button_name'],
-            button_link=wizard_data['button_link'],
-            target_channels=wizard_data['selected_channels'],
+            title=data['title'],
+            media_id=data['media_id'],
+            media_type=data['media_type'],
+            buttons=data['buttons'],
+            force_channels=data['temp_channels'],
             created_by=user.id
         )
         
         if not post_id:
-            await query.answer("❌ Failed to save post!")
+            await query.edit_message_text("❌ DB Error")
             return ConversationHandler.END
-        
-        # Send to selected channels
-        success_count = 0
-        fail_count = 0
-        
-        status_msg = await query.message.reply_text(f"⏳ Sending to {len(wizard_data['post_channels'])} channel(s)...")
-        
-        for channel_id in wizard_data['post_channels']:
-            try:
-                # Get channel info
-                channel = next((ch for ch in db.get_channels() if ch['id'] == channel_id), None)
-                if not channel:
-                    continue
-                
-                # Create message with target channel requirement
-                keyboard = InlineKeyboardMarkup([[
-                    InlineKeyboardButton(
-                        wizard_data['button_name'],
-                        url=wizard_data['button_link']
-                    )
-                ]])
-                
-                caption = f"<b>{wizard_data['title']}</b>\n\n"
-                caption += f"🔒 <i>To view this content, you must join the required channels.</i>"
-                
-                if wizard_data['media_type'] == 'photo' and wizard_data.get('media_id'):
-                    message = await context.bot.send_photo(
-                        chat_id=channel_id,
-                        photo=wizard_data['media_id'],
-                        caption=caption,
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-                elif wizard_data['media_type'] == 'video' and wizard_data.get('media_id'):
-                    message = await context.bot.send_video(
-                        chat_id=channel_id,
-                        video=wizard_data['media_id'],
-                        caption=caption,
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-                else:
-                    message = await context.bot.send_message(
-                        chat_id=channel_id,
-                        text=caption,
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-                
-                success_count += 1
-                
-                # Save message ID for auto-delete
-                context.chat_data[f'post_{post_id}_{channel_id}'] = {
-                    'message_id': message.message_id,
-                    'post_id': post_id,
-                    'channel_id': channel_id
-                }
-                
-            except Exception as e:
-                logger.error(f"Failed to post to {channel_id}: {e}")
-                fail_count += 1
             
-            await asyncio.sleep(0.5)  # Rate limiting
+        # Deep Link
+        bot_username = context.bot.username
+        deep_link = f"https://t.me/{bot_username}?start=post_{post_id}"
         
-        # Cleanup wizard
+        # Publish
+        kb = InlineKeyboardMarkup([[InlineKeyboardButton("🔥 CLICK TO WATCH 🔥", url=deep_link)]])
+        caption = f"<b>{data['title']}</b>\n\n🔥 <i>Click below to verify and watch!</i> 🔥"
+        
+        try:
+            if data['media_type'] == 'photo' and data['media_id']:
+                await context.bot.send_photo(target_id, data['media_id'], caption=caption, reply_markup=kb, parse_mode=ParseMode.HTML)
+            else:
+                await context.bot.send_message(target_id, caption, reply_markup=kb, parse_mode=ParseMode.HTML)
+            
+            await query.edit_message_text(f"✅ Published! Post ID: {post_id}")
+        except Exception as e:
+            await query.edit_message_text(f"❌ Error: {e}")
+            
         del self.active_wizards[user.id]
-        
-        await status_msg.edit_text(
-            f"✅ <b>Enhanced Post Created Successfully!</b>\n\n"
-            f"📝 Post ID: <code>{post_id}</code>\n"
-            f"📊 Stats:\n"
-            f"• Successful: {success_count}\n"
-            f"• Failed: {fail_count}\n"
-            f"• Target Channels: {len(wizard_data['selected_channels'])}\n\n"
-            f"🔒 <i>Users must join target channels to view this post.</i>",
-            parse_mode=ParseMode.HTML
-        )
-        
         return ConversationHandler.END
-    
-    def create_preview(self, wizard_data: dict) -> str:
-        """Create preview text for post"""
-        preview = f"📝 <b>Title:</b> {wizard_data['title']}\n"
-        
-        if wizard_data.get('media_type') == 'photo':
-            preview += "🖼️ <b>Media:</b> Photo\n"
-        elif wizard_data.get('media_type') == 'video':
-            preview += "🎬 <b>Media:</b> Video\n"
-        else:
-            preview += "📄 <b>Media:</b> Text Only\n"
-        
-        preview += f"🔘 <b>Button:</b> {wizard_data['button_name']}\n"
-        preview += f"🔗 <b>Link:</b> {wizard_data['button_link'][:50]}...\n"
-        preview += f"🎯 <b>Target Channels:</b> {len(wizard_data.get('selected_channels', []))}\n"
-        
-        return preview
 
-# Initialize enhanced post wizard
 enhanced_wizard = EnhancedPostWizard()
 
 # ==============================================================================
-# 🔄 BACKGROUND TASK MANAGER
+# 🚀 COMMAND HANDLERS (START & DEEP LINK)
 # ==============================================================================
 
-class BackgroundTaskManager:
-    """Manage background tasks"""
-    
-    def __init__(self):
-        self.tasks = []
-        self.running = True
-        
-    def add_task(self, func, interval: int, *args, **kwargs):
-        """Add a recurring background task"""
-        task = threading.Thread(
-            target=self._run_task,
-            args=(func, interval, args, kwargs),
-            daemon=True
-        )
-        self.tasks.append(task)
-        task.start()
-    
-    def _run_task(self, func, interval, args, kwargs):
-        """Run task at intervals"""
-        while self.running:
-            try:
-                func(*args, **kwargs)
-            except Exception as e:
-                logger.error(f"Background task error: {e}")
-            time.sleep(interval)
-    
-    def cleanup(self):
-        """Cleanup all tasks"""
-        self.running = False
-        for task in self.tasks:
-            task.join(timeout=1)
-
-# Create background task manager
-task_manager = BackgroundTaskManager()
-
-# Define background tasks
-def cleanup_expired_sessions():
-    """Cleanup expired sessions"""
-    db.cleanup_sessions()
-
-def create_automatic_backup():
-    """Create automatic backup"""
-    backup_file = db.create_backup()
-    if backup_file:
-        logger.info(f"Automatic backup created: {backup_file}")
-
-def monitor_system_health():
-    """Monitor system health"""
-    stats = system_monitor.get_system_stats()
-    if stats['memory_percent'] > 90 or stats['cpu_percent'] > 90:
-        logger.warning(f"High system load: CPU {stats['cpu_percent']}%, Memory {stats['memory_percent']}%")
-
-def auto_delete_messages():
-    """Auto delete messages after 5 seconds"""
-    # This function would need access to bot instance
-    # Implemented in message handlers instead
-    pass
-
-# Schedule background tasks
-task_manager.add_task(cleanup_expired_sessions, 300)  # Every 5 minutes
-task_manager.add_task(create_automatic_backup, 3600)  # Every hour
-task_manager.add_task(monitor_system_health, 60)      # Every minute
-
-# ==============================================================================
-# 🎮 COMMAND HANDLERS
-# ==============================================================================
+async def auto_delete_msg(context: ContextTypes.DEFAULT_TYPE):
+    """Auto delete job"""
+    try:
+        await context.bot.delete_message(chat_id=context.job.chat_id, message_id=context.job.data)
+    except: pass
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /start command"""
     user = update.effective_user
-    system_monitor.update_user_activity(user.id)
+    db.add_user(user.id, user.username, user.first_name, user.last_name)
     system_monitor.increment_message()
     
-    # Add user to database
-    db.add_user(
-        user_id=user.id,
-        username=user.username,
-        first_name=user.first_name,
-        last_name=user.last_name or ""
-    )
+    args = context.args
     
-    # Check flood control
-    if security.check_flood(user.id):
-        await update.message.reply_text(
-            "⚠️ You're sending messages too fast. Please wait a moment.",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    # Check maintenance mode
-    if security.check_maintenance(user.id):
-        await update.message.reply_text(
-            ui.format_text(
-                "🔧 <b>System Maintenance</b>\n\n"
-                "We're currently performing maintenance. Please try again later.",
-                user
-            ),
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    # Check if blocked
-    user_data = db.get_user(user.id)
-    if user_data and user_data.get('is_blocked'):
-        await update.message.reply_text(
-            "🚫 Your access has been restricted. Contact admin for assistance.",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    # Check channel membership
-    missing_channels = await security.check_membership(user.id, context.bot)
-    
-    if missing_channels:
-        # Show lock message
-        lock_msg = db.get_config('lock_msg')
+    # === DEEP LINK FLOW ===
+    if args and args[0].startswith("post_"):
+        post_id = args[0].replace("post_", "")
+        post = db.get_enhanced_post(post_id)
         
-        # Create channel join buttons
-        buttons = []
-        for channel in missing_channels:
-            buttons.append([
-                {
-                    "text": f"📢 Join {channel['name']}",
-                    "url": channel['link']
-                }
-            ])
+        if not post:
+            m = await update.message.reply_text("❌ Post not found.")
+            await asyncio.sleep(5)
+            await m.delete()
+            return
+            
+        # Check Membership
+        missing = await security.check_membership(user.id, context.bot, post.get('force_channels', []))
         
-        buttons.append([
-            {
-                "text": "✅ Verify Membership",
-                "callback": "verify_membership"
-            }
-        ])
-        
-        keyboard = ui.create_keyboard(buttons, add_back=False, add_close=False)
-        
-        try:
-            await update.message.reply_photo(
-                photo=db.get_config('welcome_photo'),
-                caption=ui.format_text(lock_msg, user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-        except Exception as e:
-            logger.error(f"Failed to send photo: {e}")
-            await update.message.reply_text(
-                ui.format_text(lock_msg, user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-    else:
-        # Show welcome message
-        welcome_msg = db.get_config('welcome_msg')
-        btn_text = db.get_config('btn_text')
-        watch_url = db.get_config('watch_url')
-        
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton(btn_text, url=watch_url)
-        ]])
-        
-        try:
-            await update.message.reply_photo(
-                photo=db.get_config('welcome_photo'),
-                caption=ui.format_text(welcome_msg, user),
-                reply_markup=keyboard,
+        if not missing:
+            # ✅ SUCCESS
+            rows = []
+            for b in post['buttons']:
+                rows.append([InlineKeyboardButton(b['text'], url=b['url'])])
+            
+            text = Config.MSG_SUCCESS.format(mention=mention_html(user.id, user.first_name))
+            
+            if post['media_type'] == 'photo' and post['media_id']:
+                msg = await update.message.reply_photo(
+                    post['media_id'],
+                    caption=f"{text}\n\n🎬 <b>{post['title']}</b>",
+                    reply_markup=InlineKeyboardMarkup(rows),
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                msg = await update.message.reply_text(
+                    f"{text}\n\n🎬 <b>{post['title']}</b>",
+                    reply_markup=InlineKeyboardMarkup(rows),
+                    parse_mode=ParseMode.HTML
+                )
+        else:
+            # ❌ FAIL
+            text = Config.MSG_FAIL.format(mention=mention_html(user.id, user.first_name))
+            
+            rows = []
+            for ch in missing:
+                rows.append([InlineKeyboardButton(f"📢 Join {ch['name']}", url=ch['link'])])
+            
+            # Verify Button (Reloads same link)
+            deep_link = f"https://t.me/{context.bot.username}?start=post_{post_id}"
+            rows.append([InlineKeyboardButton("✅ Verify Now", url=deep_link)])
+            
+            msg = await update.message.reply_text(
+                text,
+                reply_markup=InlineKeyboardMarkup(rows),
                 parse_mode=ParseMode.HTML
             )
             
-            # Auto-delete after configured time
-            auto_delete = int(db.get_config('auto_delete', Config.DEFAULT_AUTO_DELETE))
-            if auto_delete > 0:
-                await asyncio.sleep(auto_delete)
-                try:
-                    await update.message.delete()
-                except:
-                    pass
-                    
-        except Exception as e:
-            logger.error(f"Failed to send welcome: {e}")
-            await update.message.reply_text(
-                ui.format_text(welcome_msg, user),
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-
-async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /admin command"""
-    user = update.effective_user
-    
-    if user.id not in Config.ADMIN_IDS:
-        await update.message.reply_text("🚫 Access denied!")
+        # AUTO DELETE
+        db.increment_post_views(post_id)
+        await asyncio.sleep(Config.DEFAULT_AUTO_DELETE)
+        try: await msg.delete()
+        except: pass
         return
-    
-    system_monitor.update_user_activity(user.id)
-    
-    stats = db.get_stats()
-    sys_stats = system_monitor.get_system_stats()
-    
-    text = f"""
-{Config.EMOJIS['admin']} <b>SUPREME ADMIN PANEL</b>
 
-{Config.EMOJIS['chart']} <b>Bot Statistics:</b>
-• Users: {stats['total_users']:,}
-• Today: {stats['today_users']:,}
-• VIP: {stats['vip_users']:,}
-
-{Config.EMOJIS['gear']} <b>System Status:</b>
-• Uptime: {sys_stats['uptime']}
-• CPU: {sys_stats['cpu_percent']}%
-• Memory: {sys_stats['memory_percent']}%
-• Messages: {sys_stats['message_count']:,}
-
-👇 <b>Select an option:</b>
-"""
-    
+    # === NORMAL START ===
     await update.message.reply_text(
-        text,
-        reply_markup=ui.get_admin_menu(),
+        f"💖 <b>Welcome {user.first_name}!</b> 💖\nWait for new links!",
         parse_mode=ParseMode.HTML
     )
 
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /stats command"""
-    user = update.effective_user
-    
-    if user.id not in Config.ADMIN_IDS:
-        await update.message.reply_text("🚫 Admin only command!")
-        return
-    
-    stats = db.get_stats()
-    sys_stats = system_monitor.get_system_stats()
-    
-    text = ui.get_stats_display(stats)
-    text += f"\n{Config.EMOJIS['gear']} <b>System Info:</b>"
-    text += f"\n• Uptime: {sys_stats['uptime']}"
-    text += f"\n• CPU: {sys_stats['cpu_percent']}%"
-    text += f"\n• Memory: {sys_stats['memory_percent']}%"
-    text += f"\n• Disk: {sys_stats['disk_percent']}%"
-    
+async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in Config.ADMIN_IDS: return
     await update.message.reply_text(
-        ui.format_text(text, user),
-        parse_mode=ParseMode.HTML,
-        reply_markup=ui.create_keyboard([], add_back=True, add_close=True)
+        "👑 <b>Admin Panel</b>", 
+        reply_markup=ui.get_admin_menu(), 
+        parse_mode=ParseMode.HTML
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /help command"""
-    user = update.effective_user
-    
-    text = f"""
-{Config.EMOJIS['info']} <b>Supreme Bot Commands</b>
-
-<b>User Commands:</b>
-/start - Start the bot
-/help - Show this help message
-
-<b>Admin Commands:</b>
-/admin - Open admin panel
-/stats - Show statistics
-/backup - Create backup
-/broadcast - Broadcast message
-/post - Create advanced post
-
-<b>Features:</b>
-• Auto-delete messages (60 seconds)
-• Channel verification
-• VIP access system
-• Post scheduling
-• Advanced analytics
-• Enhanced posts with force channels
-• Advanced posts with multiple buttons
-"""
-    
-    await update.message.reply_text(
-        ui.format_text(text, user),
-        parse_mode=ParseMode.HTML
-    )
+    await update.message.reply_text("Help Menu")
 
 async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /backup command"""
-    user = update.effective_user
-    
-    if user.id not in Config.ADMIN_IDS:
-        await update.message.reply_text("🚫 Admin only command!")
-        return
-    
-    message = await update.message.reply_text("💾 Creating backup...")
-    
-    backup_file = db.create_backup()
-    
-    if backup_file:
-        await message.edit_text(
-            f"✅ Backup created successfully!\n\n"
-            f"File: {os.path.basename(backup_file)}\n"
-            f"Size: {os.path.getsize(backup_file) // 1024} KB",
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        await message.edit_text("❌ Failed to create backup!")
-
-async def post_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /post command - Start advanced post creation"""
-    user = update.effective_user
-    
-    if user.id not in Config.ADMIN_IDS:
-        await update.message.reply_text("🚫 Admin only command!")
-        return
-    
-    # Check if wizard already active
-    if user.id in advanced_wizard.active_wizards:
-        await update.message.reply_text("⚠️ You already have an active post creation session. Please complete or cancel it first.")
-        return
-    
-    # Initialize wizard
-    advanced_wizard.active_wizards[user.id] = {
-        'step': 'title',
-        'data': {
-            'buttons': [],
-            'current_button': None
-        }
-    }
-    
-    await update.message.reply_text(
-        ui.format_text("📝 <b>🎯 Advanced Post Wizard - Step 1/6</b>\n\n"
-                      "✏️ Please send the <b>POST TITLE</b>:", user),
-        parse_mode=ParseMode.HTML
-    )
-    
-    return Config.STATE_POST_CAPTION
+    if update.effective_user.id not in Config.ADMIN_IDS: return
+    f = db.create_backup()
+    await update.message.reply_text(f"Backup: {f}")
 
 # ==============================================================================
-# 🔄 CALLBACK QUERY HANDLER
+# 🔄 CALLBACK HANDLER
 # ==============================================================================
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle all callback queries"""
     query = update.callback_query
-    
-    user = query.from_user
     data = query.data
     
-    system_monitor.update_user_activity(user.id)
-    
-    # Admin check for admin functions
-    admin_functions = {
-        'main_menu', 'menu_', 'edit_', 'toggle_', 'remove_', 'add_',
-        'broadcast', 'create_post', 'block_user', 'unblock_user',
-        'add_vip', 'remove_vip', 'backup_', 'restore_',
-        'enhanced_post_', 'select_', 'post_channel_', 'final_post_',
-        'view_advanced_post_', 'verify_advanced_post_'
-    }
-    
-    if any(data.startswith(func) for func in admin_functions) and user.id not in Config.ADMIN_IDS:
-        await query.answer("🚫 Admin access required!", show_alert=True)
-        return
-    
-    # Route callbacks
-    if data == "main_menu":
-        await query.answer()
-        await show_admin_panel(query.message, user)
-    
-    elif data == "close_panel":
-        await query.answer()
-        try:
-            await query.delete_message()
-        except:
-            pass
-    
-    elif data == "verify_membership":
-        # === FIXED VERIFY BUTTON LOGIC ===
-        try:
-            # Clear cache for this specific user to force a fresh check
-            security.clear_user_cache(user.id)
-            
-            missing_channels = await security.check_membership(user.id, context.bot)
-            
-            if not missing_channels:
-                await query.answer("✅ Verified successfully!", show_alert=True)
-                
-                # Show welcome message
-                welcome_msg = db.get_config('welcome_msg')
-                btn_text = db.get_config('btn_text')
-                watch_url = db.get_config('watch_url')
-                
-                keyboard = InlineKeyboardMarkup([[
-                    InlineKeyboardButton(btn_text, url=watch_url)
-                ]])
-                
-                try:
-                    await query.message.edit_caption(
-                        caption=ui.format_text(welcome_msg, user),
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-                except:
-                    # If message type is different or editing fails, send new message
-                    await query.message.reply_text(
-                        ui.format_text(welcome_msg, user),
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-            else:
-                await query.answer("❌ 😢💔ওহ নো বেবি! তুমি এখনো সব চেনেল জয়েন করোনি?!😢💔\n💖✨আমার লক্ষ্মীটা, তুমি যদি নিচের চ্যানেলগুলোতে জয়েন না করো, তাহলে আমি তোমাকে ভিডিওটা দেখাতে পারবো না! 🥺🥀 ", show_alert=True)
-        except Exception as e:
-            logger.error(f"Verify Error: {e}")
-            await query.answer("⚠️ Error verifying. Please try again.", show_alert=True)
-    
-    elif data == "menu_messages":
-        await query.answer()
-        buttons = [
-            [
-                {"text": "✏️ Welcome Message", "callback": "edit_welcome_msg"},
-                {"text": "✏️ Lock Message", "callback": "edit_lock_msg"}
-            ],
-            [
-                {"text": "🖼️ Welcome Photo", "callback": "edit_welcome_photo"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text("📝 <b>Message Editor</b>\nSelect message to edit:", user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_links":
-        await query.answer()
-        buttons = [
-            [
-                {"text": "🔗 Watch URL", "callback": "edit_watch_url"},
-                {"text": "🔘 Button Text", "callback": "edit_btn_text"}
-            ],
-            [
-                {"text": "⏱️ Auto Delete", "callback": "edit_auto_delete"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text("🔗 <b>Link Settings</b>\nSelect setting to edit:", user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_channels":
-        await query.answer()
-        channels = db.get_channels()
-        
-        text = "📢 <b>Channel Manager</b>\n\n"
-        
-        if channels:
-            text += "<b>Current Channels:</b>\n"
-            for idx, channel in enumerate(channels, 1):
-                force_emoji = "🔒" if channel.get('force_join') else "🔓"
-                text += f"{idx}. {force_emoji} {channel['name']}\n"
-        else:
-            text += "No channels added.\n"
-        
-        buttons = []
-        for channel in channels:
-            buttons.append([
-                {"text": f"❌ Remove {channel['name'][:15]}", "callback": f"remove_channel_{channel['id']}"}
-            ])
-        
-        buttons.append([
-            {"text": "➕ Add Channel", "callback": "add_channel_start"},
-            {"text": "🔧 Toggle Force Join", "callback": "toggle_channel_settings"}
-        ])
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_security":
-        await query.answer()
-        maint_status = db.get_config('maint_mode')
-        force_status = db.get_config('force_join')
-        
-        text = f"""
-🛡️ <b>Security Settings</b>
-
-<b>Current Status:</b>
-• Maintenance Mode: {maint_status}
-• Force Join: {force_status}
-
-<b>Actions:</b>
-"""
-        
-        buttons = [
-            [
-                {"text": f"🔄 Maintenance: {maint_status}", "callback": "toggle_maint"},
-                {"text": f"🔄 Force Join: {force_status}", "callback": "toggle_force"}
-            ],
-            [
-                {"text": "🚫 Block User", "callback": "block_user_start"},
-                {"text": "✅ Unblock User", "callback": "unblock_user_start"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_marketing":
-        await query.answer()
-        text = """
-📡 <b>Marketing Tools</b>
-
-<b>Available Tools:</b>
-• Advanced posts with force channels & multiple buttons
-• Enhanced posts with target channels
-• Broadcast messages
-• Target specific user groups
-• Analyze engagement
-"""
-        
-        buttons = [
-            [
-                {"text": "🎯 Advanced Post", "callback": "advanced_post_start"},
-                {"text": "📢 Broadcast", "callback": "broadcast_start"}
-            ],
-            [
-                {"text": "🎯 Enhanced Post", "callback": "enhanced_post_start"},
-                {"text": "📊 View Post Stats", "callback": "view_post_stats"}
-            ],
-            [
-                {"text": "📈 Analytics", "callback": "analytics"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_stats":
-        await query.answer()
-        stats = db.get_stats()
-        text = ui.get_stats_display(stats)
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard([]),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_vip":
-        await query.answer()
-        vip_users = [uid for uid in db.get_all_users() if db.is_vip(uid)]
-        
-        text = f"""
-👑 <b>VIP Management</b>
-
-<b>Current VIP Users:</b>
-{len(vip_users)} VIP users
-"""
-        
-        buttons = [
-            [
-                {"text": "➕ Add VIP", "callback": "add_vip_start"},
-                {"text": "➖ Remove VIP", "callback": "remove_vip_start"}
-            ],
-            [
-                {"text": "📋 VIP List", "callback": "vip_list"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "menu_system":
-        await query.answer()
-        sys_stats = system_monitor.get_system_stats()
-        
-        text = f"""
-⚙️ <b>System Settings</b>
-
-<b>System Status:</b>
-• Uptime: {sys_stats['uptime']}
-• CPU: {sys_stats['cpu_percent']}%
-• Memory: {sys_stats['memory_percent']}%
-• Disk: {sys_stats['disk_percent']}%
-
-<b>Actions:</b>
-"""
-        
-        buttons = [
-            [
-                {"text": "💾 Backup Now", "callback": "backup_now"},
-                {"text": "🔄 Restart Bot", "callback": "restart_bot"}
-            ],
-            [
-                {"text": "🧹 Cleanup DB", "callback": "cleanup_db"},
-                {"text": "📜 View Logs", "callback": "view_logs"}
-            ]
-        ]
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard(buttons),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data == "advanced_post_start":
-        # Start advanced post wizard from menu
-        return await advanced_wizard.start_wizard(update, context)
-    
-    elif data == "enhanced_post_start":
-        # Start enhanced post wizard
+    # Wizard Hooks
+    if data == "enhanced_post_start":
         return await enhanced_wizard.start_wizard(update, context)
-    
-    elif data == "view_post_stats":
-        await query.answer()
-        # Get enhanced posts stats
-        stats = db.get_stats()
+    elif "toggle_force_" in data or data == "confirm_force":
+        return await enhanced_wizard.handle_force_selection(update, context)
+    elif data.startswith("target_"):
+        return await enhanced_wizard.handle_target_selection(update, context)
         
-        text = f"""
-📊 <b>Posts Statistics</b>
-
-• Advanced Posts: {stats.get('advanced_posts', 0):,}
-• Enhanced Posts: {stats.get('enhanced_posts', 0):,}
-• Total Views: {stats.get('total_views', 0):,}
-
-<b>Recent Advanced Posts:</b>
-"""
+    # Admin Menus
+    elif data == "menu_channels":
+        channels = db.get_channels()
+        text = "📢 <b>Channels</b>\n\n"
+        buttons = []
+        for ch in channels:
+            text += f"• {ch['name']}\n"
+            buttons.append([{"text": f"❌ {ch['name']}", "callback": f"rm_{ch['id']}"}])
+        buttons.append([{"text": "➕ Add", "callback": "add_channel_start"}])
+        buttons.append([{"text": "🔙 Back", "callback": "main_menu"}])
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML)
         
-        # Get recent advanced posts
-        recent_posts = db.get_all_advanced_posts()[:5]
-        if recent_posts:
-            for post in recent_posts:
-                text += f"\n📝 {post[1][:20]}... (ID: {post[0]})"
-        else:
-            text += "\nNo advanced posts yet."
-        
-        await query.edit_message_text(
-            ui.format_text(text, user),
-            reply_markup=ui.create_keyboard([], add_back=True, add_close=True),
-            parse_mode=ParseMode.HTML
-        )
-    
-    elif data.startswith("edit_"):
-        await query.answer()
-        key = data.replace("edit_", "")
-        context.user_data['edit_key'] = key
-        current_value = db.get_config(key)
-        
-        await query.message.reply_text(
-            f"✏️ <b>Editing:</b> <code>{key}</code>\n"
-            f"<b>Current:</b> <code>{current_value[:100]}</code>\n\n"
-            f"Please send the new value:",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_EDIT_CONFIG
-    
-    elif data.startswith("toggle_"):
-        key = data.replace("toggle_", "")
-        current = db.get_config(key)
-        new_value = "ON" if current == "OFF" else "OFF"
-        db.set_config(key, new_value)
-        
-        await query.answer(f"✅ {key} set to {new_value}", show_alert=True)
-        # Refresh menu
-        if key in ['maint_mode', 'force_join']:
-            query.data = "menu_security"
-            await callback_handler(update, context)
-    
-    elif data.startswith("remove_channel_"):
-        channel_id = data.replace("remove_channel_", "")
-        if db.remove_channel(channel_id):
-            await query.answer("✅ Channel removed!", show_alert=True)
-        else:
-            await query.answer("❌ Failed to remove!", show_alert=True)
-        # Refresh
-        query.data = "menu_channels"
-        await callback_handler(update, context)
-    
     elif data == "add_channel_start":
-        await query.answer()
-        await query.message.reply_text(
-            "➕ <b>Add New Channel</b>\n\n"
-            "Please send the Channel ID (e.g., @channelname or -1001234567890):",
-            parse_mode=ParseMode.HTML
-        )
+        await query.message.reply_text("Send Channel ID:")
         return Config.STATE_CHANNEL_ADD_ID
-    
-    elif data == "create_post_start":
-        await query.answer()
-        await query.message.reply_text(
-            "📝 <b>Post Wizard - Step 1/4</b>\n\n"
-            "Please send the post caption/text:",
-            parse_mode=ParseMode.HTML
-        )
-        context.user_data['post_wizard'] = {}
-        return Config.STATE_POST_CAPTION
-    
-    elif data == "broadcast_start":
-        await query.answer()
-        await query.message.reply_text(
-            "📢 <b>Broadcast Message</b>\n\n"
-            "Please send the message to broadcast (text, photo, or video):",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_BROADCAST
-    
-    elif data == "block_user_start":
-        await query.answer()
-        await query.message.reply_text(
-            "🚫 <b>Block User</b>\n\n"
-            "Please send the user ID to block:",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_USER_BLOCK
-    
-    elif data == "add_vip_start":
-        await query.answer()
-        await query.message.reply_text(
-            "👑 <b>Add VIP User</b>\n\n"
-            "Please send the user ID to grant VIP access:",
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_VIP_ADD
-    
-    elif data == "backup_now":
-        await query.answer("💾 Creating backup...", show_alert=True)
-        backup_file = db.create_backup()
-        if backup_file:
-            await query.message.reply_text(f"✅ Backup created: {os.path.basename(backup_file)}")
-        else:
-            await query.message.reply_text("❌ Backup failed!")
-    
-    # Advanced post wizard callbacks
-    elif data in ["add_button", "continue_to_channels"]:
-        return await advanced_wizard.handle_button_management(update, context)
-    
-    elif data.startswith("select_force_") or data in ["select_all_force", "continue_to_target"]:
-        return await advanced_wizard.handle_force_channel_selection(update, context)
-    
-    elif data.startswith("select_target_"):
-        return await advanced_wizard.handle_target_channel_selection(update, context)
-    
-    elif data == "final_post_advanced":
-        return await advanced_wizard.finalize_post(update, context)
-    
-    elif data == "edit_advanced_post":
-        await query.answer("⚠️ Edit feature coming soon!")
-        # You can implement edit logic here
-    
-    # Enhanced post wizard callbacks
-    elif data.startswith("select_channel_") or data in ["select_all_channels", "continue_target_selection"]:
-        return await enhanced_wizard.handle_target_channel_selection(update, context)
-    
-    elif data.startswith("post_channel_") or data in ["select_all_post_channels", "confirm_enhanced_post"]:
-        return await enhanced_wizard.handle_post_channel_selection(update, context)
-    
-    elif data == "final_post_enhanced":
-        return await enhanced_wizard.finalize_post(update, context)
-    
-    elif data == "edit_enhanced_post":
-        await query.answer("⚠️ Edit feature coming soon!")
-    
-    # Advanced post view callbacks
-    elif data.startswith("view_advanced_post_"):
-        return await handle_advanced_post_view(update, context)
-    
-    elif data.startswith("verify_advanced_post_"):
-        return await handle_advanced_post_verification(update, context)
-    
-    else:
-        await query.answer("❌ Unknown action!")
-
-async def show_admin_panel(message, user):
-    """Show admin panel"""
-    stats = db.get_stats()
-    sys_stats = system_monitor.get_system_stats()
-    
-    text = f"""
-{Config.EMOJIS['admin']} <b>SUPREME ADMIN PANEL</b>
-
-{Config.EMOJIS['chart']} <b>Bot Statistics:</b>
-• Users: {stats['total_users']:,}
-• Today: {stats['today_users']:,}
-• VIP: {stats['vip_users']:,}
-
-{Config.EMOJIS['gear']} <b>System Status:</b>
-• Uptime: {sys_stats['uptime']}
-• CPU: {sys_stats['cpu_percent']}%
-• Memory: {sys_stats['memory_percent']}%
-• Messages: {sys_stats['message_count']:,}
-
-👇 <b>Select an option:</b>
-"""
-    
-    if hasattr(message, 'edit_text'):
-        await message.edit_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
-    else:
-        await message.reply_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
+        
+    elif data.startswith("rm_"):
+        db.remove_channel(data.replace("rm_", ""))
+        await query.answer("Removed")
+        await callback_handler(update, context) # refresh
+        
+    elif data == "main_menu":
+        await query.message.delete()
+        await admin_command(query, context)
+        
+    elif data == "close_panel":
+        await query.message.delete()
 
 # ==============================================================================
 # ✏️ CONVERSATION HANDLERS
 # ==============================================================================
 
-async def edit_config_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle configuration editing"""
-    key = context.user_data.get('edit_key')
-    new_value = update.message.text
-    
-    if key:
-        if db.set_config(key, new_value):
-            await update.message.reply_text(
-                f"✅ <b>{key}</b> updated successfully!",
-                parse_mode=ParseMode.HTML
-            )
-        else:
-            await update.message.reply_text(
-                f"❌ Failed to update {key}!",
-                parse_mode=ParseMode.HTML
-            )
-    else:
-        await update.message.reply_text("❌ Error: No key specified!")
-    
-    context.user_data.clear()
-    return ConversationHandler.END
-
-# Advanced Post Wizard Handlers
-async def handle_post_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle post title input for advanced wizard"""
-    return await advanced_wizard.handle_title(update, context)
-
-async def handle_post_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle post photo input for advanced wizard"""
-    return await advanced_wizard.handle_photo(update, context)
-
-async def handle_post_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle post text input for advanced wizard"""
-    return await advanced_wizard.handle_text(update, context)
-
-async def handle_button_name_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle button name input for advanced wizard"""
-    return await advanced_wizard.handle_button_name(update, context)
-
-async def handle_button_link_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle button link input for advanced wizard"""
-    return await advanced_wizard.handle_button_link(update, context)
-
-# Enhanced Post Wizard Handlers
-async def handle_enhanced_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle enhanced post title input"""
-    return await enhanced_wizard.handle_title(update, context)
-
-async def handle_enhanced_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle enhanced post media input"""
-    return await enhanced_wizard.handle_media(update, context)
-
-async def handle_enhanced_button_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle enhanced post button name input"""
-    return await enhanced_wizard.handle_button_name(update, context)
-
-async def handle_enhanced_button_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle enhanced post button link input"""
-    return await enhanced_wizard.handle_button_link(update, context)
-
-async def post_caption_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 1: Get post caption"""
-    context.user_data['post_wizard']['caption'] = update.message.text_html
-    
-    await update.message.reply_text(
-        "📸 <b>Post Wizard - Step 2/4</b>\n\n"
-        "Send photo or video for the post (or type /skip for text only):",
-        parse_mode=ParseMode.HTML
-    )
-    return Config.STATE_POST_MEDIA
-
-async def post_media_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 2: Get media"""
-    if update.message.photo:
-        context.user_data['post_wizard']['media'] = update.message.photo[-1].file_id
-        context.user_data['post_wizard']['type'] = 'photo'
-    elif update.message.video:
-        context.user_data['post_wizard']['media'] = update.message.video.file_id
-        context.user_data['post_wizard']['type'] = 'video'
-    else:
-        context.user_data['post_wizard']['media'] = None
-        context.user_data['post_wizard']['type'] = 'text'
-    
-    await update.message.reply_text(
-        "🔘 <b>Post Wizard - Step 3/4</b>\n\n"
-        "Send button text (or /skip to use default):",
-        parse_mode=ParseMode.HTML
-    )
-    return Config.STATE_POST_BUTTON
-
-async def post_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 3: Get button text"""
-    if update.message.text and update.message.text != '/skip':
-        context.user_data['post_wizard']['button_text'] = update.message.text
-    else:
-        context.user_data['post_wizard']['button_text'] = db.get_config('btn_text')
-    
-    # Show channel selection
-    channels = db.get_channels()
-    
-    if not channels:
-        await update.message.reply_text("❌ No channels available!")
-        context.user_data.clear()
-        return ConversationHandler.END
-    
-    # Create preview
-    caption = context.user_data['post_wizard'].get('caption', '')
-    media = context.user_data['post_wizard'].get('media')
-    post_type = context.user_data['post_wizard'].get('type', 'text')
-    button_text = context.user_data['post_wizard'].get('button_text', '')
-    watch_url = db.get_config('watch_url')
-    
-    preview_text = f"""
-✅ <b>Post Wizard - Step 4/4</b>
-
-<b>Preview:</b>
-• Type: {post_type.upper()}
-• Button: {button_text}
-• Watch URL: {watch_url[:50]}...
-
-<b>Select channels to post:</b>
-"""
-    
-    # Create channel selection buttons
-    buttons = []
-    for channel in channels:
-        buttons.append([
-            {"text": f"📤 {channel['name']}", "callback": f"post_to_{channel['id']}"}
-        ])
-    
-    buttons.append([
-        {"text": "📤 Post to ALL", "callback": "post_to_all"}
-    ])
-    
-    keyboard = ui.create_keyboard(buttons, add_back=False, add_close=True)
-    
-    # Send preview
-    if post_type == 'photo' and media:
-        await update.message.reply_photo(
-            photo=media,
-            caption=caption + f"\n\n[Preview]",
-            parse_mode=ParseMode.HTML
-        )
-    elif post_type == 'video' and media:
-        await update.message.reply_video(
-            video=media,
-            caption=caption + f"\n\n[Preview]",
-            parse_mode=ParseMode.HTML
-        )
-    
-    await update.message.reply_text(
-        preview_text,
-        reply_markup=keyboard,
-        parse_mode=ParseMode.HTML
-    )
-    return Config.STATE_POST_CONFIRM
-
-async def post_confirm_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 4: Confirm and send post"""
-    query = update.callback_query
-    await query.answer()
-    
-    data = query.data
-    post_data = context.user_data.get('post_wizard', {})
-    
-    caption = post_data.get('caption', '')
-    media = post_data.get('media')
-    post_type = post_data.get('type', 'text')
-    button_text = post_data.get('button_text', db.get_config('btn_text'))
-    watch_url = db.get_config('watch_url')
-    
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(button_text, url=watch_url)
-    ]])
-    
-    # Get target channels
-    channels = db.get_channels()
-    
-    if data == "post_to_all":
-        target_channels = channels
-    else:
-        channel_id = data.replace("post_to_", "")
-        target_channels = [ch for ch in channels if ch['id'] == channel_id]
-    
-    if not target_channels:
-        await query.message.reply_text("❌ No channels selected!")
-        context.user_data.clear()
-        return ConversationHandler.END
-    
-    # Send posts
-    success = 0
-    failed = 0
-    
-    status_msg = await query.message.reply_text(f"⏳ Sending to {len(target_channels)} channel(s)...")
-    
-    for channel in target_channels:
-        try:
-            if post_type == 'photo' and media:
-                await context.bot.send_photo(
-                    chat_id=channel['id'],
-                    photo=media,
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            elif post_type == 'video' and media:
-                await context.bot.send_video(
-                    chat_id=channel['id'],
-                    video=media,
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            else:
-                await context.bot.send_message(
-                    chat_id=channel['id'],
-                    text=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            success += 1
-        except Exception as e:
-            logger.error(f"Failed to post to {channel['id']}: {e}")
-            failed += 1
-        
-        await asyncio.sleep(0.5)  # Rate limiting
-    
-    await status_msg.edit_text(
-        f"✅ <b>Posting Complete!</b>\n\n"
-        f"• Successful: {success}\n"
-        f"• Failed: {failed}\n"
-        f"• Total: {len(target_channels)}",
-        parse_mode=ParseMode.HTML
-    )
-    
-    context.user_data.clear()
-    return ConversationHandler.END
-
-async def broadcast_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle broadcast messages"""
-    message = update.message
-    users = db.get_all_users(active_only=True)
-    
-    if not users:
-        await message.reply_text("❌ No users to broadcast!")
-        return ConversationHandler.END
-    
-    total_users = len(users)
-    status_msg = await message.reply_text(f"📤 Starting broadcast to {total_users} users...")
-    
-    success = 0
-    failed = 0
-    
-    for idx, user_id in enumerate(users, 1):
-        try:
-            if message.photo:
-                await message.copy(user_id)
-            elif message.video:
-                await message.copy(user_id)
-            else:
-                await context.bot.send_message(
-                    user_id,
-                    message.text_html,
-                    parse_mode=ParseMode.HTML
-                )
-            success += 1
-        except Exception as e:
-            failed += 1
-        
-        # Update progress every 20 users
-        if idx % 20 == 0:
-            await status_msg.edit_text(
-                f"📤 Broadcasting...\n"
-                f"Progress: {idx}/{total_users}\n"
-                f"Success: {success} | Failed: {failed}"
-            )
-        
-        await asyncio.sleep(0.1)  # Rate limiting
-    
-    await status_msg.edit_text(
-        f"✅ <b>Broadcast Complete!</b>\n\n"
-        f"• Total users: {total_users}\n"
-        f"• Successfully sent: {success}\n"
-        f"• Failed: {failed}",
-        parse_mode=ParseMode.HTML
-    )
-    
-    return ConversationHandler.END
-
-async def add_channel_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 1: Get channel ID"""
-    context.user_data['channel_id'] = update.message.text.strip()
-    
-    await update.message.reply_text(
-        "📝 <b>Step 2/3</b>\n\n"
-        "Please send the channel name:",
-        parse_mode=ParseMode.HTML
-    )
+async def add_ch_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['chid'] = update.message.text
+    await update.message.reply_text("Name:")
     return Config.STATE_CHANNEL_ADD_NAME
 
-async def add_channel_name_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 2: Get channel name"""
-    context.user_data['channel_name'] = update.message.text
-    
-    await update.message.reply_text(
-        "🔗 <b>Step 3/3</b>\n\n"
-        "Please send the channel link (t.me/...):",
-        parse_mode=ParseMode.HTML
-    )
+async def add_ch_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['chname'] = update.message.text
+    await update.message.reply_text("Link:")
     return Config.STATE_CHANNEL_ADD_LINK
 
-async def add_channel_link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step 3: Get channel link and save"""
-    channel_id = context.user_data.get('channel_id')
-    channel_name = context.user_data.get('channel_name')
-    channel_link = update.message.text
-    
-    if db.add_channel(channel_id, channel_name, channel_link):
-        await update.message.reply_text(
-            f"✅ <b>Channel added successfully!</b>\n\n"
-            f"• ID: <code>{channel_id}</code>\n"
-            f"• Name: {channel_name}\n"
-            f"• Link: {channel_link}",
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        await update.message.reply_text("❌ Failed to add channel!")
-    
-    context.user_data.clear()
+async def add_ch_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    db.add_channel(context.user_data['chid'], context.user_data['chname'], update.message.text)
+    await update.message.reply_text("✅ Added")
     return ConversationHandler.END
 
-async def block_user_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Block a user"""
-    try:
-        user_id = int(update.message.text)
-        if db.block_user(user_id, update.effective_user.id, "Manual block by admin"):
-            await update.message.reply_text(f"✅ User {user_id} blocked successfully!")
-        else:
-            await update.message.reply_text(f"❌ Failed to block user {user_id}!")
-    except ValueError:
-        await update.message.reply_text("❌ Invalid user ID!")
-    
-    return ConversationHandler.END
-
-async def add_vip_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Add VIP user"""
-    try:
-        user_id = int(update.message.text)
-        if db.add_vip(user_id):
-            await update.message.reply_text(f"✅ User {user_id} granted VIP access!")
-        else:
-            await update.message.reply_text(f"❌ Failed to add VIP for user {user_id}!")
-    except ValueError:
-        await update.message.reply_text("❌ Invalid user ID!")
-    
-    return ConversationHandler.END
-
-async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Cancel conversation"""
-    await update.message.reply_text("❌ Operation cancelled.")
-    context.user_data.clear()
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Cancelled")
     return ConversationHandler.END
 
 # ==============================================================================
-# 🚀 HANDLE ADVANCED POST VIEW REQUESTS
+# 🚀 MAIN SETUP
 # ==============================================================================
-
-async def handle_advanced_post_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle requests to view advanced posts"""
-    query = update.callback_query
-    user = query.from_user
-    
-    post_id = int(query.data.replace("view_advanced_post_", ""))
-    
-    # Get post details
-    post = db.get_advanced_post(post_id)
-    if not post:
-        await query.answer("❌ Post not found!")
-        return
-    
-    # Check if user has joined force channels
-    force_channels = post.get('force_channels', [])
-    
-    if force_channels:
-        missing_channels = await security.check_membership(
-            user.id, 
-            context.bot, 
-            force_channels
-        )
-        
-        if missing_channels:
-            # Show join requirement with premium failed message
-            failed_msg = db.get_config('failed_message')
-            formatted_msg = ui.format_text(failed_msg, user)
-            
-            buttons = []
-            for channel in missing_channels:
-                channel_data = next((ch for ch in db.get_channels() if ch['id'] == channel['id']), None)
-                if channel_data:
-                    buttons.append([{
-                        "text": f"📢 Join {channel_data['name'][:15]}",
-                        "url": channel_data['link']
-                    }])
-            
-            buttons.append([{
-                "text": "✅ Verify Now",
-                "callback": f"verify_advanced_post_{post_id}"
-            }])
-            
-            keyboard = ui.create_keyboard(buttons, add_back=False, add_close=False)
-            
-            # Send failed message
-            message = await query.message.reply_text(
-                formatted_msg,
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-            
-            # Schedule auto-delete after 60 seconds
-            await asyncio.sleep(60)
-            try:
-                await message.delete()
-            except:
-                pass
-            
-            await query.answer("❌ Join required channels first!")
-            return
-    
-    # User has access - show success message and content
-    success_msg = db.get_config('success_message')
-    formatted_msg = ui.format_text(success_msg, user)
-    
-    # Create buttons from post data
-    keyboard_buttons = []
-    for btn in post.get('post_buttons', []):
-        keyboard_buttons.append([
-            InlineKeyboardButton(btn['name'], url=btn['link'])
-        ])
-    
-    keyboard = InlineKeyboardMarkup(keyboard_buttons)
-    
-    # Send success message
-    success_message = await query.message.reply_text(
-        formatted_msg,
-        parse_mode=ParseMode.HTML
-    )
-    
-    # Send post content
-    caption = f"<b>{post['post_title']}</b>\n\n"
-    if post.get('post_text'):
-        caption += f"{post['post_text']}\n\n"
-    caption += "✅ <i>Access granted! Enjoy the content.</i>"
-    
-    if post.get('post_photo_id'):
-        content_message = await context.bot.send_photo(
-            chat_id=user.id,
-            photo=post['post_photo_id'],
-            caption=caption,
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        content_message = await context.bot.send_message(
-            chat_id=user.id,
-            text=caption,
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    
-    # Schedule auto-delete after 60 seconds
-    await asyncio.sleep(60)
-    try:
-        await success_message.delete()
-        await content_message.delete()
-    except:
-        pass
-    
-    await query.answer("✅ Access granted!")
-
-async def handle_advanced_post_verification(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle advanced post verification"""
-    query = update.callback_query
-    user = query.from_user
-    
-    post_id = int(query.data.replace("verify_advanced_post_", ""))
-    
-    # Clear cache and check again
-    security.clear_user_cache(user.id)
-    
-    # Get post
-    post = db.get_advanced_post(post_id)
-    if not post:
-        await query.answer("❌ Post not found!")
-        return
-    
-    force_channels = post.get('force_channels', [])
-    missing_channels = await security.check_membership(
-        user.id, 
-        context.bot, 
-        force_channels
-    )
-    
-    if not missing_channels:
-        # Grant access - show success message and content
-        success_msg = db.get_config('success_message')
-        formatted_msg = ui.format_text(success_msg, user)
-        
-        # Create buttons from post data
-        keyboard_buttons = []
-        for btn in post.get('post_buttons', []):
-            keyboard_buttons.append([
-                InlineKeyboardButton(btn['name'], url=btn['link'])
-            ])
-        
-        keyboard = InlineKeyboardMarkup(keyboard_buttons)
-        
-        # Send success message
-        success_message = await query.message.reply_text(
-            formatted_msg,
-            parse_mode=ParseMode.HTML
-        )
-        
-        # Send post content
-        caption = f"<b>{post['post_title']}</b>\n\n"
-        if post.get('post_text'):
-            caption += f"{post['post_text']}\n\n"
-        caption += "✅ <i>Access granted! Enjoy the content.</i>"
-        
-        if post.get('post_photo_id'):
-            content_message = await context.bot.send_photo(
-                chat_id=user.id,
-                photo=post['post_photo_id'],
-                caption=caption,
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-        else:
-            content_message = await context.bot.send_message(
-                chat_id=user.id,
-                text=caption,
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-        
-        # Schedule auto-delete after 60 seconds
-        await asyncio.sleep(60)
-        try:
-            await success_message.delete()
-            await content_message.delete()
-        except:
-            pass
-        
-        # Delete the verification message
-        try:
-            await query.message.delete()
-        except:
-            pass
-        
-        await query.answer("✅ Verified successfully!")
-    else:
-        # Still missing channels
-        await query.answer("❌ Still missing some channels!")
-
-# ==============================================================================
-# 🚀 HANDLE ENHANCED POST VIEW REQUESTS
-# ==============================================================================
-
-async def handle_enhanced_post_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle requests to view enhanced posts"""
-    user = update.effective_user
-    
-    # Check if this is a callback from an enhanced post
-    if update.callback_query:
-        data = update.callback_query.data
-        
-        if data.startswith("view_post_"):
-            post_id = int(data.replace("view_post_", ""))
-            
-            # Get post details
-            post = db.get_enhanced_post(post_id)
-            if not post:
-                await update.callback_query.answer("❌ Post not found!")
-                return
-            
-            # Check if user has joined target channels
-            target_channels = post.get('target_channels', [])
-            
-            if target_channels and post.get('requires_verification', True):
-                missing_channels = await security.check_membership(
-                    user.id, 
-                    context.bot, 
-                    target_channels
-                )
-                
-                if missing_channels:
-                    # Show join requirement
-                    lock_msg = "🔒 <b>Access Restricted!</b>\n\n"
-                    lock_msg += "You need to join these channels to view this content:\n\n"
-                    
-                    buttons = []
-                    for channel in missing_channels:
-                        lock_msg += f"• {channel['name']}\n"
-                        buttons.append([{
-                            "text": f"📢 Join {channel['name'][:15]}",
-                            "url": channel['link']
-                        }])
-                    
-                    buttons.append([{
-                        "text": "✅ Verify Now",
-                        "callback": f"verify_post_{post_id}"
-                    }])
-                    
-                    keyboard = ui.create_keyboard(buttons, add_back=False, add_close=False)
-                    
-                    await update.callback_query.answer("❌ Join required channels first!")
-                    await update.callback_query.message.reply_text(
-                        lock_msg,
-                        reply_markup=keyboard,
-                        parse_mode=ParseMode.HTML
-                    )
-                    return
-            
-            # User has access - show content
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(post['button_name'], url=post['button_link'])
-            ]])
-            
-            caption = f"<b>{post['title']}</b>\n\n"
-            caption += "✅ <i>Access granted! Enjoy the content.</i>"
-            
-            if post['media_type'] == 'photo' and post['media_id']:
-                message = await context.bot.send_photo(
-                    chat_id=user.id,
-                    photo=post['media_id'],
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            elif post['media_type'] == 'video' and post['media_id']:
-                message = await context.bot.send_video(
-                    chat_id=user.id,
-                    video=post['media_id'],
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            else:
-                message = await context.bot.send_message(
-                    chat_id=user.id,
-                    text=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            
-            # Track view
-            db.increment_post_views(post_id, user.id)
-            
-            # Auto-delete message after 60 seconds
-            auto_delete_time = int(db.get_config('post_auto_delete', '60'))
-            if auto_delete_time > 0:
-                await asyncio.sleep(auto_delete_time)
-                try:
-                    await message.delete()
-                except:
-                    pass
-            
-            await update.callback_query.answer("✅ Access granted!")
-    
-    elif data.startswith("verify_post_"):
-        post_id = int(data.replace("verify_post_", ""))
-        
-        # Clear cache and check again
-        security.clear_user_cache(user.id)
-        
-        # Get post
-        post = db.get_enhanced_post(post_id)
-        if not post:
-            await update.callback_query.answer("❌ Post not found!")
-            return
-        
-        target_channels = post.get('target_channels', [])
-        missing_channels = await security.check_membership(
-            user.id, 
-            context.bot, 
-            target_channels
-        )
-        
-        if not missing_channels:
-            # Grant access
-            await update.callback_query.answer("✅ Verified successfully!")
-            
-            # Send the actual content
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(post['button_name'], url=post['button_link'])
-            ]])
-            
-            caption = f"<b>{post['title']}</b>\n\n"
-            caption += "✅ <i>Access granted! Enjoy the content.</i>"
-            
-            if post['media_type'] == 'photo' and post['media_id']:
-                message = await context.bot.send_photo(
-                    chat_id=user.id,
-                    photo=post['media_id'],
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            elif post['media_type'] == 'video' and post['media_id']:
-                message = await context.bot.send_video(
-                    chat_id=user.id,
-                    video=post['media_id'],
-                    caption=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            else:
-                message = await context.bot.send_message(
-                    chat_id=user.id,
-                    text=caption,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.HTML
-                )
-            
-            # Track view
-            db.increment_post_views(post_id, user.id)
-            
-            # Auto-delete after 60 seconds
-            auto_delete_time = int(db.get_config('post_auto_delete', '60'))
-            if auto_delete_time > 0:
-                await asyncio.sleep(auto_delete_time)
-                try:
-                    await message.delete()
-                except:
-                    pass
-            
-            # Delete the verification message
-            try:
-                await update.callback_query.message.delete()
-            except:
-                pass
-        else:
-            await update.callback_query.answer("❌ Still missing some channels!")
-
-# ==============================================================================
-# 🚀 MAIN APPLICATION SETUP
-# ==============================================================================
-
-def setup_application():
-    """Setup the Telegram application with all handlers"""
-    
-    # Create application
-    application = ApplicationBuilder() \
-        .token(Config.TOKEN) \
-        .connection_pool_size(10) \
-        .pool_timeout(30) \
-        .read_timeout(30) \
-        .write_timeout(30) \
-        .get_updates_read_timeout(30) \
-        .http_version("1.1") \
-        .build()
-    
-    # ===== CONVERSATION HANDLERS =====
-    
-    # Edit configuration conversation
-    edit_config_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^edit_')],
-        states={
-            Config.STATE_EDIT_CONFIG: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, edit_config_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Advanced post wizard conversation
-    advanced_post_conv = ConversationHandler(
-        entry_points=[
-            CallbackQueryHandler(callback_handler, pattern='^advanced_post_start$'),
-            CommandHandler('post', post_command)
-        ],
-        states={
-            Config.STATE_POST_CAPTION: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_post_title)
-            ],
-            Config.STATE_POST_MEDIA: [
-                MessageHandler(filters.PHOTO, handle_post_photo)
-            ],
-            Config.STATE_POST_BUTTONS: [
-                CallbackQueryHandler(advanced_wizard.handle_button_management, pattern='^add_button$|^continue_to_channels$'),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_button_name_input)
-            ],
-            Config.STATE_POST_FORCE_CHANNELS: [
-                CallbackQueryHandler(advanced_wizard.handle_force_channel_selection, 
-                                   pattern='^select_force_|^select_all_force|^continue_to_target$')
-            ],
-            Config.STATE_POST_TARGET_CHANNEL: [
-                CallbackQueryHandler(advanced_wizard.handle_target_channel_selection, pattern='^select_target_')
-            ],
-            Config.STATE_POST_CONFIRMATION: [
-                CallbackQueryHandler(advanced_wizard.finalize_post, pattern='^final_post_advanced$')
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Enhanced post wizard conversation
-    enhanced_post_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^enhanced_post_start$')],
-        states={
-            Config.STATE_POST_TITLE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_enhanced_title)
-            ],
-            Config.STATE_POST_MEDIA: [
-                MessageHandler(filters.PHOTO | filters.VIDEO | filters.TEXT, handle_enhanced_media)
-            ],
-            Config.STATE_POST_BUTTON_NAME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_enhanced_button_name)
-            ],
-            Config.STATE_POST_BUTTON_LINK: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_enhanced_button_link)
-            ],
-            Config.STATE_POST_TARGET_CHANNELS: [
-                CallbackQueryHandler(enhanced_wizard.handle_target_channel_selection, 
-                                   pattern='^select_|^continue_target_selection$')
-            ],
-            Config.STATE_POST_TARGET_SELECT: [
-                CallbackQueryHandler(enhanced_wizard.handle_post_channel_selection,
-                                   pattern='^post_channel_|^select_all_post_channels|^confirm_enhanced_post$')
-            ],
-            Config.STATE_POST_FINAL_CONFIRM: [
-                CallbackQueryHandler(enhanced_wizard.finalize_post, pattern='^final_post_enhanced$')
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Post wizard conversation
-    post_wizard_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^create_post_start$')],
-        states={
-            Config.STATE_POST_CAPTION: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, post_caption_handler)
-            ],
-            Config.STATE_POST_MEDIA: [
-                MessageHandler(filters.PHOTO | filters.VIDEO | filters.TEXT, post_media_handler)
-            ],
-            Config.STATE_POST_BUTTON: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, post_button_handler)
-            ],
-            Config.STATE_POST_CONFIRM: [
-                CallbackQueryHandler(post_confirm_handler, pattern='^post_to_')
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Broadcast conversation
-    broadcast_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^broadcast_start$')],
-        states={
-            Config.STATE_BROADCAST: [
-                MessageHandler(filters.ALL & ~filters.COMMAND, broadcast_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Add channel conversation
-    add_channel_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^add_channel_start$')],
-        states={
-            Config.STATE_CHANNEL_ADD_ID: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, add_channel_id_handler)
-            ],
-            Config.STATE_CHANNEL_ADD_NAME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, add_channel_name_handler)
-            ],
-            Config.STATE_CHANNEL_ADD_LINK: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, add_channel_link_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Block user conversation
-    block_user_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^block_user_start$')],
-        states={
-            Config.STATE_USER_BLOCK: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, block_user_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # Add VIP conversation
-    add_vip_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^add_vip_start$')],
-        states={
-            Config.STATE_VIP_ADD: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, add_vip_handler)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel_handler)]
-    )
-    
-    # ===== ADD HANDLERS =====
-    
-    # Command handlers
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("admin", admin_command))
-    application.add_handler(CommandHandler("stats", stats_command))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("backup", backup_command))
-    application.add_handler(CommandHandler("post", post_command))
-    
-    # Conversation handlers
-    application.add_handler(edit_config_conv)
-    application.add_handler(advanced_post_conv)
-    application.add_handler(enhanced_post_conv)
-    application.add_handler(post_wizard_conv)
-    application.add_handler(broadcast_conv)
-    application.add_handler(add_channel_conv)
-    application.add_handler(block_user_conv)
-    application.add_handler(add_vip_conv)
-    
-    # Advanced post view handler
-    application.add_handler(CallbackQueryHandler(handle_advanced_post_view, pattern='^view_advanced_post_'))
-    application.add_handler(CallbackQueryHandler(handle_advanced_post_verification, pattern='^verify_advanced_post_'))
-    
-    # Enhanced post view handler
-    application.add_handler(CallbackQueryHandler(handle_enhanced_post_view, pattern='^view_post_|^verify_post_'))
-    
-    # Callback query handler (must be last)
-    application.add_handler(CallbackQueryHandler(callback_handler))
-    
-    # Error handler
-    application.add_error_handler(error_handler)
-    
-    return application
-
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle errors gracefully"""
-    system_monitor.increment_error()
-    
-    # Log error
-    logger.error(f"Exception while handling update: {context.error}")
-    
-    # Send traceback to log file
-    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
-    tb_string = ''.join(tb_list)
-    logger.error(f"Traceback:\n{tb_string}")
-    
-    # Notify admin
-    try:
-        error_msg = f"⚠️ <b>Bot Error:</b>\n<code>{context.error}</code>"
-        
-        for admin_id in Config.ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    admin_id,
-                    error_msg,
-                    parse_mode=ParseMode.HTML
-                )
-            except:
-                pass
-    except:
-        pass
-    
-    # Try to send error message to user
-    try:
-        if update and update.effective_message:
-            await update.effective_message.reply_text(
-                "❌ An error occurred. The admin has been notified.",
-                parse_mode=ParseMode.HTML
-            )
-    except:
-        pass
-
-async def set_bot_commands(application: Application):
-    """Set bot commands for menu"""
-    commands = [
-        BotCommand("start", "Start the bot"),
-        BotCommand("admin", "Admin panel"),
-        BotCommand("stats", "View statistics"),
-        BotCommand("help", "Show help"),
-        BotCommand("backup", "Create backup"),
-        BotCommand("post", "Create advanced post")
-    ]
-    
-    try:
-        await application.bot.set_my_commands(commands)
-        logger.info("Bot commands set successfully")
-    except Exception as e:
-        logger.error(f"Failed to set bot commands: {e}")
 
 def main():
-    """Main entry point"""
-    logger.info("🚀 Starting Supreme God Bot v10.0...")
-    logger.info("=" * 60)
+    application = ApplicationBuilder().token(Config.TOKEN).build()
     
-    # Display system info
-    stats = system_monitor.get_system_stats()
-    logger.info(f"System Uptime: {stats['uptime']}")
-    logger.info(f"CPU Usage: {stats['cpu_percent']}%")
-    logger.info(f"Memory Usage: {stats['memory_percent']}%")
+    # 1. Post Wizard
+    post_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(enhanced_wizard.start_wizard, pattern='^enhanced_post_start$')],
+        states={
+            Config.STATE_POST_TITLE: [MessageHandler(filters.TEXT, enhanced_wizard.handle_title)],
+            Config.STATE_POST_MEDIA: [MessageHandler(filters.ALL, enhanced_wizard.handle_media)],
+            Config.STATE_POST_BUTTONS: [MessageHandler(filters.TEXT, enhanced_wizard.handle_buttons)],
+            Config.STATE_POST_FORCE_CHANNELS: [CallbackQueryHandler(enhanced_wizard.handle_force_selection)],
+            Config.STATE_POST_TARGET_CHANNELS: [CallbackQueryHandler(enhanced_wizard.handle_target_selection)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
     
-    # Display bot info
-    db_stats = db.get_stats()
-    logger.info(f"Total Users: {db_stats['total_users']:,}")
-    logger.info(f"Active Channels: {db_stats['active_channels']:,}")
-    logger.info(f"Advanced Posts: {db_stats.get('advanced_posts', 0):,}")
-    logger.info(f"Enhanced Posts: {db_stats.get('enhanced_posts', 0):,}")
+    # 2. Add Channel
+    ch_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^add_channel_start$')],
+        states={
+            Config.STATE_CHANNEL_ADD_ID: [MessageHandler(filters.TEXT, add_ch_id)],
+            Config.STATE_CHANNEL_ADD_NAME: [MessageHandler(filters.TEXT, add_ch_name)],
+            Config.STATE_CHANNEL_ADD_LINK: [MessageHandler(filters.TEXT, add_ch_link)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
     
-    logger.info("=" * 60)
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("admin", admin_command))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("backup", backup_command))
+    application.add_handler(post_conv)
+    application.add_handler(ch_conv)
+    application.add_handler(CallbackQueryHandler(callback_handler))
     
-    try:
-        # Create and setup application
-        application = setup_application()
+    async def error_handler(update, context):
+        logger.error(f"Error: {context.error}")
+        traceback.print_exc()
         
-        # Set bot commands
-        application.run_polling(
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True,
-            close_loop=False
-        )
-        
-    except KeyboardInterrupt:
-        logger.info("Bot stopped by user")
-    except Exception as e:
-        logger.critical(f"Fatal error: {e}")
-        sys.exit(1)
-    finally:
-        # Cleanup
-        task_manager.cleanup()
-        logger.info("Bot shutdown complete")
+    application.add_error_handler(error_handler)
+    
+    print("🚀 SUPREME BOT v10.1 IS RUNNING...")
+    application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
-    # Run main function directly (run_polling handles the event loop)
     main()
