@@ -1,8 +1,9 @@
 """
 ================================================================================
-SUPREME GOD MODE BOT - ULTIMATE EDITION (50 FEATURES)
-VERSION: v10.1 (Fixed & Enhanced Premium Edition)
+SUPREME GOD MODE BOT - ULTIMATE EDITION (FULL & FIXED)
+VERSION: v10.2 (Bangla Hot Love Edition)
 AUTHOR: AI ASSISTANT
+DATE: January 20, 2026
 ================================================================================
 """
 
@@ -55,7 +56,7 @@ class Config:
     LOG_FILE = "bot_activity.log"
     
     # System Constants
-    DEFAULT_AUTO_DELETE = 60  # Fixed to 60 seconds
+    DEFAULT_AUTO_DELETE = 60  # Fixed to 60 Seconds
     MAX_MESSAGE_LENGTH = 4000
     FLOOD_LIMIT = 3
     SESSION_TIMEOUT = 300
@@ -83,7 +84,7 @@ class Config:
         "cross": "❌", "warn": "⚠️", "info": "ℹ️", "tada": "🎉"
     }
     
-    # Conversation States (Fixed & Updated)
+    # Conversation States (ALL STATES INCLUDED TO FIX ERROR)
     STATE_EDIT_CONFIG = 1
     STATE_BROADCAST = 6
     STATE_CHANNEL_ADD_ID = 7
@@ -91,25 +92,25 @@ class Config:
     STATE_CHANNEL_ADD_LINK = 9
     STATE_USER_BLOCK = 10
     STATE_VIP_ADD = 11
+    STATE_BACKUP_RESTORE = 12
     
-    # Post Wizard States (Updated Flow)
+    # New Post Wizard States
     STATE_POST_TITLE = 20
     STATE_POST_MEDIA = 21
-    STATE_POST_BUTTONS = 22       # New: Multiple Buttons
-    STATE_POST_FORCE_CHANNELS = 23 # New: Force Channel Selection
-    STATE_POST_TARGET_CHANNELS = 24 # New: Target Channel
-    STATE_POST_FINAL_CONFIRM = 25
+    STATE_POST_BUTTONS = 22
+    STATE_POST_FORCE_CHANNELS = 23
+    STATE_POST_TARGET_CHANNELS = 24
     
-    # Legacy/Unused (Kept to prevent AttributeErrors if referenced elsewhere)
+    # Legacy States (Kept to prevent crashes)
     STATE_POST_CAPTION = 30
-    STATE_POST_BUTTON = 31
-    STATE_POST_BUTTON_NAME = 32
-    STATE_POST_BUTTON_LINK = 33
-    STATE_POST_TARGET_SELECT = 34
+    STATE_POST_BUTTON_NAME = 31
+    STATE_POST_BUTTON_LINK = 32
+    STATE_POST_TARGET_SELECT = 33
+    STATE_POST_FINAL_CONFIRM = 34
     STATE_POST_CONFIRM = 35
 
-    # Message Templates
-    MSG_SUCCESS = """💖🔥 <b>Heyyy {mention} 😘💋</b>
+    # 🔥 Bangla Hot Messages
+    MSG_SUCCESS = """<b>💖🔥 Heyyy {mention} 😘💋</b>
 
 🌹✨ অবশেষে তুমি এসে গেছো, আমার মিষ্টি Love 😍
 💯💎 সব Force Channel Join সম্পন্ন! এখন তোমার জন্য সব দরজা খুলে গেছে 😈🔥
@@ -118,7 +119,7 @@ class Config:
 
 🌹🔥 <b>Stay Hot • Stay Wild • Stay With Us 💋💋</b>"""
 
-    MSG_FAIL = """😘🔥 <b>Ohhh {mention} 💔💋</b>
+    MSG_FAIL = """<b>😘🔥 Ohhh {mention} 💔💋</b>
 
 💞✨ তুমি এখনো সব Channel Join করোনি 😢🔥
 
@@ -126,7 +127,7 @@ class Config:
 🔥 তখনই Full Premium • Hot • Exclusive Content দেখতে পারবে 😈🔥"""
 
 # ==============================================================================
-# 📝 ADVANCED LOGGING SYSTEM
+# 📝 LOGGING SYSTEM
 # ==============================================================================
 
 class SupremeLogger:
@@ -137,6 +138,7 @@ class SupremeLogger:
     def setup_logging(self):
         console_handler = logging.StreamHandler(sys.stdout)
         file_handler = logging.FileHandler(Config.LOG_FILE, encoding='utf-8')
+        
         console_handler.setLevel(logging.INFO)
         file_handler.setLevel(logging.DEBUG)
         
@@ -147,7 +149,7 @@ class SupremeLogger:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
         self.logger.setLevel(logging.DEBUG)
-        self.logger.info("SUPREME GOD BOT v10.1 STARTING...")
+        self.logger.info("SUPREME GOD BOT STARTING...")
     
     def get_logger(self):
         return self.logger
@@ -156,7 +158,7 @@ logger_instance = SupremeLogger()
 logger = logger_instance.get_logger()
 
 # ==============================================================================
-# 🗄️ ENTERPRISE DATABASE MANAGER
+# 🗄️ DATABASE MANAGER
 # ==============================================================================
 
 class DatabaseManager:
@@ -192,23 +194,26 @@ class DatabaseManager:
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Standard Tables
+        # Original Tables
         cursor.execute('''CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY, username TEXT, first_name TEXT, 
             last_name TEXT, join_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            is_blocked BOOLEAN DEFAULT 0, is_vip BOOLEAN DEFAULT 0,
-            last_active DATETIME DEFAULT CURRENT_TIMESTAMP, message_count INTEGER DEFAULT 0
+            last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
+            message_count INTEGER DEFAULT 0, is_vip BOOLEAN DEFAULT 0,
+            is_blocked BOOLEAN DEFAULT 0, metadata TEXT DEFAULT '{}'
         )''')
         
         cursor.execute('''CREATE TABLE IF NOT EXISTS config (
-            key TEXT PRIMARY KEY, value TEXT NOT NULL, encrypted BOOLEAN DEFAULT 0
+            key TEXT PRIMARY KEY, value TEXT NOT NULL, encrypted BOOLEAN DEFAULT 0,
+            category TEXT DEFAULT 'general', description TEXT, updated_at DATETIME
         )''')
         
         cursor.execute('''CREATE TABLE IF NOT EXISTS channels (
             channel_id TEXT PRIMARY KEY, name TEXT NOT NULL, link TEXT NOT NULL,
-            force_join BOOLEAN DEFAULT 1, status TEXT DEFAULT 'active'
+            is_private BOOLEAN DEFAULT 0, force_join BOOLEAN DEFAULT 1,
+            added_date DATETIME DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active'
         )''')
-
+        
         # Enhanced Posts (Updated for new flow)
         cursor.execute('''CREATE TABLE IF NOT EXISTS enhanced_posts (
             post_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -220,6 +225,17 @@ class DatabaseManager:
             created_by INTEGER,
             created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
             view_count INTEGER DEFAULT 0
+        )''')
+        
+        # Helper Tables
+        cursor.execute('''CREATE TABLE IF NOT EXISTS vip_users (
+            vip_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE,
+            level INTEGER DEFAULT 1, perks TEXT, expires_at DATETIME
+        )''')
+        
+        cursor.execute('''CREATE TABLE IF NOT EXISTS activity_logs (
+            log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER,
+            action TEXT, details TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )''')
         
         cursor.execute('''CREATE TABLE IF NOT EXISTS flood_control (
@@ -245,7 +261,7 @@ class DatabaseManager:
                              (str(channel["id"]), channel["name"], channel["link"]))
         conn.commit()
 
-    # === Enhanced Post Methods (Updated) ===
+    # === Enhanced Post Methods ===
     def save_enhanced_post(self, title, media_id, media_type, buttons, force_channels, created_by):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -284,22 +300,34 @@ class DatabaseManager:
         cursor.execute('''
             INSERT INTO users (user_id, username, first_name, last_name, last_active)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id) DO UPDATE SET last_active=CURRENT_TIMESTAMP
+            ON CONFLICT(user_id) DO UPDATE SET last_active=CURRENT_TIMESTAMP, username=excluded.username
         ''', (user_id, username, first_name, last_name))
         conn.commit()
+    
+    def get_all_users(self, active_only=True):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        sql = "SELECT user_id FROM users WHERE is_blocked=0" if active_only else "SELECT user_id FROM users"
+        cursor.execute(sql)
+        return [row[0] for row in cursor.fetchall()]
 
     def get_channels(self, active_only=True, force_join_only=False):
         conn = self.get_connection()
         cursor = conn.cursor()
-        sql = "SELECT * FROM channels WHERE status='active'" if active_only else "SELECT * FROM channels"
+        if force_join_only and active_only:
+            sql = "SELECT * FROM channels WHERE status='active' AND force_join=1"
+        elif active_only:
+            sql = "SELECT * FROM channels WHERE status='active'"
+        else:
+            sql = "SELECT * FROM channels"
         cursor.execute(sql)
         return [dict(row) for row in cursor.fetchall()]
 
-    def add_channel(self, channel_id, name, link):
+    def add_channel(self, channel_id, name, link, is_private=False, force_join=True):
         conn = self.get_connection()
         try:
-            conn.execute('INSERT OR REPLACE INTO channels (channel_id, name, link) VALUES (?, ?, ?)',
-                         (channel_id, name, link))
+            conn.execute('''INSERT OR REPLACE INTO channels (channel_id, name, link, is_private, force_join) 
+                         VALUES (?, ?, ?, ?, ?)''', (channel_id, name, link, is_private, force_join))
             conn.commit()
             return True
         except: return False
@@ -310,18 +338,38 @@ class DatabaseManager:
         conn.commit()
         return True
 
-    def get_config(self, key):
+    def get_config(self, key, default=""):
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT value FROM config WHERE key=?", (key,))
         res = cursor.fetchone()
-        return res[0] if res else ""
+        return res[0] if res else default
 
     def set_config(self, key, value):
         conn = self.get_connection()
         conn.execute("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", (key, value))
         conn.commit()
         return True
+    
+    # === VIP & Block ===
+    def block_user(self, user_id, admin_id, reason=""):
+        conn = self.get_connection()
+        conn.execute("UPDATE users SET is_blocked = 1 WHERE user_id = ?", (user_id,))
+        conn.commit()
+        return True
+
+    def add_vip(self, user_id):
+        conn = self.get_connection()
+        conn.execute("UPDATE users SET is_vip = 1 WHERE user_id = ?", (user_id,))
+        conn.commit()
+        return True
+        
+    def is_vip(self, user_id):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT is_vip FROM users WHERE user_id=?", (user_id,))
+        res = cursor.fetchone()
+        return res and res[0]
 
     def get_stats(self):
         conn = self.get_connection()
@@ -333,8 +381,8 @@ class DatabaseManager:
         stats['active_channels'] = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM enhanced_posts")
         stats['enhanced_posts'] = cursor.fetchone()[0]
-        stats['vip_users'] = 0
-        stats['today_users'] = 0
+        cursor.execute("SELECT COUNT(*) FROM users WHERE is_vip=1")
+        stats['vip_users'] = cursor.fetchone()[0]
         return stats
 
     def create_backup(self):
@@ -346,11 +394,8 @@ class DatabaseManager:
                 backup.close()
             return backup_file
         except: return None
-
-    def check_flood(self, user_id): return False # Disabled for smoother experience
-    def is_vip(self, user_id): return False
-    def block_user(self, uid, aid, r): pass
-    def add_vip(self, uid): pass
+        
+    def check_flood(self, user_id): return False 
 
 db = DatabaseManager()
 
@@ -424,7 +469,8 @@ class UIManager:
         buttons = [
             [{"text": "🚀 Create Post", "callback": "enhanced_post_start"}],
             [{"text": "📢 Channels", "callback": "menu_channels"}, {"text": "📊 Stats", "callback": "menu_stats"}],
-            [{"text": "💾 Backup", "callback": "backup_now"}, {"text": "⚙️ System", "callback": "menu_system"}]
+            [{"text": "📣 Broadcast", "callback": "broadcast_start"}, {"text": "👑 VIP", "callback": "menu_vip"}],
+            [{"text": "💾 Backup", "callback": "backup_now"}, {"text": "🛡️ Security", "callback": "menu_security"}]
         ]
         return UIManager.create_keyboard(buttons, add_close=True)
 
@@ -453,8 +499,7 @@ class SecurityManager:
                 member = await bot.get_chat_member(chat_id=channel['id'], user_id=user_id)
                 if member.status in ['left', 'kicked']:
                     missing_channels.append(channel)
-            except Exception as e:
-                # If bot can't check (not admin), assume missing to be safe or log error
+            except Exception:
                 missing_channels.append(channel)
         
         return missing_channels
@@ -667,11 +712,13 @@ enhanced_wizard = EnhancedPostWizard()
 # 🚀 COMMAND HANDLERS (START & DEEP LINK)
 # ==============================================================================
 
-async def auto_delete_msg(context: ContextTypes.DEFAULT_TYPE):
-    """Auto delete job"""
+async def auto_delete_task(context: ContextTypes.DEFAULT_TYPE):
+    """Deletes message after 60 seconds"""
+    job = context.job
     try:
-        await context.bot.delete_message(chat_id=context.job.chat_id, message_id=context.job.data)
-    except: pass
+        await context.bot.delete_message(chat_id=job.chat_id, message_id=job.data)
+    except Exception:
+        pass
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -687,8 +734,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if not post:
             m = await update.message.reply_text("❌ Post not found.")
-            await asyncio.sleep(5)
-            await m.delete()
+            context.job_queue.run_once(auto_delete_task, 5, chat_id=user.id, data=m.message_id)
             return
             
         # Check Membership
@@ -723,7 +769,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for ch in missing:
                 rows.append([InlineKeyboardButton(f"📢 Join {ch['name']}", url=ch['link'])])
             
-            # Verify Button (Reloads same link)
+            # Verify Button
             deep_link = f"https://t.me/{context.bot.username}?start=post_{post_id}"
             rows.append([InlineKeyboardButton("✅ Verify Now", url=deep_link)])
             
@@ -735,24 +781,29 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         # AUTO DELETE
         db.increment_post_views(post_id)
-        await asyncio.sleep(Config.DEFAULT_AUTO_DELETE)
-        try: await msg.delete()
-        except: pass
+        context.job_queue.run_once(auto_delete_task, Config.DEFAULT_AUTO_DELETE, chat_id=user.id, data=msg.message_id)
         return
 
     # === NORMAL START ===
-    await update.message.reply_text(
-        f"💖 <b>Welcome {user.first_name}!</b> 💖\nWait for new links!",
-        parse_mode=ParseMode.HTML
-    )
+    welcome_text = "💖 <b>Welcome to Supreme Bot!</b> 💖\nStay tuned for premium content!"
+    if user.id in Config.ADMIN_IDS:
+        welcome_text += "\n\n👑 <b>Admin Mode Active</b>\nType /admin for panel."
+        
+    await update.message.reply_text(welcome_text, parse_mode=ParseMode.HTML)
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.ADMIN_IDS: return
-    await update.message.reply_text(
-        "👑 <b>Admin Panel</b>", 
-        reply_markup=ui.get_admin_menu(), 
-        parse_mode=ParseMode.HTML
-    )
+    stats = db.get_stats()
+    text = f"""
+{Config.EMOJIS['admin']} <b>SUPREME ADMIN PANEL</b>
+
+{Config.EMOJIS['users']} Users: {stats['total_users']}
+{Config.EMOJIS['chart']} Channels: {stats['active_channels']}
+{Config.EMOJIS['fire']} Posts: {stats['enhanced_posts']}
+
+👇 <b>Select Option:</b>
+"""
+    await update.message.reply_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Help Menu")
@@ -763,12 +814,13 @@ async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Backup: {f}")
 
 # ==============================================================================
-# 🔄 CALLBACK HANDLER
+# 🔄 CALLBACK HANDLER (ALL MENUS)
 # ==============================================================================
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
+    user = query.from_user
     
     # Wizard Hooks
     if data == "enhanced_post_start":
@@ -798,7 +850,24 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         db.remove_channel(data.replace("rm_", ""))
         await query.answer("Removed")
         await callback_handler(update, context) # refresh
+    
+    elif data == "broadcast_start":
+        await query.message.reply_text("📢 Send Message to Broadcast:")
+        return Config.STATE_BROADCAST
         
+    elif data == "menu_vip":
+        await query.message.reply_text("👑 Send User ID to add VIP:")
+        return Config.STATE_VIP_ADD
+        
+    elif data == "menu_security":
+         await query.message.reply_text("🛡️ Send User ID to Block:")
+         return Config.STATE_USER_BLOCK
+        
+    elif data == "menu_stats":
+        stats = db.get_stats()
+        t = f"📊 <b>Stats</b>\nUsers: {stats['total_users']}\nPosts: {stats['enhanced_posts']}"
+        await query.edit_message_text(t, reply_markup=ui.create_keyboard([], add_back=True), parse_mode=ParseMode.HTML)
+
     elif data == "main_menu":
         await query.message.delete()
         await admin_command(query, context)
@@ -806,23 +875,58 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "close_panel":
         await query.message.delete()
 
+    elif data == "backup_now":
+        f = db.create_backup()
+        await query.answer(f"Saved: {os.path.basename(f)}", show_alert=True)
+
 # ==============================================================================
-# ✏️ CONVERSATION HANDLERS
+# ✏️ CONVERSATION HANDLERS (RESTORED ALL)
 # ==============================================================================
 
+# Add Channel
 async def add_ch_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['chid'] = update.message.text
     await update.message.reply_text("Name:")
     return Config.STATE_CHANNEL_ADD_NAME
-
 async def add_ch_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['chname'] = update.message.text
     await update.message.reply_text("Link:")
     return Config.STATE_CHANNEL_ADD_LINK
-
 async def add_ch_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.add_channel(context.user_data['chid'], context.user_data['chname'], update.message.text)
     await update.message.reply_text("✅ Added")
+    return ConversationHandler.END
+
+# Broadcast
+async def broadcast_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    users = db.get_all_users()
+    msg = update.message
+    await msg.reply_text(f"🚀 Broadcasting to {len(users)} users...")
+    success = 0
+    for uid in users:
+        try:
+            await msg.copy(uid)
+            success += 1
+        except: pass
+    await msg.reply_text(f"✅ Sent to {success} users.")
+    return ConversationHandler.END
+
+# Block
+async def block_user_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        uid = int(update.message.text)
+        db.block_user(uid, update.effective_user.id)
+        await update.message.reply_text(f"🚫 Blocked {uid}")
+    except: await update.message.reply_text("Error")
+    return ConversationHandler.END
+
+# VIP
+async def add_vip_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        uid = int(update.message.text)
+        db.add_vip(uid)
+        await update.message.reply_text(f"👑 Added VIP {uid}")
+    except: await update.message.reply_text("Error")
     return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -860,12 +964,36 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     
+    # 3. Broadcast
+    bc_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^broadcast_start$')],
+        states={Config.STATE_BROADCAST: [MessageHandler(filters.ALL & ~filters.COMMAND, broadcast_handler)]},
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    
+    # 4. Block/VIP
+    blk_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^menu_security$')],
+        states={Config.STATE_USER_BLOCK: [MessageHandler(filters.TEXT, block_user_handler)]},
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    vip_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^menu_vip$')],
+        states={Config.STATE_VIP_ADD: [MessageHandler(filters.TEXT, add_vip_handler)]},
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("admin", admin_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("backup", backup_command))
+    
     application.add_handler(post_conv)
     application.add_handler(ch_conv)
+    application.add_handler(bc_conv)
+    application.add_handler(blk_conv)
+    application.add_handler(vip_conv)
+    
     application.add_handler(CallbackQueryHandler(callback_handler))
     
     async def error_handler(update, context):
@@ -874,7 +1002,7 @@ def main():
         
     application.add_error_handler(error_handler)
     
-    print("🚀 SUPREME BOT v10.1 IS RUNNING...")
+    print("🚀 SUPREME BOT v10.2 IS RUNNING...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
