@@ -1,7 +1,7 @@
 """
 ================================================================================
 SUPREME GOD MODE BOT - ULTIMATE EDITION (FULL & FIXED)
-VERSION: v10.4 (Button Logic Fixed)
+VERSION: v10.5 (Final Fixed & Enhanced)
 AUTHOR: AI ASSISTANT
 DATE: January 20, 2026
 ================================================================================
@@ -660,26 +660,27 @@ class EnhancedPostWizard:
         return Config.STATE_EP_ADD_MORE
 
     async def handle_add_more(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Loop or Proceed (FIXED ANSWER)"""
+        """Loop or Proceed (FIXED)"""
         query = update.callback_query
         user = query.from_user
-        await query.answer()
+        await query.answer() # Vital fix!
         
         if query.data == "add_more_btn":
-            await query.message.reply_text("🔘 Send <b>Button Name</b>:")
+            await query.message.reply_text("🔘 Send <b>Button Name</b>:", parse_mode=ParseMode.HTML)
             return Config.STATE_EP_BTN_NAME
             
         elif query.data == "done_btns":
-            # Proceed to Force Channel Selection
+            # Initialize temp channels
             self.active_wizards[user.id]['data']['temp_channels'] = []
+            
+            # Show Force Selection UI
             await self.show_force_selection(update, user.id)
             return Config.STATE_EP_FORCE_CHANNELS
             
     async def show_force_selection(self, update, user_id):
         channels = db.get_channels(active_only=True)
-        # If no channels, just proceed to target
+        # If no channels, skip to target
         if not channels:
-            # Skip force channel selection
             return await self.show_target_selection(update, user_id)
             
         selected = self.active_wizards[user_id]['data']['temp_channels']
@@ -702,15 +703,19 @@ class EnhancedPostWizard:
         
         text = "🔒 <b>Step 5/6: Force Join Channels</b>\nSelect channels users MUST join:"
         
+        # Send new message instead of edit to ensure it works
         if update.callback_query:
-            await update.callback_query.edit_message_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+            try:
+                await update.callback_query.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+            except:
+                 await update.effective_message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
         else:
             await update.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
 
     async def handle_force_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
-        await query.answer()
+        await query.answer("Processing...")
         data = query.data
         
         if data.startswith("toggle_force_"):
@@ -720,7 +725,24 @@ class EnhancedPostWizard:
             if cid in selected: selected.remove(cid)
             else: selected.append(cid)
             
-            await self.show_force_selection(update, user.id)
+            # Refresh List (Edit Message)
+            channels = db.get_channels(active_only=True)
+            buttons = []
+            row = []
+            for ch in channels:
+                status = "✅" if ch['id'] in selected else "⭕"
+                row.append({
+                    "text": f"{status} {ch['name'][:10]}",
+                    "callback": f"toggle_force_{ch['id']}"
+                })
+                if len(row) == 2:
+                    buttons.append(row)
+                    row = []
+            if row: buttons.append(row)
+            
+            buttons.append([{"text": "➡️ Continue to Publish", "callback": "confirm_force"}])
+            
+            await query.edit_message_reply_markup(ui.create_keyboard(buttons))
             return Config.STATE_EP_FORCE_CHANNELS
             
         elif data == "confirm_force":
@@ -730,7 +752,7 @@ class EnhancedPostWizard:
     async def show_target_selection(self, update, user_id):
         channels = db.get_channels(active_only=True)
         if not channels:
-             if update.callback_query: await update.callback_query.edit_message_text("❌ No channels active.")
+             if update.callback_query: await update.callback_query.message.reply_text("❌ No channels active.")
              return ConversationHandler.END
 
         buttons = []
@@ -743,8 +765,9 @@ class EnhancedPostWizard:
         if row: buttons.append(row)
         
         text = "🚀 <b>Step 6/6: Select Publish Channel</b>\nWhere to post?"
+        
         if update.callback_query:
-             await update.callback_query.edit_message_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
+             await update.callback_query.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
         else:
              await update.message.reply_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
         return Config.STATE_EP_TARGET
@@ -752,7 +775,7 @@ class EnhancedPostWizard:
     async def handle_target_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         user = query.from_user
-        await query.answer()
+        await query.answer("Publishing...")
         target_id = query.data.replace("target_", "")
         
         data = self.active_wizards[user.id]['data']
@@ -785,9 +808,9 @@ class EnhancedPostWizard:
             else:
                 await context.bot.send_message(target_id, caption, reply_markup=kb, parse_mode=ParseMode.HTML)
             
-            await query.edit_message_text(f"✅ Published! Post ID: {post_id}")
+            await query.message.reply_text(f"✅ Published! Post ID: {post_id}")
         except Exception as e:
-            await query.edit_message_text(f"❌ Error: {e}")
+            await query.message.reply_text(f"❌ Error: {e}")
             
         del self.active_wizards[user.id]
         return ConversationHandler.END
@@ -1124,7 +1147,7 @@ def main():
         
     application.add_error_handler(error_handler)
     
-    print("🚀 SUPREME BOT v10.4 IS RUNNING...")
+    print("🚀 SUPREME BOT v10.5 IS RUNNING...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
