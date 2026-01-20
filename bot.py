@@ -1,1060 +1,689 @@
 """
-================================================================================
-SUPREME GOD BOT - PREMIUM EDITION v10.0 (FIXED)
-FULLY WORKING WITH ALL FEATURES
-================================================================================
+####################################################################################################
+#                                                                                                  #
+#                     সুপ্রিম লাভ ডিস্ট্রিবিউশন সিস্টেম (Supreme Love System)                        #
+#                            এন্টারপ্রাইজ এডিশন v69.0 (বাংলা ভার্সন)                                 #
+#                                                                                                  #
+# ------------------------------------------------------------------------------------------------ #
+#  কপিরাইট      : (C) ২০২৬ সুপ্রিম এআই সলিউশনস                                                       #
+#  লাইসেন্স     : এমআইটি (MIT) ওপেন সোর্স                                                            #
+#  ভাষা         : পাইথন ৩.১১+                                                                     #
+#  ফ্রেমওয়ার্ক  : পাইথন-টেলিগ্রাম-বট (v20.x+)                                                      #
+#  ডাটাবেস      : এসকিউলাইট ৩ (SQLite3) - WAL মোড                                                  #
+# ------------------------------------------------------------------------------------------------ #
+#                                                                                                  #
+#  [ প্রজেক্টের বিবরণ ]                                                                            #
+#  এটি একটি হাই-পারফরমেন্স টেলিগ্রাম বট যা রোমান্টিক এবং হট কন্টেন্ট ডেলিভারির জন্য তৈরি।          #
+#  এটি ব্যবহারকারীদের সাথে ফ্লার্ট করে এবং চ্যানেল ভেরিফিকেশন নিশ্চিত করে।                         #
+#                                                                                                  #
+#  [ লজিক ফ্লো ]                                                                                   #
+#  ১. এডমিন প্যানেল থেকে পোস্ট তৈরি করা হয়।                                                        #
+#  ২. বট চ্যানেলে ব্লার (Spoiler) করা ছবি পোস্ট করে যাতে ইউজাররা আগ্রহী হয়।                        #
+#  ৩. ইউজার "আনলক" বাটনে ক্লিক করলে বট মেম্বারশিপ চেক করে।                                         #
+#     - যদি জয়েন না থাকে: একটি দুষ্টু/হট ওয়ার্নিং পপ-আপ দেয়।                                       #
+#     - যদি জয়েন থাকে: একটি রোমান্টিক ওয়েলকাম পপ-আপ দেয় এবং ইনবক্সে নিয়ে যায়।                      #
+#  ৪. ইনবক্সে বট অরিজিনাল আন-ব্লার ছবি এবং ভিডিও লিংক উপহার দেয়।                                   #
+#                                                                                                  #
+####################################################################################################
 """
 
-import os
 import sys
+import os
 import time
 import json
-import sqlite3
 import logging
-import threading
+import sqlite3
 import asyncio
-from typing import List, Dict, Optional
+import traceback
+import threading
+import datetime
+import signal
+import uuid
+import re
+from typing import List, Dict, Any, Optional, Union, Set, Tuple
+from enum import Enum, auto
+from dataclasses import dataclass, field
 
-# Telegram imports
-from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup,
-    BotCommand
-)
-from telegram.constants import ParseMode
-from telegram.helpers import mention_html
-from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler,
-    ContextTypes, ConversationHandler, MessageHandler,
-    filters, ApplicationBuilder
-)
+# ==================================================================================================
+# [ সেকশন ১ ] : সিস্টেম চেকিং এবং ডিপেন্ডেন্সি লোড
+# ==================================================================================================
 
-# ==============================================================================
-# ⚙️ CONFIGURATION
-# ==============================================================================
+print(">>> [সিস্টেম] লাভ বট সিস্টেম চালু হচ্ছে...")
+print(">>> [সিস্টেম] মডিউল লোড করা হচ্ছে...")
 
-class Config:
-    # Bot Token (Updated)
-    TOKEN = "8007194607:AAHhuMvS3z814Fr2eF_17K1wv8UPXmvA1kY"
-    ADMIN_IDS = {8013042180}  # Add your admin ID here
+try:
+    from telegram import (
+        Update, 
+        InlineKeyboardButton, 
+        InlineKeyboardMarkup, 
+        User,
+        Chat,
+        BotCommand,
+        MenuButtonCommands,
+        InputMediaPhoto,
+        CallbackQuery
+    )
+    from telegram.constants import ParseMode, ChatAction, ChatType
+    from telegram.ext import (
+        ApplicationBuilder, 
+        Application,
+        CommandHandler, 
+        CallbackQueryHandler, 
+        MessageHandler, 
+        ContextTypes, 
+        ConversationHandler, 
+        filters,
+        Defaults,
+        TypeHandler
+    )
+    from telegram.error import (
+        TelegramError, 
+        Forbidden, 
+        BadRequest, 
+        TimedOut, 
+        NetworkError
+    )
+    print(">>> [সাকসেস] সকল লাইব্রেরি সফলভাবে লোড হয়েছে।")
+except ImportError as e:
+    print(f">>> [ত্রুটি] ক্রিটিকাল এরর: {e}")
+    print(">>> [সমাধান] দয়া করে ইন্সটল করুন: pip install python-telegram-bot")
+    sys.exit(1)
+
+# ==================================================================================================
+# [ সেকশন ২ ] : সিস্টেম কনফিগারেশন এবং বাংলা হট মেসেজ
+# ==================================================================================================
+
+class EnvConfig:
+    """
+    গ্লোবাল এনভায়রনমেন্ট কনফিগারেশন।
+    এখানে সব সিক্রেট কি এবং বাংলা টেক্সট রাখা হয়েছে।
+    """
     
-    # Database
-    DB_NAME = "supreme_bot.db"
+    # -------------------------------------------------------------------------
+    # ক্রেডেনশিয়ালস (অবশ্যই পরিবর্তন করবেন)
+    # -------------------------------------------------------------------------
+    BOT_TOKEN: str = "8456027249:AAEqg2j7jhJDSl4R0dnVCqaCvYBJQeG8NM4"
     
-    # System
-    DEFAULT_AUTO_DELETE = 60  # 60 seconds auto delete
+    # এডমিন আইডি (সংখ্যা হতে হবে)
+    ADMIN_IDS: Set[int] = {6406804999}
     
-    # Default Channels
-    DEFAULT_CHANNELS = [
-        {"id": "@virallink259", "name": "Viral Link 2026 🔥", "link": "https://t.me/virallink259"},
-        {"id": -1002279183424, "name": "Premium Apps 💎", "link": "https://t.me/+5PNLgcRBC0IxYjll"},
-        {"id": "@virallink246", "name": "BD Beauty 🍑", "link": "https://t.me/virallink246"},
-        {"id": "@viralexpress1", "name": "FB Insta Links 🔗", "link": "https://t.me/viralexpress1"},
-        {"id": "@movietime467", "name": "Movie Time 🎬", "link": "https://t.me/movietime467"},
-    ]
+    # -------------------------------------------------------------------------
+    # ফাইল পাথ এবং সেটিংস
+    # -------------------------------------------------------------------------
+    DB_PATH: str = "supreme_love_v1.db"
+    LOG_PATH: str = "love_audit.log"
     
-    # Conversation States
-    STATE_POST_TITLE = 1
-    STATE_POST_PHOTO = 2
-    STATE_POST_TEXT = 3
-    STATE_POST_BUTTONS = 4
-    STATE_POST_BUTTON_NAME = 5  # New State for Name
-    STATE_POST_BUTTON_LINK = 6  # New State for Link
-    STATE_POST_FORCE_CHANNELS = 7
-    STATE_POST_TARGET_CHANNEL = 8
-    STATE_POST_CONFIRM = 9
+    # মেম্বারশিপ চেক ক্যাশ টাইম (সেকেন্ড)
+    CACHE_TTL: int = 300  
     
-    STATE_CHANNEL_ADD_ID = 10
-    STATE_CHANNEL_ADD_NAME = 11
-    STATE_CHANNEL_ADD_LINK = 12
-    STATE_BLOCK_USER = 13
-    STATE_ADD_VIP = 14
-    STATE_EDIT_MESSAGE = 15
-    STATE_BROADCAST = 16
+    # ওয়ার্নিং মেসেজ ডিলিট হওয়ার সময়
+    AUTO_DELETE_DELAY: int = 25
     
-    # Emojis
-    EMOJIS = {
-        "heart": "❤️",
-        "fire": "🔥",
-        "star": "⭐",
-        "lock": "🔒",
-        "unlock": "🔓",
-        "check": "✅",
-        "cross": "❌",
-        "users": "👥",
-        "admin": "👑",
-        "camera": "📸",
-        "video": "🎬",
-        "link": "🔗",
-        "time": "⏰",
-        "warn": "⚠️",
-        "info": "ℹ️",
-        "gear": "⚙️",
-        "chart": "📊",
-        "megaphone": "📢",
-        "crown": "👑",
-        "rocket": "🚀",
-        "target": "🎯"
-    }
+    # -------------------------------------------------------------------------
+    # কনভারসেশন স্টেট
+    # -------------------------------------------------------------------------
+    (
+        WIZ_TITLE, WIZ_PHOTO, WIZ_TEXT, WIZ_BTN_MENU, 
+        WIZ_BTN_NAME, WIZ_BTN_LINK, WIZ_TARGET,
+        ADD_CH_ID, ADD_CH_NAME, ADD_CH_LINK
+    ) = range(10)
 
-# ==============================================================================
-# 📝 LOGGING
-# ==============================================================================
+    # -------------------------------------------------------------------------
+    # 🔥 বাংলা হট লাভ মেসেজ কালেকশন (ROMANTIC & TEASING) 🔥
+    # -------------------------------------------------------------------------
+    
+    # যখন ইউজার প্রথম স্টার্ট করবে
+    MSG_WELCOME = (
+        "💋 <b>ওহে হ্যান্ডসাম... {name}!</b>\n\n"
+        "উফফ! অবশেষে তুমি এলে। আমি তোমার জন্যই অপেক্ষা করছিলাম সোনা। 😘\n\n"
+        "আমি তোমার <b>পার্সোনাল প্লেজার অ্যাসিস্ট্যান্ট</b>। "
+        "আমার কাছে এমন কিছু কালেকশন আছে যা দেখলে তোমার হৃদস্পন্দন বেড়ে যাবে... 🔥\n\n"
+        "👇 <i>লজ্জা পেয়ো না, নিচের বাটনে চাপ দাও... আমি তৈরি আছি।</i>"
+    )
+    
+    # চ্যানেলে পোস্টের ভেরিফাই বাটন টেক্সট
+    BTN_VERIFY_TEXT = "🔥 আনলক করতে এখানে চাপ দাও সোনা 💋"
+    
+    # যখন ইউজার চ্যানেলে জয়েন না করে ভেরিফাই চাপবে (Teasing Alert)
+    MSG_ACCESS_DENIED_POPUP = "আহ্! আস্তে... আগে জয়েন করো দুষ্টু ছেলে! 😈"
+    
+    # চ্যানেলে টেম্পোরারি ওয়ার্নিং মেসেজ
+    MSG_ACCESS_DENIED_BODY = (
+        "⛔ <b>উফফ! তুমি বড্ড তাড়াহুড়ো করছো!</b> ⛔\n\n"
+        "প্রিয় {name}, তুমি এখনো আমার প্রাইভেট চ্যানেলে জয়েন করোনি কেন? 🥺\n"
+        "তুমি যদি জয়েন না করো, তাহলে আমি তোমাকে আমার <b>স্পেশাল ভিডিওটা</b> দেখাবো না!\n\n"
+        "👇 <b>প্লিজ সোনা, নিচে জয়েন করো। আমি অপেক্ষা করছি...</b>"
+    )
+    
+    # যখন ভেরিফিকেশন সাকসেস হবে
+    MSG_SUCCESS_REDIRECT = "উফফ দারুণ! চলো আমার বেডরুমে (ইনবক্সে) যাই... 🏃‍♂️💕"
+    
+    # ইনবক্সে ফাইনাল কন্টেন্ট ডেলিভারি মেসেজ
+    MSG_CONTENT_HEADER = (
+        "💖 <b>অবশেষে আমরা একা!</b> 💖\n\n"
+        "কথা দিয়েছিলাম না তোমাকে খুশি করবো? এই নাও তোমার উপহার।\n"
+        "একদম আনসেন্সরড এবং ক্লিয়ার... শুধু তোমার জন্য। উপভোগ করো জান! 💋🔥\n"
+        "➖➖➖➖➖➖➖➖➖➖"
+    )
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+# ==================================================================================================
+# [ সেকশন ৩ ] : লগিং ম্যানেজার
+# ==================================================================================================
 
-# ==============================================================================
-# 🗄️ DATABASE MANAGER
-# ==============================================================================
-
-class DatabaseManager:
+class LogManager:
+    """
+    সিস্টেম লগিং কন্ট্রোলার।
+    """
     _instance = None
-    _lock = threading.RLock()
-    
-    def __new__(cls):
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-    
-    def __init__(self):
-        if self._initialized:
-            return
-            
-        self.db_path = Config.DB_NAME
-        self.connection_pool = {}
-        self.init_database()
-        self._initialized = True
-    
-    def get_connection(self):
-        thread_id = threading.get_ident()
-        
-        with self._lock:
-            if thread_id not in self.connection_pool:
-                conn = sqlite3.connect(self.db_path, check_same_thread=False)
-                conn.row_factory = sqlite3.Row
-                self.connection_pool[thread_id] = conn
-            return self.connection_pool[thread_id]
-    
-    def init_database(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                username TEXT,
-                first_name TEXT,
-                last_name TEXT,
-                join_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
-                is_blocked BOOLEAN DEFAULT 0
+
+    @staticmethod
+    def get_logger():
+        if LogManager._instance is None:
+            logging.basicConfig(
+                level=logging.INFO,
+                format='%(asctime)s | %(levelname)-8s | %(message)s',
+                handlers=[
+                    logging.FileHandler(EnvConfig.LOG_PATH, encoding='utf-8'),
+                    logging.StreamHandler(sys.stdout)
+                ]
             )
-        ''')
-        
-        # Channels table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS channels (
-                channel_id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                link TEXT NOT NULL,
-                force_join BOOLEAN DEFAULT 1,
-                is_active BOOLEAN DEFAULT 1,
-                added_date DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Config table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS config (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            )
-        ''')
-        
-        # Posts table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS posts (
-                post_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                photo_id TEXT,
-                post_text TEXT,
-                buttons TEXT,
-                force_channels TEXT,
-                target_channel_id TEXT,
-                created_by INTEGER,
-                created_date DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Initialize defaults
-        self.initialize_defaults()
-        conn.commit()
-        logger.info("Database initialized successfully")
-    
-    def initialize_defaults(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Default config
-        defaults = [
-            ('welcome_message', '''{heart} {fire} <b>💖✨ওগো শুনছো! স্বাগতম জানাই তোমাকে!💖✨</b> {fire} {heart}
+            logging.getLogger("httpx").setLevel(logging.WARNING)
+            logging.getLogger("telegram").setLevel(logging.INFO)
+            LogManager._instance = logging.getLogger("SupremeLoveBot")
+        return LogManager._instance
 
-{star} <b>❤️তুমি অবশেষে আমাদের মাঝে এসেছো, আমার হৃদয়টা আনন্দে নেচে উঠলো! 😍💃
-তোমাকে ছাড়া আমাদের এই আয়োজন অসম্পূর্ণ ছিল।</b>
+logger = LogManager.get_logger()
 
-{star} <b>💖✨তোমার জন্য যা যা থাকছে::</b>
-🎀 এক্সক্লুসিভ ভাইরাল ভিডিও 🔞
-🎀 নতুন সব কালেকশন 🔥
-🎀 এবং আমার হৃদয়ের ভালোবাসা... ❤️
+# ==================================================================================================
+# [ সেকশন ৪ ] : ডাটাবেস লেয়ার (SQLite3)
+# ==================================================================================================
 
-{link} <b>নিচের বাটনে ক্লিক করে শুরু করুন:</b>'''),
-            
-            ('lock_message', '''{lock} <b>অ্যাক্সেস লক করা আছে!</b>
+class DatabaseController:
+    """
+    ডাটাবেস কন্ট্রোলার। ব্যবহারকারীর তথ্য এবং চ্যানেলের ডাটা ম্যানেজ করে।
+    """
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._initialize_db()
 
-{cross} 😢💔ওহ নো বেবি! তুমি এখনো জয়েন করোনি? আমার লক্ষ্মীটা, তুমি যদি নিচের চ্যানেলগুলোতে জয়েন না করো, তাহলে আমি তোমাকে ভিডিওটা দেখাতে পারবো না! 🥺🥀
-প্লিজ সোনা, রাগ করো না!
+    def _get_connection(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
 
-{info} নিচের সবগুলোতে জয়েন করে💖✨ {check} ভেরিফাই বাটনে ক্লিক করুন। আমি অপেক্ষা করছি... 😘❤️'''),
-            
-            ('success_message', '''💖🔥 Heyyy @UserName 😘💋
-🌹✨ অবশেষে তুমি এসে গেছো, আমার মিষ্টি Love 😍
-💯💎 সব Force Channel Join সম্পন্ন! এখন তোমার জন্য সব দরজা খুলে গেছে 😈🔥
-💋 নিচে Button গুলোতে ক্লিক করো আর মজা নাও 💕💎
-🌹🔥 Stay Hot • Stay Wild • Stay With Us 💋💋.'''),
-            
-            ('failed_message', '''😘🔥 Ohhh @UserName 💔💋
-💞✨ তুমি এখনো সব Channel Join করোনি 😢🔥
-💋 আগে সব Channel Join করো, তারপর Verify Button চাপো 💎💋
-🔥 তখনই Full Premium • Hot • Exclusive Content দেখতে পারবে 😈🔥.'''),
-            
-            ('watch_url', 'https://mmshotbd.blogspot.com/?m=1'),
-            ('button_text', '🎬 ভিডিও দেখুন এখনই! 🔥'),
-            ('auto_delete', '60')
-        ]
-        
-        for key, value in defaults:
-            cursor.execute('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', (key, value))
-        
-        # Add default channels
-        cursor.execute("SELECT COUNT(*) FROM channels")
-        if cursor.fetchone()[0] == 0:
-            for channel in Config.DEFAULT_CHANNELS:
-                cursor.execute('''
-                    INSERT OR IGNORE INTO channels (channel_id, name, link)
-                    VALUES (?, ?, ?)
-                ''', (str(channel["id"]), channel["name"], channel["link"]))
-        
-        conn.commit()
-    
-    # === User Management ===
-    def add_user(self, user_id, username, first_name, last_name=""):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR REPLACE INTO users 
-            (user_id, username, first_name, last_name, last_active)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (user_id, username, first_name, last_name))
-        conn.commit()
-        return True
-    
-    def update_user_activity(self, user_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE user_id = ?', (user_id,))
-        conn.commit()
-    
-    def get_user(self, user_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-        row = cursor.fetchone()
-        return dict(row) if row else None
-    
-    def block_user(self, user_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('UPDATE users SET is_blocked = 1 WHERE user_id = ?', (user_id,))
-        conn.commit()
-        return cursor.rowcount > 0
-    
-    def unblock_user(self, user_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('UPDATE users SET is_blocked = 0 WHERE user_id = ?', (user_id,))
-        conn.commit()
-        return cursor.rowcount > 0
-    
-    # === Channel Management ===
-    def get_channels(self, force_only=False, active_only=True):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        query = "SELECT * FROM channels WHERE 1=1"
-        if active_only:
-            query += " AND is_active = 1"
-        if force_only:
-            query += " AND force_join = 1"
-        
-        query += " ORDER BY name"
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        return [dict(row) for row in rows]
-    
-    def add_channel(self, channel_id, name, link, force_join=True):
-        conn = self.get_connection()
+    def _initialize_db(self):
+        conn = self._get_connection()
         cursor = conn.cursor()
         try:
+            # ইউজার টেবিল
             cursor.execute('''
-                INSERT OR REPLACE INTO channels (channel_id, name, link, force_join)
-                VALUES (?, ?, ?, ?)
-            ''', (str(channel_id), name, link, force_join))
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INTEGER PRIMARY KEY,
+                    username TEXT,
+                    first_name TEXT,
+                    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            # চ্যানেল টেবিল
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS channels (
+                    channel_id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    invite_link TEXT NOT NULL,
+                    is_active BOOLEAN DEFAULT 1
+                )
+            ''')
+            # পোস্ট টেবিল
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS posts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT,
+                    photo_file_id TEXT,
+                    caption TEXT,
+                    buttons_json TEXT,
+                    required_channels_json TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            conn.commit()
+            logger.info("ডাটাবেস ইনিশিয়ালাইজেশন সম্পন্ন হয়েছে।")
+        except Exception as e:
+            logger.error(f"ডাটাবেস এরর: {e}")
+        finally:
+            conn.close()
+
+    def upsert_user(self, user: User):
+        conn = self._get_connection()
+        try:
+            conn.execute('''
+                INSERT OR REPLACE INTO users (user_id, username, first_name)
+                VALUES (?, ?, ?)
+            ''', (user.id, user.username, user.first_name))
+            conn.commit()
+        except Exception as e:
+            logger.error(f"ইউজার সেভ এরর: {e}")
+        finally:
+            conn.close()
+
+    def add_channel(self, c_id, name, link):
+        conn = self._get_connection()
+        try:
+            conn.execute('''
+                INSERT OR REPLACE INTO channels (channel_id, name, invite_link, is_active)
+                VALUES (?, ?, ?, 1)
+            ''', (c_id, name, link))
             conn.commit()
             return True
-        except Exception as e:
-            logger.error(f"Error adding channel: {e}")
+        except Exception:
             return False
-    
-    def remove_channel(self, channel_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE channels SET is_active = 0 WHERE channel_id = ?", (str(channel_id),))
-        conn.commit()
-        return cursor.rowcount > 0
-    
-    def toggle_force_join(self, channel_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE channels 
-            SET force_join = NOT force_join 
-            WHERE channel_id = ?
-        ''', (str(channel_id),))
-        conn.commit()
-        cursor.execute("SELECT force_join FROM channels WHERE channel_id = ?", (str(channel_id),))
-        result = cursor.fetchone()
-        return result[0] if result else False
-    
-    # === Config Management ===
-    def get_config(self, key, default=""):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT value FROM config WHERE key = ?", (key,))
-        result = cursor.fetchone()
-        
-        if result:
-            value = result[0]
-            for emoji_key, emoji in Config.EMOJIS.items():
-                value = value.replace(f"{{{emoji_key}}}", emoji)
-            return value
-        return default
-    
-    def set_config(self, key, value):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT OR REPLACE INTO config (key, value)
-            VALUES (?, ?)
-        ''', (key, value))
-        conn.commit()
-        return True
-    
-    # === Post Management ===
-    def save_post(self, title, photo_id, post_text, buttons, force_channels, target_channel_id, created_by):
-        conn = self.get_connection()
-        cursor = conn.cursor()
+        finally:
+            conn.close()
+
+    def get_active_channels(self) -> List[Dict]:
+        conn = self._get_connection()
         try:
-            cursor.execute('''
-                INSERT INTO posts (title, photo_id, post_text, buttons, force_channels, target_channel_id, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (title, photo_id, post_text, json.dumps(buttons), 
-                  json.dumps(force_channels), target_channel_id, created_by))
-            
-            post_id = cursor.lastrowid
+            cursor = conn.execute("SELECT * FROM channels WHERE is_active = 1")
+            return [dict(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def create_post(self, title, photo, caption, buttons, channels) -> int:
+        conn = self._get_connection()
+        try:
+            cursor = conn.execute('''
+                INSERT INTO posts (title, photo_file_id, caption, buttons_json, required_channels_json)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (title, photo, caption, json.dumps(buttons), json.dumps(channels)))
             conn.commit()
-            return post_id
+            return cursor.lastrowid
         except Exception as e:
-            logger.error(f"Error saving post: {e}")
+            logger.error(f"পোস্ট তৈরি এরর: {e}")
+            return 0
+        finally:
+            conn.close()
+
+    def get_post(self, post_id: int) -> Optional[Dict]:
+        conn = self._get_connection()
+        try:
+            cursor = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,))
+            row = cursor.fetchone()
+            if row:
+                d = dict(row)
+                d['buttons'] = json.loads(d['buttons_json'])
+                d['channels'] = json.loads(d['required_channels_json'])
+                return d
             return None
-    
-    def get_post(self, post_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM posts WHERE post_id = ?', (post_id,))
-        row = cursor.fetchone()
-        if row:
-            post = dict(row)
-            if post.get('buttons'):
-                post['buttons'] = json.loads(post['buttons'])
-            if post.get('force_channels'):
-                post['force_channels'] = json.loads(post['force_channels'])
-            return post
-        return None
-    
-    # === Statistics ===
-    def get_stats(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        stats = {}
-        cursor.execute("SELECT COUNT(*) FROM users")
-        stats['total_users'] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM users WHERE DATE(join_date) = DATE('now')")
-        stats['today_users'] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM users WHERE is_blocked = 1")
-        stats['blocked_users'] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM channels WHERE is_active = 1")
-        stats['active_channels'] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM channels WHERE force_join = 1 AND is_active = 1")
-        stats['force_channels'] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM posts")
-        stats['total_posts'] = cursor.fetchone()[0]
-        return stats
+        finally:
+            conn.close()
 
-db = DatabaseManager()
+db = DatabaseController(EnvConfig.DB_PATH)
 
-# ==============================================================================
-# 🎨 UI MANAGER
-# ==============================================================================
+# ==================================================================================================
+# [ সেকশন ৫ ] : সিকিউরিটি এবং ভেরিফিকেশন গার্ড
+# ==================================================================================================
 
-class UIManager:
-    @staticmethod
-    def format_text(text: str, user=None):
-        for key, emoji in Config.EMOJIS.items():
-            text = text.replace(f"{{{key}}}", emoji)
-        if user:
-            user_mention = mention_html(user.id, user.first_name or 'User')
-            text = text.replace("@UserName", user_mention)
-        return text
-    
-    @staticmethod
-    def create_keyboard(buttons, add_back=True, add_close=False):
-        keyboard = []
-        for row in buttons:
-            keyboard_row = []
-            for btn in row:
-                if 'url' in btn:
-                    keyboard_row.append(InlineKeyboardButton(btn['text'], url=btn['url']))
-                else:
-                    keyboard_row.append(InlineKeyboardButton(btn['text'], callback_data=btn['callback']))
-            keyboard.append(keyboard_row)
-        
-        if add_back:
-            keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="main_menu")])
-        if add_close:
-            keyboard.append([InlineKeyboardButton("❌ Close", callback_data="close_panel")])
-        return InlineKeyboardMarkup(keyboard)
-    
-    @staticmethod
-    def get_admin_menu():
-        buttons = [
-            [
-                {"text": "📝 Message Editor", "callback": "menu_messages"},
-                {"text": "📢 Channel Manager", "callback": "menu_channels"}
-            ],
-            [
-                {"text": "🎯 Create Post", "callback": "create_post_start"},
-                {"text": "📢 Broadcast", "callback": "broadcast_start"}
-            ],
-            [
-                {"text": "🛡️ User Management", "callback": "menu_users"},
-                {"text": "📊 Statistics", "callback": "menu_stats"}
-            ],
-            [
-                {"text": "⚙️ Settings", "callback": "menu_settings"}
-            ]
-        ]
-        return UIManager.create_keyboard(buttons, add_back=False, add_close=True)
-    
-    @staticmethod
-    def create_channel_buttons(channels, prefix="select_channel"):
-        buttons = []
-        row = []
-        for i, channel in enumerate(channels):
-            row.append({
-                "text": f"📢 {channel['name'][:15]}",
-                "callback": f"{prefix}_{channel['channel_id']}"
-            })
-            if len(row) == 2 or i == len(channels) - 1:
-                buttons.append(row)
-                row = []
-        return buttons
-
-ui = UIManager()
-
-# ==============================================================================
-# 🔐 SECURITY MANAGER
-# ==============================================================================
-
-class SecurityManager:
+class SecurityGuard:
+    """
+    মেম্বারশিপ চেক এবং ক্যাশিং সিস্টেম।
+    """
     def __init__(self):
-        self.verification_cache = {}
-    
-    async def check_membership(self, user_id, bot, channel_ids=None):
-        cache_key = f"membership_{user_id}"
-        if cache_key in self.verification_cache:
-            cached_time, result = self.verification_cache[cache_key]
-            if time.time() - cached_time < 300:
-                return result
+        self._cache = {}
+        self._lock = threading.Lock()
+
+    async def check_membership(self, user_id: int, bot: Application, required_ids: List[str]) -> List[Dict]:
+        # ১. ক্যাশ চেক করা
+        current_time = time.time()
+        with self._lock:
+            if user_id in self._cache:
+                if current_time - self._cache[user_id]['time'] < EnvConfig.CACHE_TTL:
+                    return self._cache[user_id]['missing']
+
+        # ২. লাইভ এপিআই চেক
+        db_channels = {ch['channel_id']: ch for ch in db.get_active_channels()}
+        missing = []
         
-        missing_channels = []
-        if not channel_ids:
-            channels = db.get_channels(force_only=True, active_only=True)
-        else:
-            all_channels = db.get_channels(active_only=True)
-            channels = [ch for ch in all_channels if ch['channel_id'] in channel_ids]
-        
-        for channel in channels:
+        for ch_id in required_ids:
+            if ch_id not in db_channels: continue
+            
             try:
-                member = await bot.get_chat_member(
-                    chat_id=channel['channel_id'],
-                    user_id=user_id
-                )
-                if member.status in ['left', 'kicked']:
-                    missing_channels.append(channel)
-            except Exception as e:
-                logger.warning(f"Failed to check channel {channel['channel_id']}: {e}")
-                missing_channels.append(channel)
+                member = await bot.get_chat_member(chat_id=ch_id, user_id=user_id)
+                if member.status in ['left', 'kicked', 'banned']:
+                    missing.append(db_channels[ch_id])
+            except BadRequest:
+                missing.append(db_channels[ch_id]) # বট এডমিন না থাকলে
+            except Exception:
+                missing.append(db_channels[ch_id])
+
+        # ৩. ক্যাশ আপডেট
+        with self._lock:
+            self._cache[user_id] = {'time': current_time, 'missing': missing}
         
-        self.verification_cache[cache_key] = (time.time(), missing_channels)
-        return missing_channels
+        return missing
+
+    def clear_cache(self, user_id: int):
+        with self._lock:
+            if user_id in self._cache:
+                del self._cache[user_id]
+
+security = SecurityGuard()
+
+# ==================================================================================================
+# [ সেকশন ৬ ] : এডমিন উইজার্ড (পোস্ট তৈরি)
+# ==================================================================================================
+
+class AdminWizard:
+    """
+    এডমিনদের জন্য পোস্ট তৈরির অটোমেটেড সিস্টেম।
+    """
     
-    def clear_user_cache(self, user_id):
-        cache_key = f"membership_{user_id}"
-        if cache_key in self.verification_cache:
-            del self.verification_cache[cache_key]
-
-security = SecurityManager()
-
-# ==============================================================================
-# 🎯 POST WIZARD (FIXED)
-# ==============================================================================
-
-class PostWizard:
-    def __init__(self):
-        self.active_wizards = {}
-    
-    async def start_wizard(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # --- পোস্ট ক্রিয়েশন ---
+    @staticmethod
+    async def start_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
-        user = query.from_user
-        
-        self.active_wizards[user.id] = {
-            'step': 'title',
-            'data': {'buttons': []}
-        }
-        
         await query.answer()
-        await query.edit_message_text(
-            ui.format_text("📝 <b>🎯 Create New Post - Step 1/6</b>\n\n"
-                          "✏️ Please send the <b>POST TITLE</b>:", user),
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_TITLE
-    
-    async def handle_title(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        if user.id not in self.active_wizards:
-            await update.message.reply_text("❌ Session expired. Please start again.")
-            return ConversationHandler.END
-        
-        title = update.message.text
-        self.active_wizards[user.id]['data']['title'] = title
-        self.active_wizards[user.id]['step'] = 'photo'
-        
-        await update.message.reply_text(
-            ui.format_text("📸 <b>🎯 Create New Post - Step 2/6</b>\n\n"
-                          "🖼️ Please send the <b>POST PHOTO</b>:", user),
-            parse_mode=ParseMode.HTML
-        )
-        return Config.STATE_POST_PHOTO
-    
-    async def handle_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        if user.id not in self.active_wizards:
-            return ConversationHandler.END
-        
-        if update.message.photo:
-            photo_id = update.message.photo[-1].file_id
-            self.active_wizards[user.id]['data']['photo_id'] = photo_id
-            self.active_wizards[user.id]['step'] = 'text'
-            
-            await update.message.reply_text(
-                ui.format_text("📝 <b>🎯 Create New Post - Step 3/6</b>\n\n"
-                              "💬 Please send the <b>POST TEXT</b> (or type /skip):", user),
-                parse_mode=ParseMode.HTML
-            )
-            return Config.STATE_POST_TEXT
-        else:
-            await update.message.reply_text("❌ Please send a photo!")
-            return Config.STATE_POST_PHOTO
-    
-    async def handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        if user.id not in self.active_wizards:
-            return ConversationHandler.END
-        
-        if update.message.text and update.message.text.lower() != '/skip':
-            self.active_wizards[user.id]['data']['post_text'] = update.message.text
-        
-        self.active_wizards[user.id]['step'] = 'buttons'
-        return await self.show_button_menu(update, context, user)
+        context.user_data['post'] = {'buttons': []}
+        await query.message.reply_text("📝 <b>ধাপ ১: পোস্টের একটি হট টাইটেল দিন:</b>", parse_mode=ParseMode.HTML)
+        return EnvConfig.WIZ_TITLE
 
-    async def show_button_menu(self, update, context, user):
-        buttons = [[{"text": "➕ Add Button", "callback": "add_button"}]]
+    @staticmethod
+    async def get_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        context.user_data['post']['title'] = update.message.text
+        await update.message.reply_text("📸 <b>ধাপ ২: একটি আকর্ষণীয় ছবি (Cover Photo) দিন:</b>", parse_mode=ParseMode.HTML)
+        return EnvConfig.WIZ_PHOTO
+
+    @staticmethod
+    async def get_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not update.message.photo:
+            await update.message.reply_text("❌ দয়া করে একটি ছবি পাঠান।")
+            return EnvConfig.WIZ_PHOTO
         
-        if self.active_wizards[user.id]['data']['buttons']:
-            buttons.append([{"text": "➡️ Continue", "callback": "continue_buttons"}])
+        context.user_data['post']['photo'] = update.message.photo[-1].file_id
+        await update.message.reply_text("💬 <b>ধাপ ৩: ক্যাপশন দিন (অথবা /skip লিখুন):</b>", parse_mode=ParseMode.HTML)
+        return EnvConfig.WIZ_TEXT
+
+    @staticmethod
+    async def get_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        text = update.message.text
+        context.user_data['post']['caption'] = "" if text == '/skip' else text
+        return await AdminWizard.render_buttons(update, context)
+
+    @staticmethod
+    async def render_buttons(update, context):
+        buttons = context.user_data['post']['buttons']
+        msg = f"🔘 <b>ধাপ ৪: বাটন ম্যানেজমেন্ট</b>\nযুক্ত হয়েছে: {len(buttons)} টি\n"
+        for b in buttons: msg += f"▫️ {b['name']} -> {b['link']}\n"
             
-            # Show current buttons
-            current_buttons = self.active_wizards[user.id]['data']['buttons']
-            preview_text = "Current buttons:\n" + "\n".join([f"{i+1}. {btn['name']}" for i, btn in enumerate(current_buttons)])
-        else:
-            preview_text = "No buttons added yet."
-            
-        keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True)
-        
-        msg_text = ui.format_text("🔘 <b>🎯 Create New Post - Step 4/6</b>\n\n"
-                                 "🔗 <b>Button Management</b>\n\n"
-                                 f"{preview_text}\n\n"
-                                 "Click 'Add Button' to add button or 'Continue' to proceed:", user)
+        kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton("➕ বাটন যুক্ত করুন", callback_data="add_btn")],
+            [InlineKeyboardButton("✅ পোস্ট করুন", callback_data="finish")]
+        ])
         
         if update.callback_query:
-            await update.callback_query.edit_message_text(msg_text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+            await update.callback_query.message.edit_text(msg, reply_markup=kb, parse_mode=ParseMode.HTML)
         else:
-            await update.message.reply_text(msg_text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
-            
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_button_management(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+            await update.message.reply_text(msg, reply_markup=kb, parse_mode=ParseMode.HTML)
+        return EnvConfig.WIZ_BTN_MENU
+
+    @staticmethod
+    async def menu_callback(update, context):
         query = update.callback_query
-        user = query.from_user
-        
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Session expired!")
-            return ConversationHandler.END
-        
-        data = query.data
-        
-        if data == "add_button":
-            await query.edit_message_text(
-                ui.format_text("🔘 <b>Add Button - Step 1/2</b>\n\n"
-                              "✏️ Please send the <b>BUTTON NAME</b>:", user),
-                parse_mode=ParseMode.HTML
-            )
-            return Config.STATE_POST_BUTTON_NAME
-        
-        elif data == "continue_buttons":
-            if not self.active_wizards[user.id]['data']['buttons']:
-                await query.answer("❌ Please add at least one button!")
-                return Config.STATE_POST_BUTTONS
-            
-            # Move to force channel selection
-            self.active_wizards[user.id]['step'] = 'force_channels'
-            force_channels = db.get_channels(force_only=True, active_only=True)
-            self.active_wizards[user.id]['data']['force_channels'] = []
-            
-            if not force_channels:
-                await query.answer("❌ No force channels found!")
-                # Skip to target channel if no force channels
-                return await self.handle_force_channel_selection(update, context, skip=True)
-
-            channel_buttons = ui.create_channel_buttons(force_channels, prefix="select_force")
-            channel_buttons.append([
-                {"text": "✅ Select All", "callback": "select_all_force"},
-                {"text": "➡️ Continue", "callback": "continue_force"}
-            ])
-            keyboard = ui.create_keyboard(channel_buttons, add_back=True, add_close=True)
-            
-            await query.edit_message_text(
-                ui.format_text(f"🎯 <b>Step 5/6: Force Channels</b>\n\nSelect Channels users MUST join:", user),
-                reply_markup=keyboard, parse_mode=ParseMode.HTML
-            )
-            return Config.STATE_POST_FORCE_CHANNELS
-        
-        return Config.STATE_POST_BUTTONS
-    
-    async def handle_button_name(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        if user.id not in self.active_wizards:
-            return ConversationHandler.END
-        
-        context.user_data['temp_btn_name'] = update.message.text
-        await update.message.reply_text("🔗 <b>Add Button - Step 2/2</b>\n\n🌐 Send <b>BUTTON LINK</b>:", parse_mode=ParseMode.HTML)
-        return Config.STATE_POST_BUTTON_LINK
-
-    async def handle_button_link(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        if user.id not in self.active_wizards:
-            return ConversationHandler.END
-        
-        link = update.message.text
-        if not link.startswith(('http://', 'https://')):
-            await update.message.reply_text("❌ Invalid URL! Start with http:// or https://")
-            return Config.STATE_POST_BUTTON_LINK
-            
-        name = context.user_data.get('temp_btn_name', 'Button')
-        self.active_wizards[user.id]['data']['buttons'].append({'name': name, 'link': link})
-        
-        await update.message.reply_text("✅ Button Added!")
-        return await self.show_button_menu(update, context, user)
-
-    async def handle_force_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, skip=False):
-        if skip:
-            # Logic to jump to target channel selection
-            all_channels = db.get_channels(active_only=True)
-            channel_buttons = ui.create_channel_buttons(all_channels, prefix="select_target")
-            keyboard = ui.create_keyboard(channel_buttons, add_back=True, add_close=True)
-            
-            # If called via skip, we need to send a new message or edit
-            if update.callback_query:
-                await update.callback_query.edit_message_text(
-                    "📤 <b>Step 6/6: Select TARGET CHANNEL</b> to post:",
-                    reply_markup=keyboard, parse_mode=ParseMode.HTML
-                )
-            return Config.STATE_POST_TARGET_CHANNEL
-
-        query = update.callback_query
-        user = query.from_user
-        if user.id not in self.active_wizards:
-            return ConversationHandler.END
-            
-        data = query.data
-        
-        if data == "select_all_force":
-            force_channels = db.get_channels(force_only=True, active_only=True)
-            self.active_wizards[user.id]['data']['force_channels'] = [ch['channel_id'] for ch in force_channels]
-            await query.answer("✅ Selected All")
-            
-        elif data.startswith("select_force_"):
-            cid = data.replace("select_force_", "")
-            current = self.active_wizards[user.id]['data']['force_channels']
-            if cid in current:
-                current.remove(cid)
-                await query.answer("❌ Deselected")
-            else:
-                current.append(cid)
-                await query.answer("✅ Selected")
-                
-        elif data == "continue_force":
-            if not self.active_wizards[user.id]['data']['force_channels']:
-                await query.answer("⚠️ Select at least one channel or remove force restriction settings.")
-            
-            # Move to target
-            all_channels = db.get_channels(active_only=True)
-            if not all_channels:
-                await query.answer("❌ No channels found!")
+        if query.data == "add_btn":
+            await query.message.reply_text("✏️ বাটনের নাম লিখুন:")
+            return EnvConfig.WIZ_BTN_NAME
+        elif query.data == "finish":
+            channels = db.get_active_channels()
+            if not channels:
+                await query.message.reply_text("❌ ডাটাবেসে কোনো চ্যানেল পাওয়া যায়নি।")
                 return ConversationHandler.END
-                
-            channel_buttons = ui.create_channel_buttons(all_channels, prefix="select_target")
-            keyboard = ui.create_keyboard(channel_buttons, add_back=True, add_close=True)
             
-            await query.edit_message_text(
-                "📤 <b>Step 6/6: Select TARGET CHANNEL</b> to post:",
-                reply_markup=keyboard, parse_mode=ParseMode.HTML
-            )
-            return Config.STATE_POST_TARGET_CHANNEL
-            
-        # Refresh buttons
-        force_channels = db.get_channels(force_only=True, active_only=True)
-        channel_buttons = []
-        row = []
-        for i, ch in enumerate(force_channels):
-            is_sel = ch['channel_id'] in self.active_wizards[user.id]['data']['force_channels']
-            emoji = "✅" if is_sel else "📢"
-            row.append({"text": f"{emoji} {ch['name'][:12]}", "callback": f"select_force_{ch['channel_id']}"})
-            if len(row) == 2 or i == len(force_channels) - 1:
-                channel_buttons.append(row)
-                row = []
-                
-        channel_buttons.append([
-            {"text": "✅ Select All", "callback": "select_all_force"},
-            {"text": f"➡️ Continue ({len(self.active_wizards[user.id]['data']['force_channels'])})", "callback": "continue_force"}
-        ])
-        await query.edit_message_reply_markup(ui.create_keyboard(channel_buttons, add_back=True, add_close=True))
-        return Config.STATE_POST_FORCE_CHANNELS
+            kb = [[InlineKeyboardButton(f"📢 {ch['name']}", callback_data=f"tgt_{ch['channel_id']}")] for ch in channels]
+            await query.message.edit_text("📤 <b>ধাপ ৫: কোন চ্যানেলে পোস্ট করবেন?</b>", reply_markup=InlineKeyboardMarkup(kb), parse_mode=ParseMode.HTML)
+            return EnvConfig.WIZ_TARGET
 
-    async def handle_target_channel_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        query = update.callback_query
-        user = query.from_user
-        
-        if query.data.startswith("select_target_"):
-            cid = query.data.replace("select_target_", "")
-            channel = next((ch for ch in db.get_channels(active_only=True) if ch['channel_id'] == cid), None)
-            
-            if not channel:
-                await query.answer("❌ Channel not found!")
-                return Config.STATE_POST_TARGET_CHANNEL
-                
-            self.active_wizards[user.id]['data']['target_channel_id'] = cid
-            self.active_wizards[user.id]['data']['target_channel_name'] = channel['name']
-            
-            # Preview
-            data = self.active_wizards[user.id]['data']
-            preview = f"📝 <b>Title:</b> {data['title']}\n"
-            preview += f"🔘 <b>Buttons:</b> {len(data['buttons'])}\n"
-            preview += f"🎯 <b>Force Channels:</b> {len(data['force_channels'])}\n"
-            preview += f"📤 <b>Target:</b> {data['target_channel_name']}\n"
-            
-            buttons = [[{"text": "🚀 Post Now", "callback": "final_post"}]]
-            keyboard = ui.create_keyboard(buttons, add_back=True, add_close=True)
-            
-            await query.edit_message_text(
-                ui.format_text(f"🎯 <b>FINAL CONFIRMATION</b>\n\n{preview}\n⚠️ <b>Click 'Post Now' to confirm:</b>", user),
-                reply_markup=keyboard, parse_mode=ParseMode.HTML
-            )
-            return Config.STATE_POST_CONFIRM
-        return Config.STATE_POST_TARGET_CHANNEL
+    @staticmethod
+    async def btn_name(update, context):
+        context.user_data['temp'] = update.message.text
+        await update.message.reply_text("🔗 বাটনের লিংক দিন:")
+        return EnvConfig.WIZ_BTN_LINK
 
-    async def finalize_post(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    @staticmethod
+    async def btn_link(update, context):
+        context.user_data['post']['buttons'].append({
+            'name': context.user_data['temp'], 'link': update.message.text
+        })
+        return await AdminWizard.render_buttons(update, context)
+
+    @staticmethod
+    async def finalize(update, context):
         query = update.callback_query
-        user = query.from_user
+        target = query.data.replace("tgt_", "")
+        data = context.user_data['post']
         
-        if user.id not in self.active_wizards:
-            await query.answer("❌ Session expired!")
-            return ConversationHandler.END
-            
-        data = self.active_wizards[user.id]['data']
+        # ডাটাবেসে সেভ
+        channels = [ch['channel_id'] for ch in db.get_active_channels()]
+        pid = db.create_post(data['title'], data['photo'], data['caption'], data['buttons'], channels)
         
-        post_id = db.save_post(
-            data['title'], data.get('photo_id', ''), data.get('post_text', ''),
-            data['buttons'], data['force_channels'], data['target_channel_id'], user.id
+        # ভেরিফাই বাটন
+        verify_kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton(EnvConfig.BTN_VERIFY_TEXT, callback_data=f"verify_{pid}")
+        ]])
+        
+        # পাবলিক ক্যাপশন (টিজার)
+        public_caption = (
+            f"<b>{data['title']}</b>\n\n"
+            f"{data['caption'][:60]}...\n\n"
+            f"🔒 <b>এই কন্টেন্টটি লক করা আছে!</b>\n"
+            f"<i>ভিতরের দৃশ্য দেখতে নিচের বাটনে চাপ দিয়ে ভেরিফাই করুন।</i> 🔥"
         )
         
-        if post_id:
-            # Construct message
-            key_btns = []
-            for btn in data['buttons']:
-                key_btns.append([InlineKeyboardButton(btn['name'], url=btn['link'])])
-            key_btns.append([InlineKeyboardButton("🔓 Verify & View", callback_data=f"view_post_{post_id}")])
-            keyboard = InlineKeyboardMarkup(key_btns)
+        try:
+            # ব্লার বা স্পয়লার ইফেক্ট সহ পাঠানো
+            await context.bot.send_photo(
+                chat_id=target,
+                photo=data['photo'],
+                caption=public_caption,
+                reply_markup=verify_kb,
+                has_spoiler=True,  # <--- ব্লার ফিচার
+                parse_mode=ParseMode.HTML
+            )
+            await query.message.edit_text(f"✅ <b>সফলভাবে পোস্ট করা হয়েছে!</b>\nID: {pid}")
+        except Exception as e:
+            await query.message.edit_text(f"❌ এরর: {e}")
             
-            caption = f"<b>{data['title']}</b>\n\n"
-            if data.get('post_text'):
-                caption += f"{data['post_text']}\n\n"
-            caption += f"🔒 <i>Click 'Verify & View' to access content.</i>"
-            
-            try:
-                if 'photo_id' in data and data['photo_id']:
-                    await context.bot.send_photo(chat_id=data['target_channel_id'], photo=data['photo_id'], caption=caption, reply_markup=keyboard, parse_mode=ParseMode.HTML)
-                else:
-                    await context.bot.send_message(chat_id=data['target_channel_id'], text=caption, reply_markup=keyboard, parse_mode=ParseMode.HTML)
-                
-                await query.edit_message_text(f"✅ <b>Post Sent! ID: {post_id}</b>", parse_mode=ParseMode.HTML)
-            except Exception as e:
-                await query.edit_message_text(f"❌ Error sending to channel: {e}")
-        else:
-            await query.answer("Database Error!")
-            
-        del self.active_wizards[user.id]
         return ConversationHandler.END
 
-post_wizard = PostWizard()
+    # --- চ্যানেল অ্যাড ---
+    @staticmethod
+    async def ch_start(update, context):
+        await update.callback_query.message.reply_text("🆔 চ্যানেলের আইডি দিন (যেমন: -100...):")
+        return EnvConfig.ADD_CH_ID
+    @staticmethod
+    async def ch_id(update, context):
+        context.user_data['cid'] = update.message.text
+        await update.message.reply_text("📝 চ্যানেলের নাম দিন:")
+        return EnvConfig.ADD_CH_NAME
+    @staticmethod
+    async def ch_name(update, context):
+        context.user_data['cname'] = update.message.text
+        await update.message.reply_text("🔗 চ্যানেলের ইনভাইট লিংক দিন:")
+        return EnvConfig.ADD_CH_LINK
+    @staticmethod
+    async def ch_link(update, context):
+        db.add_channel(context.user_data['cid'], context.user_data['cname'], update.message.text)
+        await update.message.reply_text("✅ চ্যানেল সফলভাবে অ্যাড হয়েছে!")
+        return ConversationHandler.END
 
-# ==============================================================================
-# 🎮 COMMAND HANDLERS
-# ==============================================================================
+# ==================================================================================================
+# [ সেকশন ৭ ] : ইউজার হ্যান্ডলিং (ভেরিফিকেশন ও রিডাইরেক্ট)
+# ==================================================================================================
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    db.add_user(user.id, user.username, user.first_name, user.last_name or "")
-    db.update_user_activity(user.id)
-    
-    if db.get_user(user.id).get('is_blocked'):
-        await update.message.reply_text("🚫 Restricted Access.")
-        return
-    
-    missing = await security.check_membership(user.id, context.bot)
-    if missing:
-        lock_msg = db.get_config('lock_message')
-        buttons = [[{"text": f"📢 Join {ch['name']}", "url": ch['link']}] for ch in missing]
-        buttons.append([{"text": "✅ Verify Membership", "callback": "verify_membership"}])
-        await update.message.reply_text(ui.format_text(lock_msg, user), reply_markup=ui.create_keyboard(buttons, False), parse_mode=ParseMode.HTML)
-    else:
-        await send_welcome(update, user)
-
-async def send_welcome(update, user):
-    welcome_msg = db.get_config('welcome_message')
-    btn_text = db.get_config('button_text')
-    watch_url = db.get_config('watch_url')
-    kb = InlineKeyboardMarkup([[InlineKeyboardButton(btn_text, url=watch_url)]])
-    
-    msg = await update.message.reply_text(ui.format_text(welcome_msg, user), reply_markup=kb, parse_mode=ParseMode.HTML)
-    
-    auto_delete = int(db.get_config('auto_delete', Config.DEFAULT_AUTO_DELETE))
-    if auto_delete > 0:
-        asyncio.create_task(delete_later(msg, auto_delete))
-
-async def delete_later(message, delay):
-    await asyncio.sleep(delay)
-    try:
-        await message.delete()
-    except:
-        pass
-
-async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in Config.ADMIN_IDS: return
-    await update.message.reply_text("👑 <b>Admin Panel</b>", reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
-
-# ==============================================================================
-# 🔄 CALLBACK HANDLER
-# ==============================================================================
-
-async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def verify_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    ইউজার যখন 'আনলক' বাটনে চাপ দেয়।
+    """
     query = update.callback_query
     user = query.from_user
-    data = query.data
     
-    db.update_user_activity(user.id)
+    # ইউজার রেজিস্টার
+    db.upsert_user(user)
     
-    if data == "verify_membership":
-        security.clear_user_cache(user.id)
-        missing = await security.check_membership(user.id, context.bot)
-        if not missing:
-            await query.answer("✅ Verified!", show_alert=True)
-            await query.message.delete()
-            await send_welcome(query, user)
-        else:
-            await query.answer("❌ Join all channels first!", show_alert=True)
-            
-    elif data == "main_menu":
-        if user.id in Config.ADMIN_IDS:
-            await query.edit_message_text("👑 <b>Admin Panel</b>", reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
-            
-    elif data == "close_panel":
-        await query.message.delete()
-        
-    # Admin Menus
-    elif data == "menu_messages":
-        buttons = [[
-            {"text": "✏️ Welcome Msg", "callback": "edit_welcome_message"},
-            {"text": "✏️ Lock Msg", "callback": "edit_lock_message"}
-        ]]
-        await query.edit_message_text("📝 Select Message to Edit:", reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
-        
-    elif data == "create_post_start":
-        return await post_wizard.start_wizard(update, context)
-        
-    elif data.startswith("edit_"):
-        key = data.replace("edit_", "")
-        context.user_data['edit_key'] = key
-        await query.message.reply_text(f"✏️ Send new value for <b>{key}</b>:", parse_mode=ParseMode.HTML)
-        return Config.STATE_EDIT_MESSAGE
+    try:
+        pid = int(query.data.replace("verify_", ""))
+    except:
+        await query.answer("❌ এরর!", show_alert=True)
+        return
 
-    elif data == "add_channel":
-        await query.message.reply_text("➕ Send Channel ID:", parse_mode=ParseMode.HTML)
-        return Config.STATE_CHANNEL_ADD_ID
-
-# ==============================================================================
-# ✏️ SIMPLE HANDLERS
-# ==============================================================================
-
-async def edit_config_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    key = context.user_data.get('edit_key')
-    if db.set_config(key, update.message.text):
-        await update.message.reply_text(f"✅ {key} updated!")
-    return ConversationHandler.END
-
-async def add_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['cid'] = update.message.text
-    await update.message.reply_text("📝 Send Channel Name:")
-    return Config.STATE_CHANNEL_ADD_NAME
-
-async def add_channel_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['cname'] = update.message.text
-    await update.message.reply_text("🔗 Send Channel Link:")
-    return Config.STATE_CHANNEL_ADD_LINK
-
-async def add_channel_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    db.add_channel(context.user_data['cid'], context.user_data['cname'], update.message.text)
-    await update.message.reply_text("✅ Channel Added!")
-    return ConversationHandler.END
-
-async def cancel_op(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("❌ Cancelled.")
-    return ConversationHandler.END
-
-async def handle_post_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    pid = int(query.data.replace("view_post_", ""))
     post = db.get_post(pid)
-    
-    if post:
-        missing = await security.check_membership(query.from_user.id, context.bot, post.get('force_channels', []))
-        if missing:
-            fail_msg = db.get_config('failed_message')
-            btns = [[{"text": f"Join {c['name']}", "url": c['link']}] for c in missing]
-            btns.append([{"text": "✅ Verify", "callback": f"view_post_{pid}"}])
-            await query.answer("❌ Join channels first!")
-            await query.message.reply_text(ui.format_text(fail_msg, query.from_user), reply_markup=ui.create_keyboard(btns, False), parse_mode=ParseMode.HTML)
-        else:
-            # Show content
-            key_btns = [[InlineKeyboardButton(b['name'], url=b['link'])] for b in post['buttons']]
-            kb = InlineKeyboardMarkup(key_btns)
-            caption = f"<b>{post['title']}</b>\n\n{post.get('post_text','')}\n\n✅ <i>Unlocked!</i>"
-            
-            if post.get('photo_id'):
-                await context.bot.send_photo(chat_id=query.from_user.id, photo=post['photo_id'], caption=caption, reply_markup=kb, parse_mode=ParseMode.HTML)
-            else:
-                await context.bot.send_message(chat_id=query.from_user.id, text=caption, reply_markup=kb, parse_mode=ParseMode.HTML)
-            await query.answer("✅ Access Granted!")
+    if not post:
+        await query.answer("❌ কন্টেন্ট পাওয়া যাচ্ছে না।", show_alert=True)
+        return
 
-# ==============================================================================
-# 🚀 APP SETUP
-# ==============================================================================
+    # মেম্বারশিপ চেক
+    missing = await security.check_membership(user.id, context.bot, post['channels'])
+    
+    # কেইস ১: জয়েন করেনি (Access Denied)
+    if missing:
+        # দুষ্টু অ্যালার্ট
+        await query.answer(EnvConfig.MSG_ACCESS_DENIED_POPUP, show_alert=True)
+        
+        # জয়েন বাটন
+        btns = [[InlineKeyboardButton(f"📢 জয়েন করো: {ch['name']}", url=ch['invite_link'])] for ch in missing]
+        btns.append([InlineKeyboardButton("🔄 চেক করুন", callback_data=f"verify_{pid}")])
+        
+        try:
+            msg = await context.bot.send_message(
+                chat_id=query.message.chat_id,
+                text=EnvConfig.MSG_ACCESS_DENIED_BODY.format(name=user.first_name),
+                reply_to_message_id=query.message.message_id,
+                reply_markup=InlineKeyboardMarkup(btns),
+                parse_mode=ParseMode.HTML
+            )
+            asyncio.create_task(delete_later(msg))
+        except: pass
+        return
+
+    # কেইস ২: ভেরিফাইড -> রিডাইরেক্ট
+    security.clear_cache(user.id)
+    bot_url = f"https://t.me/{context.bot.username}?start=show_{pid}"
+    await query.answer(EnvConfig.MSG_SUCCESS_REDIRECT, show_alert=False, url=bot_url)
+
+
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    /start কমান্ড এবং ডিপ লিংক হ্যান্ডলার।
+    """
+    user = update.effective_user
+    db.upsert_user(user)
+    args = context.args
+    
+    if not args:
+        await update.message.reply_text(
+            EnvConfig.MSG_WELCOME.format(name=user.first_name),
+            parse_mode=ParseMode.HTML
+        )
+        return
+
+    payload = args[0]
+    if payload.startswith("show_"):
+        try:
+            pid = int(payload.replace("show_", ""))
+            post = db.get_post(pid)
+            if not post: return
+            
+            # ডাবল চেক (সিকিউরিটি)
+            missing = await security.check_membership(user.id, context.bot, post['channels'])
+            if missing:
+                await update.message.reply_text("⛔ চালাকি করো না সোনা! আগে চ্যানেলে জয়েন করো।")
+                return
+            
+            # --- ডেলিভারি ---
+            # অরিজিনাল বাটন রিস্টোর
+            real_btns = [[InlineKeyboardButton(b['name'], url=b['link'])] for b in post['buttons']]
+            
+            # ফাইনাল মেসেজ
+            final_caption = (
+                f"{EnvConfig.MSG_CONTENT_HEADER}\n"
+                f"🎬 <b>{post['title']}</b>\n\n"
+                f"{post['caption']}"
+            )
+            
+            # আন-ব্লার ছবি পাঠানো
+            await context.bot.send_photo(
+                chat_id=user.id,
+                photo=post['photo_file_id'],
+                caption=final_caption,
+                reply_markup=InlineKeyboardMarkup(real_btns),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"ডিপ লিংক এরর: {e}")
+
+# ==================================================================================================
+# [ সেকশন ৮ ] : ইউটিলিটি এবং এডমিন প্যানেল
+# ==================================================================================================
+
+async def delete_later(msg):
+    await asyncio.sleep(EnvConfig.AUTO_DELETE_DELAY)
+    try: await msg.delete()
+    except: pass
+
+async def admin_panel(update, context):
+    if update.effective_user.id not in EnvConfig.ADMIN_IDS: return
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📝 নতুন পোস্ট তৈরি করুন", callback_data="wiz_post")],
+        [InlineKeyboardButton("➕ চ্যানেল যুক্ত করুন", callback_data="wiz_ch")]
+    ])
+    await update.message.reply_text(EnvConfig.MSG_ADMIN_PANEL, reply_markup=kb, parse_mode=ParseMode.HTML)
+
+async def cancel(update, context):
+    await update.message.reply_text("🚫 বাতিল করা হয়েছে।")
+    return ConversationHandler.END
+
+# ==================================================================================================
+# [ সেকশন ৯ ] : মেইন অ্যাপ্লিকেশন রানার
+# ==================================================================================================
 
 def main():
-    app = ApplicationBuilder().token(Config.TOKEN).build()
-    
-    # Handlers
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("admin", admin_command))
-    
-    # Post Wizard
-    app.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^create_post_start$')],
+    print(">>> [বট] লাভ বট চালু হচ্ছে...")
+    app = ApplicationBuilder().token(EnvConfig.BOT_TOKEN).build()
+
+    # উইজার্ড হ্যান্ডলারস
+    post_h = ConversationHandler(
+        entry_points=[CallbackQueryHandler(AdminWizard.start_post, pattern='^wiz_post$')],
         states={
-            Config.STATE_POST_TITLE: [MessageHandler(filters.TEXT, post_wizard.handle_title)],
-            Config.STATE_POST_PHOTO: [MessageHandler(filters.PHOTO, post_wizard.handle_photo)],
-            Config.STATE_POST_TEXT: [MessageHandler(filters.TEXT, post_wizard.handle_text)],
-            Config.STATE_POST_BUTTONS: [CallbackQueryHandler(post_wizard.handle_button_management)],
-            Config.STATE_POST_BUTTON_NAME: [MessageHandler(filters.TEXT, post_wizard.handle_button_name)],
-            Config.STATE_POST_BUTTON_LINK: [MessageHandler(filters.TEXT, post_wizard.handle_button_link)],
-            Config.STATE_POST_FORCE_CHANNELS: [CallbackQueryHandler(post_wizard.handle_force_channel_selection)],
-            Config.STATE_POST_TARGET_CHANNEL: [CallbackQueryHandler(post_wizard.handle_target_channel_selection)],
-            Config.STATE_POST_CONFIRM: [CallbackQueryHandler(post_wizard.finalize_post)]
+            EnvConfig.WIZ_TITLE: [MessageHandler(filters.TEXT, AdminWizard.get_title)],
+            EnvConfig.WIZ_PHOTO: [MessageHandler(filters.PHOTO, AdminWizard.get_photo)],
+            EnvConfig.WIZ_TEXT: [MessageHandler(filters.TEXT, AdminWizard.get_text)],
+            EnvConfig.WIZ_BTN_MENU: [CallbackQueryHandler(AdminWizard.menu_callback)],
+            EnvConfig.WIZ_BTN_NAME: [MessageHandler(filters.TEXT, AdminWizard.btn_name)],
+            EnvConfig.WIZ_BTN_LINK: [MessageHandler(filters.TEXT, AdminWizard.btn_link)],
+            EnvConfig.WIZ_TARGET: [CallbackQueryHandler(AdminWizard.finalize, pattern='^tgt_')]
         },
-        fallbacks=[CommandHandler('cancel', cancel_op)]
-    ))
-    
-    # Edit Config
-    app.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^edit_')],
-        states={Config.STATE_EDIT_MESSAGE: [MessageHandler(filters.TEXT, edit_config_handler)]},
-        fallbacks=[CommandHandler('cancel', cancel_op)]
-    ))
-    
-    # Add Channel
-    app.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^add_channel$')],
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    ch_h = ConversationHandler(
+        entry_points=[CallbackQueryHandler(AdminWizard.ch_start, pattern='^wiz_ch$')],
         states={
-            Config.STATE_CHANNEL_ADD_ID: [MessageHandler(filters.TEXT, add_channel_id)],
-            Config.STATE_CHANNEL_ADD_NAME: [MessageHandler(filters.TEXT, add_channel_name)],
-            Config.STATE_CHANNEL_ADD_LINK: [MessageHandler(filters.TEXT, add_channel_link)]
+            EnvConfig.ADD_CH_ID: [MessageHandler(filters.TEXT, AdminWizard.ch_id)],
+            EnvConfig.ADD_CH_NAME: [MessageHandler(filters.TEXT, AdminWizard.ch_name)],
+            EnvConfig.ADD_CH_LINK: [MessageHandler(filters.TEXT, AdminWizard.ch_link)],
         },
-        fallbacks=[CommandHandler('cancel', cancel_op)]
-    ))
-    
-    app.add_handler(CallbackQueryHandler(handle_post_view, pattern='^view_post_'))
-    app.add_handler(CallbackQueryHandler(callback_handler))
-    
-    print("🤖 Bot Started...")
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    # হ্যান্ডলার রেজিস্টার
+    app.add_handler(CommandHandler("start", start_handler))
+    app.add_handler(CommandHandler("admin", admin_panel))
+    app.add_handler(post_h)
+    app.add_handler(ch_h)
+    app.add_handler(CallbackQueryHandler(verify_handler, pattern='^verify_'))
+
+    print(">>> [বট] অনলাইনে আছে।")
     app.run_polling()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
