@@ -1,7 +1,7 @@
 """
 ================================================================================
 SUPREME GOD MODE BOT - ULTIMATE EDITION (FULL & FIXED)
-VERSION: v10.2 (Bangla Hot Love Edition)
+VERSION: v10.3 (Bangla Hot - Step-by-Step Button Edition)
 AUTHOR: AI ASSISTANT
 DATE: January 20, 2026
 ================================================================================
@@ -84,8 +84,12 @@ class Config:
         "cross": "❌", "warn": "⚠️", "info": "ℹ️", "tada": "🎉"
     }
     
-    # Conversation States (ALL STATES INCLUDED TO FIX ERROR)
+    # Conversation States (ALL STATES INCLUDED)
     STATE_EDIT_CONFIG = 1
+    STATE_POST_CAPTION = 2
+    STATE_POST_MEDIA = 3
+    STATE_POST_BUTTON = 4
+    STATE_POST_CONFIRM = 5
     STATE_BROADCAST = 6
     STATE_CHANNEL_ADD_ID = 7
     STATE_CHANNEL_ADD_NAME = 8
@@ -93,21 +97,15 @@ class Config:
     STATE_USER_BLOCK = 10
     STATE_VIP_ADD = 11
     STATE_BACKUP_RESTORE = 12
-    
-    # New Post Wizard States
-    STATE_POST_TITLE = 20
-    STATE_POST_MEDIA = 21
-    STATE_POST_BUTTONS = 22
-    STATE_POST_FORCE_CHANNELS = 23
-    STATE_POST_TARGET_CHANNELS = 24
-    
-    # Legacy States (Kept to prevent crashes)
-    STATE_POST_CAPTION = 30
-    STATE_POST_BUTTON_NAME = 31
-    STATE_POST_BUTTON_LINK = 32
-    STATE_POST_TARGET_SELECT = 33
-    STATE_POST_FINAL_CONFIRM = 34
-    STATE_POST_CONFIRM = 35
+
+    # 🔥 NEW Enhanced Post Wizard States
+    STATE_EP_TITLE = 20
+    STATE_EP_MEDIA = 21
+    STATE_EP_BTN_NAME = 22
+    STATE_EP_BTN_LINK = 23
+    STATE_EP_ADD_MORE = 24
+    STATE_EP_FORCE_CHANNELS = 25
+    STATE_EP_TARGET = 26
 
     # 🔥 Bangla Hot Messages
     MSG_SUCCESS = """<b>💖🔥 Heyyy {mention} 😘💋</b>
@@ -214,7 +212,7 @@ class DatabaseManager:
             added_date DATETIME DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active'
         )''')
         
-        # Enhanced Posts (Updated for new flow)
+        # New: Enhanced Posts Table
         cursor.execute('''CREATE TABLE IF NOT EXISTS enhanced_posts (
             post_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT,
@@ -241,6 +239,12 @@ class DatabaseManager:
         cursor.execute('''CREATE TABLE IF NOT EXISTS flood_control (
             user_id INTEGER PRIMARY KEY, message_count INTEGER DEFAULT 0,
             last_message DATETIME DEFAULT CURRENT_TIMESTAMP
+        )''')
+        
+        # Session table
+        cursor.execute('''CREATE TABLE IF NOT EXISTS sessions (
+            session_id TEXT PRIMARY KEY, user_id INTEGER, data TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME
         )''')
         
         conn.commit()
@@ -288,7 +292,7 @@ class DatabaseManager:
             return d
         return None
 
-    def increment_post_views(self, post_id, user_id=None):
+    def increment_post_views(self, post_id):
         conn = self.get_connection()
         conn.execute("UPDATE enhanced_posts SET view_count = view_count + 1 WHERE post_id = ?", (post_id,))
         conn.commit()
@@ -396,6 +400,20 @@ class DatabaseManager:
         except: return None
         
     def check_flood(self, user_id): return False 
+    
+    def cleanup_sessions(self):
+        conn = self.get_connection()
+        conn.execute("DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP")
+        conn.commit()
+    
+    def get_user(self, user_id):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+        columns = [desc[0] for desc in cursor.description]
+        row = cursor.fetchone()
+        if row: return dict(zip(columns, row))
+        return None
 
 db = DatabaseManager()
 
@@ -447,7 +465,10 @@ threading.Thread(target=run_health_server, daemon=True).start()
 
 class UIManager:
     @staticmethod
-    def format_text(text: str, user=None):
+    def format_text(text: str, user=None, emojis=True):
+        if emojis:
+            for k, v in Config.EMOJIS.items():
+                text = text.replace(f"{{{k}}}", v)
         if user:
             text = text.replace("{mention}", mention_html(user.id, user.first_name))
         return text
@@ -473,26 +494,31 @@ class UIManager:
             [{"text": "💾 Backup", "callback": "backup_now"}, {"text": "🛡️ Security", "callback": "menu_security"}]
         ]
         return UIManager.create_keyboard(buttons, add_close=True)
+        
+    @staticmethod
+    def get_stats_display(stats):
+        return f"""
+📊 <b>Stats</b>
+Users: {stats['total_users']}
+Channels: {stats['active_channels']}
+Posts: {stats['enhanced_posts']}
+"""
 
 ui = UIManager()
 
 # ==============================================================================
-# 🔐 SECURITY MANAGER (Updated for Per-Post Verification)
+# 🔐 SECURITY MANAGER
 # ==============================================================================
 
 class SecurityManager:
     async def check_membership(self, user_id, bot, force_channels=None):
-        """Check if user is member of required channels"""
         missing_channels = []
         
-        # If specific force channels for a post provided, use those
-        # Otherwise use all active channels
         if force_channels:
             all_channels = db.get_channels()
-            # Filter channels that match the IDs in force_channels
             channels_to_check = [c for c in all_channels if c['id'] in force_channels]
         else:
-            channels_to_check = db.get_channels(active_only=True)
+            channels_to_check = db.get_channels(active_only=True, force_join_only=True)
         
         for channel in channels_to_check:
             try:
@@ -505,11 +531,12 @@ class SecurityManager:
         return missing_channels
 
     def check_flood(self, user_id): return False
+    def check_maintenance(self, user_id): return False
 
 security = SecurityManager()
 
 # ==============================================================================
-# 🎯 ENHANCED POST WIZARD (NEW FLOW)
+# 🎯 ENHANCED POST WIZARD (STEP-BY-STEP BUTTON LOGIC)
 # ==============================================================================
 
 class EnhancedPostWizard:
@@ -523,10 +550,10 @@ class EnhancedPostWizard:
         
         await update.callback_query.answer()
         await update.callback_query.message.reply_text(
-            "📝 <b>Create Post - Step 1/5</b>\n\n✏️ Send the <b>Post Title</b>:",
+            "📝 <b>Create Post - Step 1/6</b>\n\n✏️ Send the <b>Post Title</b>:",
             parse_mode=ParseMode.HTML
         )
-        return Config.STATE_POST_TITLE
+        return Config.STATE_EP_TITLE
     
     async def handle_title(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Step 2: Media"""
@@ -536,13 +563,13 @@ class EnhancedPostWizard:
         self.active_wizards[user.id]['data']['title'] = update.message.text
         
         await update.message.reply_text(
-            "📸 <b>Create Post - Step 2/5</b>\n\n🖼️ Send a <b>Photo</b> (or type /skip for text only):",
+            "📸 <b>Create Post - Step 2/6</b>\n\n🖼️ Send a <b>Photo</b> (or type /skip for text only):",
             parse_mode=ParseMode.HTML
         )
-        return Config.STATE_POST_MEDIA
+        return Config.STATE_EP_MEDIA
     
     async def handle_media(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Step 3: Buttons"""
+        """Step 3: Button Name"""
         user = update.effective_user
         if user.id not in self.active_wizards: return ConversationHandler.END
         
@@ -554,51 +581,66 @@ class EnhancedPostWizard:
             self.active_wizards[user.id]['data']['media_type'] = 'text'
             
         await update.message.reply_text(
-            "🔘 <b>Create Post - Step 3/5</b>\n\n"
-            "Send <b>Buttons</b> in format: `Text - URL`\n"
-            "Send multiple lines for multiple buttons.\n\n"
-            "<i>Example:</i>\n"
-            "Watch Video - https://t.me/...\n"
-            "Download - https://link.com\n\n"
-            "👉 Type <b>/done</b> when finished.",
-            parse_mode=ParseMode.HTML,
-            disable_web_page_preview=True
+            "🔘 <b>Create Post - Step 3/6</b>\n\n"
+            "Send the <b>Button Name</b> (e.g. Watch Video):",
+            parse_mode=ParseMode.HTML
         )
-        return Config.STATE_POST_BUTTONS
+        return Config.STATE_EP_BTN_NAME
     
-    async def handle_buttons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Step 4: Force Channels"""
+    async def handle_btn_name(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Step 4: Button Link"""
         user = update.effective_user
         if user.id not in self.active_wizards: return ConversationHandler.END
         
-        text = update.message.text
+        self.active_wizards[user.id]['temp_btn_name'] = update.message.text
         
-        if text.lower() == '/done':
-            # Initialize temp selection
+        await update.message.reply_text(
+            "🔗 <b>Create Post - Step 4/6</b>\n\n"
+            "Send the <b>Button URL</b> (https://...):",
+            parse_mode=ParseMode.HTML
+        )
+        return Config.STATE_EP_BTN_LINK
+
+    async def handle_btn_link(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Step 5: Add More or Done"""
+        user = update.effective_user
+        if user.id not in self.active_wizards: return ConversationHandler.END
+        
+        link = update.message.text
+        if not link.startswith("http"):
+            await update.message.reply_text("❌ Invalid URL! Send again (start with http/https):")
+            return Config.STATE_EP_BTN_LINK
+        
+        name = self.active_wizards[user.id]['temp_btn_name']
+        self.active_wizards[user.id]['data']['buttons'].append({'text': name, 'url': link})
+        
+        keyboard = [
+            [{"text": "➕ Add Another Button", "callback": "add_more_btn"}],
+            [{"text": "✅ Done / Next Step", "callback": "done_btns"}]
+        ]
+        
+        await update.message.reply_text(
+            f"✅ Button Added: <b>{name}</b>\n\nTotal Buttons: {len(self.active_wizards[user.id]['data']['buttons'])}",
+            reply_markup=ui.create_keyboard(keyboard),
+            parse_mode=ParseMode.HTML
+        )
+        return Config.STATE_EP_ADD_MORE
+
+    async def handle_add_more(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Loop or Proceed"""
+        query = update.callback_query
+        user = query.from_user
+        
+        if query.data == "add_more_btn":
+            await query.message.reply_text("🔘 Send <b>Button Name</b>:")
+            return Config.STATE_EP_BTN_NAME
+            
+        elif query.data == "done_btns":
+            # Proceed to Force Channel Selection
             self.active_wizards[user.id]['data']['temp_channels'] = []
             await self.show_force_selection(update, user.id)
-            return Config.STATE_POST_FORCE_CHANNELS
-        
-        # Parse buttons
-        count = 0
-        for line in text.split('\n'):
-            if '-' in line:
-                try:
-                    name, link = line.split('-', 1)
-                    if link.strip().startswith('http'):
-                        self.active_wizards[user.id]['data']['buttons'].append({
-                            'text': name.strip(), 'url': link.strip()
-                        })
-                        count += 1
-                except: pass
-        
-        if count > 0:
-            await update.message.reply_text(f"✅ Added {count} buttons. Send more or type /done.")
-        else:
-            await update.message.reply_text("⚠️ Invalid format. Use: Text - URL")
+            return Config.STATE_EP_FORCE_CHANNELS
             
-        return Config.STATE_POST_BUTTONS
-    
     async def show_force_selection(self, update, user_id):
         channels = db.get_channels(active_only=True)
         if not channels:
@@ -623,7 +665,7 @@ class EnhancedPostWizard:
         
         buttons.append([{"text": "➡️ Continue to Publish", "callback": "confirm_force"}])
         
-        text = "🔒 <b>Step 4/5: Force Join Channels</b>\nSelect channels users MUST join:"
+        text = "🔒 <b>Step 5/6: Force Join Channels</b>\nSelect channels users MUST join:"
         
         if update.callback_query:
             await update.callback_query.edit_message_text(text, reply_markup=ui.create_keyboard(buttons), parse_mode=ParseMode.HTML)
@@ -643,7 +685,7 @@ class EnhancedPostWizard:
             else: selected.append(cid)
             
             await self.show_force_selection(update, user.id)
-            return Config.STATE_POST_FORCE_CHANNELS
+            return Config.STATE_EP_FORCE_CHANNELS
             
         elif data == "confirm_force":
             # Move to Target Channel
@@ -658,11 +700,11 @@ class EnhancedPostWizard:
             if row: buttons.append(row)
             
             await query.edit_message_text(
-                "🚀 <b>Step 5/5: Select Publish Channel</b>\nWhere to post?",
+                "🚀 <b>Step 6/6: Select Publish Channel</b>\nWhere to post?",
                 reply_markup=ui.create_keyboard(buttons),
                 parse_mode=ParseMode.HTML
             )
-            return Config.STATE_POST_TARGET_CHANNELS
+            return Config.STATE_EP_TARGET
 
     async def handle_target_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
@@ -785,33 +827,38 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # === NORMAL START ===
-    welcome_text = "💖 <b>Welcome to Supreme Bot!</b> 💖\nStay tuned for premium content!"
-    if user.id in Config.ADMIN_IDS:
-        welcome_text += "\n\n👑 <b>Admin Mode Active</b>\nType /admin for panel."
-        
-    await update.message.reply_text(welcome_text, parse_mode=ParseMode.HTML)
+    welcome_text = db.get_config('welcome_msg')
+    welcome_text = ui.format_text(welcome_text, user)
+    
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(db.get_config('btn_text'), url=db.get_config('watch_url'))
+    ]])
+    
+    try:
+        await update.message.reply_photo(
+            photo=db.get_config('welcome_photo'),
+            caption=welcome_text,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    except:
+         await update.message.reply_text(welcome_text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.ADMIN_IDS: return
-    stats = db.get_stats()
-    text = f"""
-{Config.EMOJIS['admin']} <b>SUPREME ADMIN PANEL</b>
-
-{Config.EMOJIS['users']} Users: {stats['total_users']}
-{Config.EMOJIS['chart']} Channels: {stats['active_channels']}
-{Config.EMOJIS['fire']} Posts: {stats['enhanced_posts']}
-
-👇 <b>Select Option:</b>
-"""
-    await update.message.reply_text(text, reply_markup=ui.get_admin_menu(), parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        "👑 <b>Admin Panel</b>", 
+        reply_markup=ui.get_admin_menu(), 
+        parse_mode=ParseMode.HTML
+    )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Help Menu")
+    await update.message.reply_text("Available Commands:\n/start - Start Bot\n/admin - Panel")
 
 async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.ADMIN_IDS: return
     f = db.create_backup()
-    await update.message.reply_text(f"Backup: {f}")
+    await update.message.reply_text(f"Backup created: {os.path.basename(f)}")
 
 # ==============================================================================
 # 🔄 CALLBACK HANDLER (ALL MENUS)
@@ -827,6 +874,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await enhanced_wizard.start_wizard(update, context)
     elif "toggle_force_" in data or data == "confirm_force":
         return await enhanced_wizard.handle_force_selection(update, context)
+    elif data == "add_more_btn" or data == "done_btns":
+        return await enhanced_wizard.handle_add_more(update, context)
     elif data.startswith("target_"):
         return await enhanced_wizard.handle_target_selection(update, context)
         
@@ -865,7 +914,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     elif data == "menu_stats":
         stats = db.get_stats()
-        t = f"📊 <b>Stats</b>\nUsers: {stats['total_users']}\nPosts: {stats['enhanced_posts']}"
+        t = ui.get_stats_display(stats)
         await query.edit_message_text(t, reply_markup=ui.create_keyboard([], add_back=True), parse_mode=ParseMode.HTML)
 
     elif data == "main_menu":
@@ -880,7 +929,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer(f"Saved: {os.path.basename(f)}", show_alert=True)
 
 # ==============================================================================
-# ✏️ CONVERSATION HANDLERS (RESTORED ALL)
+# ✏️ CONVERSATION HANDLERS (ALL INCLUDED)
 # ==============================================================================
 
 # Add Channel
@@ -929,6 +978,20 @@ async def add_vip_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except: await update.message.reply_text("Error")
     return ConversationHandler.END
 
+# Old Post Wizard (Kept for compatibility)
+async def post_caption_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['post_wizard']['caption'] = update.message.text_html
+    await update.message.reply_text("Photo?")
+    return Config.STATE_POST_MEDIA
+async def post_media_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Stub for old flow compatibility
+    await update.message.reply_text("Use New Wizard.")
+    return ConversationHandler.END
+async def post_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return ConversationHandler.END
+async def post_confirm_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return ConversationHandler.END
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Cancelled")
     return ConversationHandler.END
@@ -940,15 +1003,17 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     application = ApplicationBuilder().token(Config.TOKEN).build()
     
-    # 1. Post Wizard
+    # 1. New Enhanced Post Wizard
     post_conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(enhanced_wizard.start_wizard, pattern='^enhanced_post_start$')],
         states={
-            Config.STATE_POST_TITLE: [MessageHandler(filters.TEXT, enhanced_wizard.handle_title)],
-            Config.STATE_POST_MEDIA: [MessageHandler(filters.ALL, enhanced_wizard.handle_media)],
-            Config.STATE_POST_BUTTONS: [MessageHandler(filters.TEXT, enhanced_wizard.handle_buttons)],
-            Config.STATE_POST_FORCE_CHANNELS: [CallbackQueryHandler(enhanced_wizard.handle_force_selection)],
-            Config.STATE_POST_TARGET_CHANNELS: [CallbackQueryHandler(enhanced_wizard.handle_target_selection)],
+            Config.STATE_EP_TITLE: [MessageHandler(filters.TEXT, enhanced_wizard.handle_title)],
+            Config.STATE_EP_MEDIA: [MessageHandler(filters.ALL, enhanced_wizard.handle_media)],
+            Config.STATE_EP_BTN_NAME: [MessageHandler(filters.TEXT, enhanced_wizard.handle_btn_name)],
+            Config.STATE_EP_BTN_LINK: [MessageHandler(filters.TEXT, enhanced_wizard.handle_btn_link)],
+            Config.STATE_EP_ADD_MORE: [CallbackQueryHandler(enhanced_wizard.handle_add_more)],
+            Config.STATE_EP_FORCE_CHANNELS: [CallbackQueryHandler(enhanced_wizard.handle_force_selection)],
+            Config.STATE_EP_TARGET: [CallbackQueryHandler(enhanced_wizard.handle_target_selection)],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
@@ -971,14 +1036,26 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     
-    # 4. Block/VIP
+    # 4. Old Wizard (Kept for compatibility with old imports)
+    old_post_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^create_post_start$')],
+        states={
+            Config.STATE_POST_CAPTION: [MessageHandler(filters.TEXT, post_caption_handler)],
+            Config.STATE_POST_MEDIA: [MessageHandler(filters.ALL, post_media_handler)],
+            Config.STATE_POST_BUTTON: [MessageHandler(filters.TEXT, post_button_handler)],
+            Config.STATE_POST_CONFIRM: [CallbackQueryHandler(post_confirm_handler)]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    # 5. Security Menus
     blk_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^menu_security$')],
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^block_user_start$')],
         states={Config.STATE_USER_BLOCK: [MessageHandler(filters.TEXT, block_user_handler)]},
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     vip_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_handler, pattern='^menu_vip$')],
+        entry_points=[CallbackQueryHandler(callback_handler, pattern='^add_vip_start$')],
         states={Config.STATE_VIP_ADD: [MessageHandler(filters.TEXT, add_vip_handler)]},
         fallbacks=[CommandHandler('cancel', cancel)]
     )
@@ -991,6 +1068,7 @@ def main():
     application.add_handler(post_conv)
     application.add_handler(ch_conv)
     application.add_handler(bc_conv)
+    application.add_handler(old_post_conv)
     application.add_handler(blk_conv)
     application.add_handler(vip_conv)
     
@@ -1002,7 +1080,7 @@ def main():
         
     application.add_error_handler(error_handler)
     
-    print("🚀 SUPREME BOT v10.2 IS RUNNING...")
+    print("🚀 SUPREME BOT v10.3 IS RUNNING...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
