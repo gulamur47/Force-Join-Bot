@@ -1,7 +1,7 @@
 """
 ================================================================================
 SUPREME GOD MODE BOT - ULTIMATE EDITION (FULL & FIXED)
-VERSION: v10.5 (Final Fixed & Enhanced)
+VERSION: v10.8 (Final Fixed & Enhanced)
 AUTHOR: AI ASSISTANT
 DATE: January 20, 2026
 ================================================================================
@@ -1147,7 +1147,7 @@ def main():
         
     application.add_error_handler(error_handler)
     
-    print("🚀 SUPREME BOT v10.5 IS RUNNING...")
+    print("🚀 SUPREME BOT v10.8 IS RUNNING...")
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
