@@ -35,7 +35,7 @@ from telegram.ext import (
 # ==============================================================================
 
 class Config:
-    # Bot Token
+    # Bot Token - Environment variable থেকে নিবে
     TOKEN = os.environ.get("BOT_TOKEN", "8007194607:AAHhuMvS3z814Fr2eF_17K1wv8UPXmvA1kY")
     ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "8013042180").split(",")}
     
@@ -44,7 +44,6 @@ class Config:
     
     # System
     DEFAULT_AUTO_DELETE = 60  # 60 seconds auto delete
-    PORT = int(os.environ.get("PORT", 8080))
     
     # Default Channels
     DEFAULT_CHANNELS = [
@@ -70,14 +69,10 @@ class Config:
     STATE_CHANNEL_ADD_ID = 11
     STATE_CHANNEL_ADD_NAME = 12
     STATE_CHANNEL_ADD_LINK = 13
-    STATE_BLOCK_USER = 14
-    STATE_ADD_VIP = 15
-    STATE_EDIT_MESSAGE = 16
-    STATE_BROADCAST = 17
-    STATE_WELCOME_PHOTO = 18
-    STATE_EDIT_CHANNEL = 19
-    STATE_EDIT_CHANNEL_NAME = 20
-    STATE_EDIT_CHANNEL_LINK = 21
+    STATE_EDIT_MESSAGE = 14
+    STATE_WELCOME_PHOTO = 15
+    STATE_EDIT_CHANNEL_NAME = 16
+    STATE_EDIT_CHANNEL_LINK = 17
     
     # Emojis
     EMOJIS = {
@@ -104,8 +99,7 @@ class Config:
         "target": "🎯",
         "photo": "🖼️",
         "edit": "✏️",
-        "delete": "🗑️",
-        "refresh": "🔄"
+        "delete": "🗑️"
     }
     
     # Enhanced Verification Messages
@@ -114,7 +108,7 @@ class Config:
         'joined_popup': "💖🔥 হেই প্রিয়! 🔥💖\n✅ আপনি সফলভাবে Join করেছেন 🎉✨\nএবার 👉 ▶️ WATCH NOW ▶️ বাটনে ক্লিক করুন 😘💎\n😈 তারপরই খুলে যাবে আপনার জন্য 🔞 ভাইরাল ভিডিও এর দুনিয়া 💋🔥",
         'access_granted': "🎉 ✅ অ্যাক্সেস গ্রান্টেড! এখন ভিডিও লিংক দেখতে পারবেন।",
         'watch_button_text': "▶️ WATCH NOW ▶️",
-        'verify_button_text': "✅ Verified"
+        'verify_button_text': "✅ Verify & View"
     }
 
 # ==============================================================================
@@ -407,13 +401,6 @@ class DatabaseManager:
         conn.commit()
         return cursor.rowcount > 0
     
-    def remove_channel(self, channel_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE channels SET is_active = 0 WHERE channel_id = ?", (str(channel_id),))
-        conn.commit()
-        return cursor.rowcount > 0
-    
     def delete_channel(self, channel_id):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -512,21 +499,6 @@ class DatabaseManager:
                 post['force_channels'] = json.loads(post['force_channels'])
             return post
         return None
-    
-    def get_all_posts(self, limit=50):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM posts ORDER BY created_date DESC LIMIT ?', (limit,))
-        rows = cursor.fetchall()
-        posts = []
-        for row in rows:
-            post = dict(row)
-            if post.get('buttons'):
-                post['buttons'] = json.loads(post['buttons'])
-            if post.get('force_channels'):
-                post['force_channels'] = json.loads(post['force_channels'])
-            posts.append(post)
-        return posts
     
     def get_watch_url(self, post_id):
         post = self.get_post(post_id)
@@ -1132,7 +1104,7 @@ class EnhancedPostWizard:
             
             # Add only VERIFY button initially
             keyboard_buttons.append([InlineKeyboardButton(
-                "🔓 Verify & View", 
+                Config.VERIFICATION_MESSAGES['verify_button_text'], 
                 callback_data=f"verify_post_{post_id}"
             )])
             
@@ -1195,7 +1167,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.add_user(user.id, user.username, user.first_name, user.last_name or "")
     db.update_user_activity(user.id)
     
-    if db.get_user(user.id).get('is_blocked'):
+    if db.get_user(user.id) and db.get_user(user.id).get('is_blocked'):
         await update.message.reply_text("🚫 Restricted Access.")
         return
     
@@ -1273,7 +1245,9 @@ async def delete_later(message, delay):
         pass
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in Config.ADMIN_IDS:
+    user = update.effective_user
+    if user.id not in Config.ADMIN_IDS:
+        await update.message.reply_text("🚫 Access denied!")
         return
     
     await update.message.reply_text(
@@ -1291,7 +1265,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = query.from_user
     data = query.data
     
-    await query.answer()  # Always answer callback query
+    await query.answer()
     
     db.update_user_activity(user.id)
     
@@ -1467,7 +1441,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         channel_id = data.replace("delete_channel_", "")
         db.delete_channel(channel_id)
         await query.answer("✅ Channel deleted!", show_alert=True)
-        await callback_handler(update, context)  # Go back to channel list
+        await callback_handler(update, context)
     
     # Admin Menus
     elif data == "menu_messages":
@@ -1510,7 +1484,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += f"🔒 <b>Force Channels:</b> {stats['force_channels']}\n"
         text += f"📝 <b>Total Posts:</b> {stats['total_posts']}\n"
         
-        buttons = {"text": "🔙 Back", "callback": "main_menu"}
+        buttons = [[{"text": "🔙 Back", "callback": "main_menu"}]]
         await query.edit_message_text(
             text,
             reply_markup=ui.create_keyboard(buttons, add_back=False, add_close=True),
@@ -1518,7 +1492,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     
     elif data == "menu_users":
-        users = db.get_all_users()[:20]  # Show first 20 users
+        users = db.get_all_users()[:20]
         text = f"👥 <b>User Management</b>\n\n"
         text += f"📊 Showing {len(users)} users\n\n"
         
@@ -1547,7 +1521,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await post_wizard.finalize_post(update, context)
     
     elif data == "edit_post":
-        # Go back to title step
         user = query.from_user
         if user.id in post_wizard.active_wizards:
             post_wizard.active_wizards[user.id]['step'] = 'title'
@@ -1802,39 +1775,15 @@ async def cancel_op(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 # ==============================================================================
-# 🚀 HEALTH CHECK FOR BOT.BUILDER.CO
-# ==============================================================================
-
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return jsonify({
-        "status": "online",
-        "service": "Telegram Bot",
-        "timestamp": datetime.now().isoformat()
-    })
-
-@app.route('/health')
-def health():
-    return jsonify({"status": "healthy"})
-
-def run_flask():
-    app.run(host='0.0.0.0', port=Config.PORT)
-
-# ==============================================================================
-# 🚀 APP SETUP
+# 🚀 APP SETUP - BOT.BUILDER.CO OPTIMIZED
 # ==============================================================================
 
 def main():
-    # Start Flask server in a separate thread for bot.builder.co
-    import threading
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    
     # Create Telegram bot application
+    print("🤖 Starting Supreme God Bot v10.0...")
+    print(f"👑 Admin IDs: {Config.ADMIN_IDS}")
+    print(f"🔧 Database: {Config.DB_NAME}")
+    
     app = ApplicationBuilder().token(Config.TOKEN).build()
     
     # Handlers
@@ -1908,9 +1857,8 @@ def main():
     # General callback handler
     app.add_handler(CallbackQueryHandler(callback_handler))
     
-    print(f"🤖 Bot Started with Enhanced Verification System on port {Config.PORT}...")
-    print(f"👑 Admin IDs: {Config.ADMIN_IDS}")
-    print(f"🌐 Health check available at: http://0.0.0.0:{Config.PORT}/health")
+    print("✅ Bot setup completed successfully!")
+    print("🚀 Starting bot polling...")
     
     # Start bot
     app.run_polling()
