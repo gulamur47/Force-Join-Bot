@@ -36,8 +36,8 @@ from telegram.ext import (
 
 class Config:
     # Bot Token - Environment variable থেকে নিবে
-    TOKEN = os.environ.get("BOT_TOKEN", "")
-    ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()}
+    TOKEN = os.environ.get("8007194607:AAHhuMvS3z814Fr2eF_17K1wv8UPXmvA1kY", "")
+    ADMIN_IDS = {int(x) for x in os.environ.get("8013042180", "").split(",") if x.strip()}
     
     # Video Downloader Bot
     VIDEO_BOT_USERNAME = "@videodownloader247_bot"
