@@ -40,7 +40,7 @@ class Config:
     ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "8013042180").split(",")}
     
     # Video Downloader Bot
-    VIDEO_BOT_USERNAME = "@videodownloader247_bot"
+    VIDEO_BOT_USERNAME = "@viralvideo2026_46_bot"
     VIDEO_BOT_LINK = f"https://t.me/{VIDEO_BOT_USERNAME.replace('@', '')}"
     
     # Database
