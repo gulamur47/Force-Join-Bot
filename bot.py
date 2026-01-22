@@ -1788,7 +1788,7 @@ async def handle_channel_management(update: Update, context: ContextTypes.DEFAUL
     
     if not channels:
         text = "📢 <b>Channel Manager</b>\n\n❌ No channels added yet."
-        buttons = [[{"text": "➕ Add Channel", "callback": "add_channel"}]]
+        buttons = {"text": "➕ Add Channel", "callback": "add_channel"}
     else:
         text = f"📢 <b>Channel Manager</b>\n\n📊 Total Channels: {len(channels)}\n\nSelect a channel to manage:"
         buttons = ui.create_channel_buttons(channels, include_edit=True)
@@ -1878,7 +1878,7 @@ async def handle_stats_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     text += f"🔒 <b>Force Channels:</b> {stats.get('force_channels', 0)}\n"
     text += f"📝 <b>Total Posts:</b> {stats.get('total_posts', 0)}\n"
     
-    buttons = [[{"text": "🔙 Back", "callback": "main_menu"}]]
+    buttons = {"text": "🔙 Back", "callback": "main_menu"}
     
     await query.edit_message_text(
         text,
@@ -1902,7 +1902,7 @@ async def handle_users_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     if len(users) > 10:
         text += f"\n... and {len(users) - 10} more users"
     
-    buttons = [[{"text": "🔙 Back", "callback": "main_menu"}]]
+    buttons = {"text": "🔙 Back", "callback": "main_menu"}
     
     await query.edit_message_text(
         text,
